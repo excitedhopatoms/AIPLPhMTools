@@ -1,4 +1,15 @@
-from .BasicDefine import *
+import gdsfactory as gf
+import numpy as np
+import csv
+from gdsfactory.typings import Layer
+from gdsfactory.component import Component
+from gdsfactory.path import Path, _fresnel, _rotate_points
+from gdsfactory.typings import LayerSpec
+from gdsfactory.cross_section import cross_section
+from gdsfactory.generic_tech import get_generic_pdk
+from gdsfactory.pdk import get_active_pdk
+from gdsfactory.typings import Layer, LayerSpec, LayerSpecs ,Optional, Callable
+from .BasicDefine import add_labels_to_ports,add_labels_decorator,Crossing_taper,TaperRsoa,cir2end,euler_Bend_Half,TWQRcode,LAYER,r_euler_true,r_euler_false
 from .Heater import SnakeHeater
 from .RaceTrack import *
 # %% TCRing5: racetrack ring
@@ -27,24 +38,22 @@ def TCRaceTrack(
     taper_s2n_1 = sr << gf.c.taper(width1=width_single,width2=width_near,length=length_taper,layer = oplayer)
     taper_s2n_2 = sr << gf.c.taper(width2=width_single, width1=width_near, length=length_taper,layer = oplayer)
     ring.rotate(90).movex(pos_ring)
-    taper_s2n_1.connect("o2",other=ring.ports["Input"])
-    taper_s2n_2.connect("o1",other=ring.ports["Through"])
+    taper_s2n_1.connect("o2",destination=ring.ports["Input"])
+    taper_s2n_2.connect("o1",destination=ring.ports["Through"])
     bend_single_1 = sr << gf.c.bend_euler(width = width_single,angle = -90,radius=r_bend,layer=oplayer)
     bend_single_2 = sr << gf.c.bend_euler(width=width_single, angle=90, radius=r_bend, layer=oplayer)
-    bend_single_1.connect("o2",other=taper_s2n_1.ports["o1"])
-    bend_single_2.connect("o1",other=taper_s2n_2.ports["o2"])
+    bend_single_1.connect("o2",destination=taper_s2n_1.ports["o1"])
+    bend_single_2.connect("o1",destination=taper_s2n_2.ports["o2"])
     #input
     if tin != None:
         ctin = sr << tin
-        ctin.connect("o2",bend_single_1.ports["o1"])
-        ctin.movex(-pos_ring)
+        ctin.connect("o2",bend_single_1.ports["o1"]).movex(-pos_ring)
         route_in = gf.routing.get_route(ctin.ports["o2"],bend_single_1.ports["o1"],layer= oplayer,width = width_single)
         sr.add(route_in.references)
     #output
     if tout != None:
         ctout = sr << tout
-        ctout.connect("o2",other=ctin.ports["o1"])
-        ctout.movex(length_total)
+        ctout.connect("o2",destination=ctin.ports["o1"]).movex(length_total)
         delta = ctout.ports["o1"].center-bend_single_2.ports["o2"].center
         ctout.movey(-delta[1])
         route_out = gf.routing.get_route(ctout.ports["o1"],bend_single_2.ports["o2"],layer= oplayer,width = width_single)
@@ -80,26 +89,24 @@ def TCRaceTrack2_1(
     taper_s2n_1 = sr << gf.c.taper(width1=width_single,width2=width_near,length=length_taper,layer = oplayer)
     taper_s2n_2 = sr << gf.c.taper(width2=width_single, width1=width_near, length=length_taper,layer = oplayer)
     ring.rotate(270).movex(pos_ring)
-    taper_s2n_1.connect("o2",other=ring.ports["Input"])
-    taper_s2n_2.connect("o1",other=ring.ports["Through"])
+    taper_s2n_1.connect("o2",destination=ring.ports["Input"])
+    taper_s2n_2.connect("o1",destination=ring.ports["Through"])
     bend_outsingle_1 = sr << gf.c.bend_euler(width = width_single,angle = -90,radius=r_bend,layer=oplayer)
-    bend_outsingle_1.connect("o1",other=taper_s2n_2.ports["o2"])
-    str_outsingle_1 = sr << GfCStraight(width = width_single,length = length_updown,layer=oplayer)
-    str_outsingle_1.connect("o1",other=bend_outsingle_1.ports["o2"])
+    bend_outsingle_1.connect("o1",destination=taper_s2n_2.ports["o2"])
+    str_outsingle_1 = sr << gf.c.straight(width = width_single,length = length_updown,layer=oplayer)
+    str_outsingle_1.connect("o1",destination=bend_outsingle_1.ports["o2"])
     bend_outsingle_2 = sr << gf.c.bend_euler(width=width_single, angle=90, radius=r_bend, layer=oplayer)
-    bend_outsingle_2.connect("o1",other=str_outsingle_1.ports["o2"])
+    bend_outsingle_2.connect("o1",destination=str_outsingle_1.ports["o2"])
     #input
     if tin != None:
         ctin = sr << tin
-        ctin.connect("o2",ring.ports["Input"])
-        ctin.movex(-pos_ring)
+        ctin.connect("o2",ring.ports["Input"]).movex(-pos_ring)
         route_in = gf.routing.get_route(ctin.ports["o2"],taper_s2n_1.ports["o1"],layer= oplayer,width = width_single)
         sr.add(route_in.references)
     #output
     if tout != None:
         ctout = sr << tout
-        ctout.connect("o2",other=ctin.ports["o1"])
-        ctout.movex(length_total)
+        ctout.connect("o2",destination=ctin.ports["o1"]).movex(length_total)
         delta = ctout.ports["o1"].center-bend_outsingle_2.ports["o2"].center
         ctout.movey(-delta[1])
         route_out = gf.routing.get_route(ctout.ports["o1"],bend_outsingle_2.ports["o2"],layer= oplayer,width = width_single)
@@ -135,27 +142,25 @@ def TCRaceTrack2_2(
     )
     taper_s2n_1 = sr << gf.c.taper(width1=width_single,width2=width_near,length=length_taper,layer = oplayer)
     taper_s2n_2 = sr << gf.c.taper(width2=width_single, width1=width_near, length=length_taper,layer = oplayer)
-    ring.rotate(90).mirror_x(ring.ports["Input"].center[0]).movex(pos_ring)
-    taper_s2n_1.connect("o2",other=ring.ports["Input"])
-    taper_s2n_2.connect("o1",other=ring.ports["Through"])
+    ring.rotate(90).mirror_x("Input").movex(pos_ring)
+    taper_s2n_1.connect("o2",destination=ring.ports["Input"])
+    taper_s2n_2.connect("o1",destination=ring.ports["Through"])
     bend_insingle_1 = sr << gf.c.bend_euler(width = width_single,angle = 90,radius=r_bend,layer=oplayer)
-    bend_insingle_1.connect("o2",other=taper_s2n_1.ports["o1"])
-    str_insingle_1 = sr << GfCStraight(width = width_single,length = length_updown,layer=oplayer)
-    str_insingle_1.connect("o2",other=bend_insingle_1.ports["o1"])
+    bend_insingle_1.connect("o2",destination=taper_s2n_1.ports["o1"])
+    str_insingle_1 = sr << gf.c.straight(width = width_single,length = length_updown,layer=oplayer)
+    str_insingle_1.connect("o2",destination=bend_insingle_1.ports["o1"])
     bend_insingle_2 = sr << gf.c.bend_euler(width = width_single,angle = -90,radius=r_bend,layer=oplayer)
-    bend_insingle_2.connect("o2",other=str_insingle_1.ports["o1"])
+    bend_insingle_2.connect("o2",destination=str_insingle_1.ports["o1"])
     #input
     if tin != None:
         ctin = sr << tin
-        ctin.connect("o2",bend_insingle_2.ports["o1"])
-        ctin.movex(-pos_ring)
+        ctin.connect("o2",bend_insingle_2.ports["o1"]).movex(-pos_ring)
         route_in = gf.routing.get_route(ctin.ports["o2"],bend_insingle_2.ports["o1"],layer= oplayer,width = width_single)
         sr.add(route_in.references)
     #output
     if tout != None:
         ctout = sr << tout
-        ctout.connect("o2",other=ctin.ports["o1"])
-        ctout.movex(length_total)
+        ctout.connect("o2",destination=ctin.ports["o1"]).movex(length_total)
         delta = ctout.ports["o1"].center-taper_s2n_2.ports["o2"].center
         ctout.movey(-delta[1])
         route_out = gf.routing.get_route(ctout.ports["o1"],taper_s2n_2.ports["o2"],layer= oplayer,width = width_single)
@@ -192,22 +197,20 @@ def TCRaceTrack2_3(
     ring = sr <<Cring[0]
     taper_s2n_1 = sr << gf.c.taper(width1=width_single,width2=width_near,length=length_taper,layer = oplayer)
     taper_s2n_2 = sr << gf.c.taper(width2=width_single, width1=width_near, length=length_taper,layer = oplayer)
-    ring.rotate(90).mirror_x(ring.ports["Input"].center[0]).movex(pos_ring)
-    taper_s2n_1.connect("o2",other=ring.ports["Input"])
-    taper_s2n_2.connect("o1",other=ring.ports["Through"])
+    ring.rotate(90).mirror_x("Input").movex(pos_ring)
+    taper_s2n_1.connect("o2",destination=ring.ports["Input"])
+    taper_s2n_2.connect("o1",destination=ring.ports["Through"])
     #input
     if tin != None:
         ctin = sr << tin
-        ctin.connect("o2",taper_s2n_1.ports["o1"])
-        ctin.movex(-pos_ring)
+        ctin.connect("o2",taper_s2n_1.ports["o1"]).movex(-pos_ring)
         route_in = gf.routing.get_route(ctin.ports["o2"],taper_s2n_1.ports["o1"],layer= oplayer,width = width_single)
         sr.add(route_in.references)
         sr.add_port("input", port=ctin.ports["o1"])
     #output
     if tout != None:
         ctout = sr << tout
-        ctout.connect("o2",other=ctin.ports["o1"])
-        ctout.movex(length_total)
+        ctout.connect("o2",destination=ctin.ports["o1"]).movex(length_total)
         route_out = gf.routing.get_route(ctout.ports["o1"],taper_s2n_2.ports["o2"],layer= oplayer,width = width_single)
         sr.add(route_out.references)
         sr.add_port("output",port=ctout.ports["o1"])
@@ -244,23 +247,21 @@ def TCRaceTrack2_3h(
     ring = sr << Cring[0]
     taper_s2n_1 = sr << gf.c.taper(width1=width_single,width2=width_near,length=length_taper,layer = oplayer)
     taper_s2n_2 = sr << gf.c.taper(width2=width_single, width1=width_near, length=length_taper,layer = oplayer)
-    ring.rotate(90).mirror_x(ring.ports["Input"].center[0]).movex(pos_ring)
-    heat.connect("HeatIn",other=ring.ports["HeatIn"])
-    taper_s2n_1.connect("o2",other=ring.ports["Input"])
-    taper_s2n_2.connect("o1",other=ring.ports["Through"])
+    ring.rotate(90).mirror_x("Input").movex(pos_ring)
+    heat.connect("HeatIn",destination=ring.ports["HeatIn"])
+    taper_s2n_1.connect("o2",destination=ring.ports["Input"])
+    taper_s2n_2.connect("o1",destination=ring.ports["Through"])
     #input
     if tin != None:
         ctin = sr << tin
-        ctin.connect("o2",taper_s2n_1.ports["o1"])
-        ctin.movex(-pos_ring)
+        ctin.connect("o2",taper_s2n_1.ports["o1"]).movex(-pos_ring)
         route_in = gf.routing.get_route(ctin.ports["o2"],taper_s2n_1.ports["o1"],layer= oplayer,width = width_single)
         sr.add(route_in.references)
         sr.add_port("input", port=ctin.ports["o1"])
     #output
     if tout != None:
         ctout = sr << tout
-        ctout.connect("o2",other=ctin.ports["o1"])
-        ctout.movex(length_total)
+        ctout.connect("o2",destination=ctin.ports["o1"]).movex(length_total)
         route_out = gf.routing.get_route(ctout.ports["o1"],taper_s2n_2.ports["o2"],layer= oplayer,width = width_single)
         sr.add(route_out.references)
         sr.add_port("output",port=ctout.ports["o1"])
@@ -303,17 +304,16 @@ def TCTaperRaceTrack(
     taper_s2n_1 = sr << gf.c.taper(width1=width_single,width2=width_near,length=length_taper,layer = oplayer)
     taper_s2n_2 = sr << gf.c.taper(width2=width_single, width1=width_near, length=length_taper,layer = oplayer)
     ring.rotate(90).movex(pos_ring)
-    taper_s2n_1.connect("o2",other=ring.ports["Input"])
-    taper_s2n_2.connect("o1",other=ring.ports["Through"])
+    taper_s2n_1.connect("o2",destination=ring.ports["Input"])
+    taper_s2n_2.connect("o1",destination=ring.ports["Through"])
     bend_single_1 = sr << gf.c.bend_euler(width = width_single,angle = -90,radius=r_bend,layer=oplayer)
     bend_single_2 = sr << gf.c.bend_euler(width=width_single, angle=90, radius=r_bend, layer=oplayer)
-    bend_single_1.connect("o2",other=taper_s2n_1.ports["o1"])
-    bend_single_2.connect("o1",other=taper_s2n_2.ports["o2"])
+    bend_single_1.connect("o2",destination=taper_s2n_1.ports["o1"])
+    bend_single_2.connect("o1",destination=taper_s2n_2.ports["o2"])
     #input
     if tin != None:
         ctin = sr << tin
-        ctin.connect("o2",bend_single_1.ports["o1"],allow_width_mismatch=True)
-        ctin.movex(-pos_ring)
+        ctin.connect("o2",bend_single_1.ports["o1"],allow_width_mismatch=True).movex(-pos_ring)
         route_in = gf.routing.get_route(ctin.ports["o2"],bend_single_1.ports["o1"],layer= oplayer,
                                         width = width_single,radius = r_bend)
         sr.add(route_in.references)
@@ -321,8 +321,7 @@ def TCTaperRaceTrack(
     #output
     if tout != None:
         ctout = sr << tout
-        ctout.connect("o2",other=ctin.ports["o1"],allow_width_mismatch=True)
-        ctout.movex(length_total)
+        ctout.connect("o2",destination=ctin.ports["o1"],allow_width_mismatch=True).movex(length_total)
         delta = ctout.ports["o1"].center-bend_single_2.ports["o2"].center
         ctout.movey(-delta[1])
         route_out = gf.routing.get_route(ctout.ports["o1"],bend_single_2.ports["o2"],layer= oplayer,
@@ -367,17 +366,16 @@ def TCTaperRaceTrack2(
     bend_single_1 = sr << gf.c.bend_euler(width = width_near,angle = -90,radius=r_bend,layer=oplayer)
     bend_single_2 = sr << gf.c.bend_euler(width=width_near, angle=90, radius=r_bend, layer=oplayer)
     ring.rotate(90).movex(pos_ring)
-    bend_single_1.connect("o2",other=ring.ports["Input"])
-    bend_single_2.connect("o1",other=ring.ports["Through"])
-    taper_s2n_1.connect("o2",other=bend_single_1.ports["o1"])
-    taper_s2n_2.connect("o1",other=bend_single_2.ports["o2"])
+    bend_single_1.connect("o2",destination=ring.ports["Input"])
+    bend_single_2.connect("o1",destination=ring.ports["Through"])
+    taper_s2n_1.connect("o2",destination=bend_single_1.ports["o1"])
+    taper_s2n_2.connect("o1",destination=bend_single_2.ports["o2"])
 
 
     #input
     if tin != None:
         ctin = sr << tin
-        ctin.connect("o2",taper_s2n_1.ports["o1"],allow_width_mismatch=True)
-        ctin.movex(-pos_ring)
+        ctin.connect("o2",taper_s2n_1.ports["o1"],allow_width_mismatch=True).movex(-pos_ring)
         route_in = gf.routing.get_route(ctin.ports["o2"],taper_s2n_1.ports["o1"],layer= oplayer,
                                         width = width_single,radius = r_bend)
         sr.add(route_in.references)
@@ -385,8 +383,7 @@ def TCTaperRaceTrack2(
     #output
     if tout != None:
         ctout = sr << tout
-        ctout.connect("o2",other=ctin.ports["o1"],allow_width_mismatch=True)
-        ctout.movex(length_total)
+        ctout.connect("o2",destination=ctin.ports["o1"],allow_width_mismatch=True).movex(length_total)
         delta = ctout.ports["o1"].center-taper_s2n_2.ports["o2"].center
         ctout.movey(-delta[1])
         route_out = gf.routing.get_route(ctout.ports["o1"],taper_s2n_2.ports["o2"],layer= oplayer,

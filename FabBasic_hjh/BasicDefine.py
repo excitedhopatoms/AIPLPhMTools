@@ -1,17 +1,19 @@
 import gdsfactory as gf
 import numpy as np
 import csv
-import uuid
-from gdsfactory.component import Component,ComponentReference
-from gdsfactory.path import Path, _fresnel
-from gdsfactory.component_layout import rotate_points
+from gdsfactory.typings import Layer
+from gdsfactory.component import Component
+from gdsfactory.path import Path, _fresnel, _rotate_points
+from gdsfactory.typings import LayerSpec
+from gdsfactory.cross_section import cross_section
 from gdsfactory.generic_tech import get_generic_pdk
 from gdsfactory.pdk import get_active_pdk
-from gdsfactory.typings import Layer, LayerSpec, LayerSpecs,CrossSectionSpec
-from collections.abc import Callable, Iterable
+from gdsfactory.typings import Layer, LayerSpec, LayerSpecs ,Optional, Callable
+from gdsfactory.technology import LayerLevel, LayerStack, LayerView, LayerViews
 from gdsfactory.technology.layer_map import LayerMap
-from typing import Union
-from gdsfactory.typings import  Coordinate
+from pydantic import BaseModel
+from shapely import polygons
+
 PDK = get_generic_pdk()
 PDK.activate()
 # layer define
@@ -27,31 +29,22 @@ class LayerMapUserDef(LayerMap):
     LABEL: Layer =(10,0)
     WAFER: Layer = (20, 0)
     WRITEFIELD :Layer = (30,0)
-LAYER = LayerMapUserDef
-# %% section & crosssection
-S_in_te0 = gf.Section(width=0.5,layer=LAYER.WG,port_names=("o1","o2"))
-S_in_te1 = gf.Section(width=1,layer=LAYER.WG,port_names=("o1","o2"))
-S_out_te0 = gf.Section(width=1,layer=LAYER.WG,port_names=("o1","o2"))
-S_out_te1 = gf.Section(width=1.5,layer=LAYER.WG,port_names=("o1","o2"))
-X_in0 = gf.CrossSection(sections=[S_in_te0])
-X_in1 = gf.CrossSection(sections=[S_in_te1])
-X_out0 = gf.CrossSection(sections=[S_out_te0])
-X_out1 = gf.CrossSection(sections=[S_out_te1])
+LAYER = LayerMapUserDef()
 # %% test tpaer
 taper_in = gf.Component("taper_in_test")
 taper_in_te0 = taper_in << gf.c.taper(width1=0.5, width2=1, length=500-100, layer=LAYER.WG)
-taper_in_tes0 = taper_in << gf.c.straight(length=100, cross_section=X_in0)
-taper_in_tes1 = taper_in << gf.c.straight(length=100, cross_section=X_in1)
-taper_in_te0.connect("o1", other=taper_in_tes0.ports["o2"])
+taper_in_tes0 = taper_in << gf.c.straight(width=0.5, length=100, layer=LAYER.WG)
+taper_in_tes1 = taper_in << gf.c.straight(width=1, length=100, layer=LAYER.WG)
+taper_in_te0.connect("o1", destination=taper_in_tes0.ports["o2"])
 taper_in_tes1.connect("o1",taper_in_te0.ports["o2"])
 taper_in.add_port(name="o1", port=taper_in_tes0.ports["o1"])
 taper_in.add_port(name="o2", port=taper_in_tes1.ports["o2"])
 
 taper_out = gf.Component("taper_out_test")
 taper_out_te0 = taper_out << gf.c.taper(width2=1.5, width1=1, length=500-100, layer=LAYER.WG)
-taper_out_tes1 = taper_out << gf.c.straight( length=100, cross_section=X_out1)
-taper_out_tes0 = taper_out << gf.c.straight( length=100, cross_section=X_out0)
-taper_out_te0.connect("o1", other=taper_out_tes0.ports["o2"])
+taper_out_tes1 = taper_out << gf.c.straight(width=1.5, length=100, layer=LAYER.WG)
+taper_out_tes0 = taper_out << gf.c.straight(width=1, length=100, layer=LAYER.WG)
+taper_out_te0.connect("o1", destination=taper_out_tes0.ports["o2"])
 taper_out_tes1.connect("o1",taper_out_te0.ports["o2"])
 taper_out.add_port(name="o1", port=taper_out_tes0.ports["o1"])
 taper_out.add_port(name="o2", port=taper_out_tes1.ports["o2"])
@@ -60,7 +53,7 @@ taper_out.add_port(name="o2", port=taper_out_tes1.ports["o2"])
 def add_labels_to_ports(
         component: Component,
         label_layer: LayerSpec = (512, 8),  # 指定文本标签的层次
-        port_type: str = "optical",
+        port_type: Optional[str] = "optical",
         port_filter: str = None,
         **kwargs,
 ) -> Component:
@@ -117,105 +110,7 @@ def remove_layer(
     for port in component.ports:
         c.add_port(name=port,port=component.ports[port])
     return c
-# %% original straight
-@gf.cell
-def GfCStraight(length=10, width=1, layer=(1, 0)):
-    c = gf.Component()
-    c.add_polygon([(0, 0), (length, 0), (length, width), (0, width)], layer=layer)
-    c.add_port(
-        name="o1", center=[0, width / 2], width=width, orientation=180, layer=layer
-    )
-    c.add_port(
-        name="o2", center=[length, width / 2], width=width, orientation=0, layer=layer
-    )
-    return c
-# %% gf.c.bend_euelr
-def GfCBendEuler(
-        radius: float | None = None,
-        angle: float = 90.0,
-        p: float = 0.5,
-        with_arc_floorplan: bool = True,
-        npoints: int | None = None,
-        layer: LayerSpec | None = None,
-        width: float | None = None,
-        cross_section: CrossSectionSpec = "strip",
-        allow_min_radius_violation: bool = False,
-)->Component:
-    """Euler bend with changing bend radius.
 
-    By default, `radius` corresponds to the minimum radius of curvature of the bend.
-    However, if `with_arc_floorplan` is True, `radius` corresponds to the effective
-    radius of curvature (making the curve a drop-in replacement for an arc). If
-    p < 1.0, will create a "partial euler" curve as described in Vogelbacher et.
-    al. https://dx.doi.org/10.1364/oe.27.031394
-
-    default p = 0.5 based on this paper
-    https://www.osapublishing.org/oe/fulltext.cfm?uri=oe-25-8-9150&id=362937
-
-    Args:
-        radius: in um. Defaults to cross_section_radius.
-        angle: total angle of the curve.
-        p: Proportion of the curve that is an Euler curve.
-        with_arc_floorplan: If False: `radius` is the minimum radius of curvature
-          If True: The curve scales such that the endpoints match a bend_circular
-          with parameters `radius` and `angle`.
-        npoints: Number of points used per 360 degrees.
-        layer: layer to use. Defaults to cross_section.layer.
-        width: width to use. Defaults to cross_section.width.
-        cross_section: specification (CrossSection, string, CrossSectionFactory dict).
-        allow_min_radius_violation: if True allows radius to be smaller than cross_section radius.
-        all_angle: if True, the bend is drawn with a single euler curve.
-
-    .. code::
-
-                  o2
-                  |
-                 /
-                /
-               /
-       o1_____/
-    """
-    x = gf.get_cross_section(cross_section)
-    radius = radius or x.radius
-
-    if radius is None:
-        return gf.c.wire_corner(cross_section=x)
-
-    if layer and width:
-        x = gf.get_cross_section(
-            cross_section, layer=layer or x.layer, width=width or x.width
-        )
-    elif layer:
-        x = gf.get_cross_section(cross_section, layer=layer or x.layer)
-    elif width:
-        x = gf.get_cross_section(cross_section, width=width or x.width)
-
-    path = gf.path.euler(
-        radius=radius, angle=angle, p=p, use_eff=with_arc_floorplan, npoints=npoints
-    )
-    c = gf.path.extrude(p=path,cross_section=x)
-    min_bend_radius = float(np.round(path.info["Rmin"], 3))
-    c.info["length"] = float(np.round(path.length(), 3))
-    c.info["dy"] = float(
-        np.round(abs(float(path.points[0][0] - path.points[-1][0])), 3)
-    )
-    c.info["min_bend_radius"] = min_bend_radius
-    c.info["radius"] = float(radius)
-    c.info["width"] = width or x.width
-
-    if not allow_min_radius_violation:
-        x.validate_radius(radius)
-
-    top = None if int(angle) in {180, -180, -90} else 0
-    bottom = 0 if int(angle) in {-90} else None
-    x.add_bbox(c, top=top, bottom=bottom)
-    c.add_route_info(
-        cross_section=x,
-        length=c.info["length"],
-        n_bend_90=abs(angle / 90.0),
-        min_bend_radius=min_bend_radius,
-    )
-    return c
 # %% TaperRsoa
 @gf.cell()
 def Crossing_taper(
@@ -223,15 +118,16 @@ def Crossing_taper(
         WidthWg: float = 0.45,
         LengthTaper: float = 100,
         oplayer: LayerSpec =LAYER.WG,
+        Name="my_taper",
 )->Component:
-    Crossing = gf.Component()
-    center = Crossing << GfCStraight(width = WidthWg,length = WidthWg,layer = oplayer)
+    Crossing = gf.Component(Name)
+    center = Crossing << gf.c.straight(width = WidthWg,length = WidthWg,layer = oplayer)
     center.movex(-WidthWg/2)
     taper0 = gf.c.taper(width2 = WidthCross,width1 = WidthWg,layer = oplayer,length = LengthTaper)
     taper = list(range(4))
     for i in range(4):
         taper[i] = Crossing << taper0
-        taper[i].connect("o2",other=center.ports["o1"],allow_width_mismatch=True)
+        taper[i].connect("o2",destination=center.ports["o1"],allow_width_mismatch=True)
         #taper[i].move([WidthWg/2*np.cos(90*i),WidthWg/2*np.sin(90*i)])
         taper[i].rotate(-90*i)
         Crossing.add_port("o"+str(i+1),port=taper[i].ports["o1"])
@@ -254,8 +150,8 @@ def TaperRsoa(
     ebend = c << gf.components.bend_euler(angle=-AngleRsoa,width = WidthWg,radius = RadiusBend,layer = layer)
     rtaper = c << gf.components.taper(length=LengthRsoa, width1=WidthWg, width2=WidthRsoa,layer = layer)
     rstr = c << gf.components.straight(length=LengthAdd,width=WidthRsoa,layer = layer)
-    rtaper.connect(port="o1",other=ebend.ports["o2"])
-    rstr.connect(port="o1",other=rtaper.ports["o2"])
+    rtaper.connect(port="o1",destination=ebend.ports["o2"])
+    rstr.connect(port="o1",destination=rtaper.ports["o2"])
     c.add_port("o1", port=rstr.ports["o2"])
     c.add_port("o2", port=ebend.ports["o1"])
     return c
@@ -267,6 +163,7 @@ def OffsetRamp(
         width2: float | None = 8.0,
         offset: float = 0,
         layer: LayerSpec = LAYER.WG,
+        Name="OffsetRamp"
 )-> Component:
     """Return a offset ramp component.
 
@@ -283,7 +180,7 @@ def OffsetRamp(
         width2 = width1
     xpts = [0, length, length, 0]
     ypts = [width1, width2/2+width1/2+offset, -width2/2+width1/2+offset, 0]
-    c = Component()
+    c = Component(Name)
     c.add_polygon([xpts, ypts], layer=layer)
     c.add_port(
         name="o1", center=[0, width1 / 2], width=width1, orientation=180, layer=layer
@@ -317,10 +214,10 @@ def cir2end(
     #circle
     bendcir = list(range(int(2 * Period)))
     bendcir[0] = c << gf.c.bend_circular180(width=WidthEnd, radius=RadiusBend0,layer = oplayer)
-    bendcir[0].connect("o1", other=taper.ports["o2"])
+    bendcir[0].connect("o1", destination=taper.ports["o2"])
     for i in range(int(2 * Period - 1)):
         bendcir[i + 1] = c << gf.c.bend_circular180(width=WidthEnd, radius=RadiusBend0 - (i + 1) * Pitch / 2,layer = oplayer)
-        bendcir[i + 1].connect("o1", other=bendcir[i].ports["o2"])
+        bendcir[i + 1].connect("o1", destination=bendcir[i].ports["o2"])
     # setports
     c.add_port(name="o1", port=taper.ports["o1"])
     return c
@@ -403,7 +300,7 @@ def euler_Bend_Half(
     points1 = np.array([x, y]).T
     points2 = np.flipud(np.array([x, -y]).T)
 
-    points2 = rotate_points(points2, angle - 180)
+    points2 = _rotate_points(points2, angle - 180)
     points2 += -points2[0, :]
 
     points = points2
@@ -434,138 +331,6 @@ def euler_Bend_Half(
     if mirror:
         P.mirror((1, 0))
     return P
-# %% euler_Bend_Half
-def euler_Bend_Part(
-        radius1: float = 10.0,
-        radius2: float = 20.0,
-        angle: float = 90.0,
-        p: float = 0.5,
-        use_eff: bool = False,
-        npoints: int | None = None,
-) -> Path:
-    """Euler bend with curvature transitioning from radius1 to radius2.
-
-    Args:
-        radius1: Starting radius of curvature.
-        radius2: Ending radius of curvature.
-        angle: Total angle of the bend (degrees).
-        p: Proportion of the curve using the Euler transition (0 ≤ p ≤ 1).
-        use_eff: If True, scale to match effective radius of a circular arc.
-        npoints: Number of points along the curve.
-
-    Returns:
-        Path: The generated Euler bend path.
-    """
-    if radius1 <= 0 or radius2 <= 0:
-        raise ValueError("Radius values must be positive")
-    if (p <= 0) or (p > 1):
-        raise ValueError("euler requires argument `p` be between 0 and 1")
-    angle = float(angle)
-    alpha = np.radians(abs(angle))  # Total angle in radians
-    mirror = angle < 0
-    angle = abs(angle)
-
-    # =========================================================================
-    # 核心修改1: 支持任意半径方向变化的曲率计算
-    # =========================================================================
-    def dynamic_curvature(s: float, s_total: float) -> float:
-        """曲率从 1/radius1 线性过渡到 1/radius2"""
-        return 1 / radius1 + (1 / radius2 - 1 / radius1) * (s / s_total)
-
-    # =========================================================================
-    # 计算欧拉曲线部分参数
-    # =========================================================================
-
-    # 计算欧拉曲线总弧长（基于起始曲率radius1）
-    s_total = radius1 * np.sqrt(p * alpha)  # 欧拉部分总弧长
-
-    # =========================================================================
-    # 核心修改2: 通用化积分过程（支持曲率增加或减少）
-    # =========================================================================
-    def generate_euler_curve(num_pts: int) -> tuple[np.ndarray, np.ndarray]:
-        """动态曲率积分（自动处理正反向变化）"""
-        s_values = np.linspace(0, s_total, num_pts)
-        x, y = [], []
-        current_theta = 0.0
-        current_x = 0.0
-        current_y = 0.0
-
-        for s in s_values:
-            curvature = dynamic_curvature(s, s_total)
-            ds = s_total / (num_pts - 1) if num_pts > 1 else 0
-
-            # 始终正向积分，曲率变化方向由dynamic_curvature自动处理
-            dtheta = ds * curvature
-            current_theta += dtheta
-            dx = ds * np.cos(current_theta)
-            dy = ds * np.sin(current_theta)
-            current_x += dx
-            current_y += dy
-
-            x.append(current_x)
-            y.append(current_y)
-
-        return np.array(x), np.array(y)
-
-    # =========================================================================
-    # 生成路径点
-    # =========================================================================
-    pdk = get_active_pdk()
-    npoints = npoints or int(abs(angle / 360 * max(radius1, radius2) / pdk.bend_points_distance))
-    npoints = max(npoints, 5)
-
-    # 分割欧拉曲线和圆弧部分
-    num_pts_euler = int(npoints * p)
-    num_pts_arc = npoints - num_pts_euler
-
-    # 生成动态曲率的欧拉曲线部分
-    x_euler, y_euler = generate_euler_curve(num_pts_euler)
-
-    # 生成圆弧部分（使用radius2作为最终曲率）
-    theta_arc = alpha * (1 - p)
-    theta_values = np.linspace(0, theta_arc, num_pts_arc)
-    R_arc = radius2  # 圆弧部分曲率固定为radius2
-
-    # 计算圆弧部分坐标（与欧拉曲线终点平滑连接）
-    x_arc = R_arc * np.sin(theta_values) + x_euler[-1] - R_arc * np.sin(theta_arc)
-    y_arc = R_arc * (1 - np.cos(theta_values)) + y_euler[-1] - R_arc * (1 - np.cos(theta_arc))
-
-    # 合并坐标点
-    x = np.concatenate([x_euler, x_arc[1:]])
-    y = np.concatenate([y_euler, y_arc[1:]])
-
-    # =========================================================================
-    # 路径后处理
-    # =========================================================================
-    points = np.column_stack([x, y])
-
-    # 计算有效半径（基于终点位置）
-    end_x, end_y = points[-1]
-    Reff = np.sqrt(end_x ** 2 + end_y ** 2) / (2 * np.sin(alpha / 2))
-
-    # 缩放处理（根据use_eff决定是否匹配等效半径）
-    scale_factor = radius1 / Reff if use_eff else 1.0
-    points *= scale_factor
-
-    # 创建Path对象
-    path = Path()
-    path.points = points
-    path.start_angle = 0.0
-    path.end_angle = np.degrees(theta_arc)
-
-    # 存储物理参数
-    path.info.update({
-        "Reff": Reff * scale_factor,
-        "R_start": radius1,
-        "R_end": radius2,
-        "curvature_start": 1 / radius1,
-        "curvature_end": 1 / radius2
-    })
-
-    if mirror:
-        path.mirror((1, 0))
-
-    return path
 
 
 

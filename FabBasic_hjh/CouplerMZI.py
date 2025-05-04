@@ -1,4 +1,15 @@
-from .BasicDefine import *
+import gdsfactory as gf
+import numpy as np
+import csv
+from gdsfactory.typings import Layer
+from gdsfactory.component import Component
+from gdsfactory.path import Path, _fresnel, _rotate_points
+from gdsfactory.typings import LayerSpec
+from gdsfactory.cross_section import cross_section
+from gdsfactory.generic_tech import get_generic_pdk
+from gdsfactory.pdk import get_active_pdk
+from gdsfactory.typings import Layer, LayerSpec, LayerSpecs ,Optional, Callable
+from .BasicDefine import add_labels_to_ports,add_labels_decorator,Crossing_taper,TaperRsoa,cir2end,euler_Bend_Half,TWQRcode,LAYER,r_euler_true,r_euler_false
 from .Heater import SnakeHeater,DifferentHeater
 # %% pulley 2X2Direct Coupler
 def PulleyCoupler2X2(
@@ -10,6 +21,7 @@ def PulleyCoupler2X2(
         GapCoup:float = 0.3,
         IsParallel:bool = False,
         oplayer: LayerSpec = LAYER.WG,
+        Name="Coupler2X2"
 )->Component:
     """
     创建一个 2x2 的pulley 定向耦合器（Direct Coupler）。
@@ -28,7 +40,7 @@ def PulleyCoupler2X2(
     Returns:
         包含 in1, in2, out1, out2 端口的 Component
     """
-    c=gf.Component()
+    c=gf.Component(Name)
     r_in = RadiusIn
     r_out =r_in+WidthOut/2+WidthIn/2+GapCoup
     sout = gf.Section(width=WidthOut, offset=0, layer=oplayer, port_names=("in", "out"))
@@ -53,15 +65,15 @@ def PulleyCoupler2X2(
     co2 = c << co
     ci1 = c << ci
     ci2 = c << ci
-    co1.mirror_y()
-    co2.connect("in",other=co1.ports["in"])
-    ci1.connect("in",other=co1.ports["in"],allow_width_mismatch=True)
+    co2.connect("in",destination=co1.ports["in"])
+    ci1.connect("in",destination=co1.ports["in"],allow_width_mismatch=True).mirror_x("in")
     ci1.movey(WidthOut/2+WidthIn/2+GapCoup)
-    ci2.connect("in", other=ci1.ports["in"],mirror=True)
+    ci2.connect("in", destination=ci1.ports["in"])
+    co1.mirror_y("in")
     c.add_port("in1",port=ci1.ports["out"])
-    c.add_port("out2", port=co1.ports["out"])
+    c.add_port("in2", port=co1.ports["out"])
     c.add_port("out1", port=ci2.ports["out"])
-    c.add_port("in2", port=co2.ports["out"])
+    c.add_port("out2", port=co2.ports["out"])
     add_labels_to_ports(c)
     return c
 # %% DMZI
@@ -73,6 +85,7 @@ def DMZI(
         Radius = 200,
         GapCoup = 1,
         layer: LayerSpec = LAYER.WG,
+        Name="DMZI"
 )->Component:
     """
     创建一个 2x2 的直波导耦合器（Direct Coupler）的MZI。
@@ -89,7 +102,7 @@ def DMZI(
     Returns:
         包含 in1, in2, out1, out2 端口的 Component
     """
-    c = gf.Component()
+    c = gf.Component(Name)
     DeltaC = GapCoup+WidthSingle
     #path
     coups = gf.Section(width = WidthSingle,offset=0,layer = layer,port_names=("in","out"))
@@ -103,18 +116,18 @@ def DMZI(
     #coupler waveguide
     CW1 = c << gf.path.extrude(coup1,cross_section=coupcs)
     CW2 = c << gf.path.extrude(coup1,cross_section=coupcs)
-    CW2.connect("out",other=CW1.ports["in"])
+    CW2.connect("out",destination=CW1.ports["in"])
     CW2.movey(-DeltaC)
     CW2.rotate(180,center=CW2.ports["out"])
     CB1 = c << gf.path.extrude(coupb1,cross_section=coupcs)
     Deltacb = CB1.get_ports_xsize()
-    CBs1 = c << GfCStraight(width = WidthSingle,length=Deltacb,layer = layer)
+    CBs1 = c << gf.c.straight(width = WidthSingle,length=Deltacb,layer = layer)
     CB2 = c << gf.path.extrude(coupb1,cross_section=coupcs)
-    CBs2 = c << GfCStraight(width = WidthSingle,length=Deltacb,layer = layer)
-    CB1.connect("out",other=CW1.ports["in"])
-    CBs1.connect("o2",other=CW2.ports["out"])
-    CB2.connect("in",other=CW2.ports["in"])
-    CBs2.connect("o1",other=CW1.ports["out"])
+    CBs2 = c << gf.c.straight(width = WidthSingle,length=Deltacb,layer = layer)
+    CB1.connect("out",destination=CW1.ports["in"])
+    CBs1.connect("o2",destination=CW2.ports["out"])
+    CB2.connect("in",destination=CW2.ports["in"])
+    CBs2.connect("o1",destination=CW1.ports["out"])
     #set port
     c.add_port(name="Input1", port=CB1.ports["in"])
     c.add_port(name="Input2", port=CBs1.ports["o1"])
@@ -148,6 +161,7 @@ def PMZI(
         heatlayer: LayerSpec = LAYER.M1,
         routelayer: LayerSpec = LAYER.M2,
         vialayer: LayerSpec = LAYER.VIA,
+        Name="PMZI"
 )->Component:
     """
      创建一个Pulley耦合 MZI 结构。
@@ -176,7 +190,8 @@ def PMZI(
      Returns:
          包含 Input1, Input2, Output1, Output2 端口的 Component
      """
-    c = gf.Component()
+    c = gf.Component(Name)
+    h = gf.Component(Name+"Heat")
     # Section and CrossSections
     S_near = gf.Section(width = WidthNear,offset=0,layer = oplayer,port_names=("in","out"))
     S_ring = gf.Section(width=WidthRing, offset=0, layer=oplayer, port_names=("in", "out"))
@@ -201,18 +216,18 @@ def PMZI(
     bridgeR = c << gf.path.extrude(path_total, cross_section=CS_ring)
     taper_1 = c << gf.c.taper(width1 = WidthNear,width2 = WidthRing,length = LengthTaper,layer = oplayer)
     taper_2 = c << gf.c.taper(width1= WidthNear, width2= WidthRing, length=LengthTaper, layer=oplayer)
-    taper_1.connect("o1",other=Coup1.ports["out2"],mirror=True)
-    bridgeR.connect("out",other=taper_1.ports["o2"],mirror=True)
-    Coup2.connect("out1",other=bridgeR.ports["in"])
-    taper_2.connect("o1",other=Coup2.ports["out2"])
-    bridgeL.connect("out",other=taper_2.ports["o2"],mirror=True)
+    taper_1.connect("o1",destination=Coup1.ports["out2"])
+    bridgeR.connect("out",destination=taper_1.ports["o2"])
+    Coup2.connect("out1",destination=bridgeR.ports["in"])
+    taper_2.connect("o1",destination=Coup2.ports["out2"])
+    bridgeL.connect("out",destination=taper_2.ports["o2"])
     # coupler ring out
     path_ringout1 = gf.path.arc(radius=Radius,angle = -AngleOut1+AngleIn/2)
     path_ringout2 = gf.path.arc(radius=Radius, angle=-AngleOut2 + AngleIn / 2)
     ringout_1 = c << gf.path.extrude(path_ringout1,cross_section=CS_ring)
     ringout_2 = c << gf.path.extrude(path_ringout2, cross_section=CS_ring)
-    ringout_1.connect("out",other=Coup1.ports["in1"],mirror=True)
-    ringout_2.connect("out", other=Coup2.ports["in1"],mirror=True)
+    ringout_1.connect("out",destination=Coup1.ports["in1"])
+    ringout_2.connect("out", destination=Coup2.ports["in1"])
     # set port
     c.add_port(name="Input1", port=ringout_2.ports["in"])
     c.add_port(name="Input2", port=Coup2.ports["in2"])
@@ -224,15 +239,15 @@ def PMZI(
                                  heatlayer=heatlayer,TypeHeater=TypeHeater,vialayer=vialayer,routelayer=routelayer)
         heaterL = c << heater
         heaterR = c << heater
-        heaterL.connect("HeatOut",other=taper_2.ports["o2"],allow_width_mismatch=True,allow_layer_mismatch=True,allow_type_mismatch=True)
-        heaterR.connect("HeatOut", other=taper_1.ports["o2"],allow_width_mismatch=True,allow_layer_mismatch=True,allow_type_mismatch=True)
+        heaterL.connect("HeatOut",destination=taper_2.ports["o2"],allow_width_mismatch=True,allow_layer_mismatch=True,allow_type_mismatch=True)
+        heaterR.connect("HeatOut", destination=taper_1.ports["o2"],allow_width_mismatch=True,allow_layer_mismatch=True,allow_type_mismatch=True)
         for port in heaterL.ports:
-            if "Heat" in port.name:
-                c.add_port("L"+port.name,port = heaterL.ports[port.name])
+            if "Heat" in port:
+                c.add_port("L"+port,port = heaterL.ports[port])
         for port in heaterR.ports:
-            if "Heat" in port.name:
-                c.add_port("R" + port.name, port=heaterR.ports[port.name])
-    c.flatten()
+            if "Heat" in port:
+                c.add_port("R" + port, port=heaterR.ports[port])
+
     add_labels_to_ports(c)
     return c
 # %% PMZIHSn:pulley coupler MZI width Snake Heater
@@ -259,6 +274,7 @@ def PMZIHSn(
         heatlayer: LayerSpec = LAYER.M1,
         routelayer: LayerSpec = LAYER.M2,
         vialayer: LayerSpec = LAYER.VIA,
+        Name="PMZI"
 )->Component:
     """
     创建一个带有蛇形加热器的 Pulley 耦合 MZI 结构。
@@ -288,28 +304,75 @@ def PMZIHSn(
     Returns:
         包含 Input1, Input2, Output1, Output2 端口的 Component 和加热器 Component
     """
-    return PMZI(
-        WidthNear=WidthNear,
-        WidthRing=WidthRing,
-        WidthHeat=WidthHeat,
-        AngleCouple=AngleCouple,
-        AngleIn=AngleIn,
-        AngleBend=AngleBend,
-        AngleOut1=AngleOut1,
-        AngleOut2=AngleOut2,
-        LengthBridge=LengthBridge,
-        LengthBend=LengthBend,
-        LengthTaper=LengthTaper,
-        Radius=Radius,
-        r_radius_false=r_radius_false,
-        GapCoup=GapCoup,
-        GapHeat=GapHeat,
-        DeltaHeat=DeltaHeat,
-        IsHeat=IsHeat,
-        oplayer=oplayer,
-        heatlayer=heatlayer,
-        TypeHeater="snake",
+    c = gf.Component(Name)
+    h = gf.Component(Name+"Heat")
+    # Section and CrossSections
+    S_ring = gf.Section(width=WidthRing, offset=0, layer=oplayer, port_names=("in", "out"))
+    S_heat = gf.Section(width=WidthHeat, offset=0, layer=oplayer, port_names=("in", "out"))
+    CS_ring = gf.CrossSection(sections=[S_ring])
+    CS_Heat = gf.CrossSection(sections=[S_heat])
+    # coupler
+    Coup = PulleyCoupler2X2(
+        WidthIn=WidthRing,WidthOut=WidthNear,GapCoup=GapCoup,AngleIn=AngleIn,AngleCouple=AngleCouple,oplayer=oplayer,
     )
+    Coup1 = c << Coup
+    Coup2 = c << Coup
+    # bridge waveguide
+    ## bridgh path
+    path_ringbend = euler_Bend_Half(radius=Radius,angle=-AngleBend/2+AngleIn/2,use_eff = False)
+    path_ringstr = gf.path.straight(length=LengthBend)
+    path_bridgebend = gf.path.euler(radius=r_radius_false,angle=AngleBend/2,use_eff = False)
+    path_bridgestr = gf.path.straight(length=LengthBridge)
+    path_total = path_ringbend+path_ringstr+path_bridgebend+path_bridgestr
+    path_heat = path_bridgebend+path_bridgestr
+    # taper in MZI
+    bridgeL = c << gf.path.extrude(path_total,cross_section=CS_ring)
+    bridgeR = c << gf.path.extrude(path_total, cross_section=CS_ring)
+    taper_bridge = gf.c.taper(width1 = WidthNear,width2 = WidthRing,length = LengthTaper,layer = oplayer)
+    taper_2 = c << taper_bridge
+    taper_1 = c << taper_bridge
+    taper_1.connect("o1",destination=Coup1.ports["out2"])
+    pos_taper_1 = taper_1.ports["o2"].center
+    bridgeR.connect("out",destination=taper_1.ports["o2"])
+    Coup2.connect("out1",destination=bridgeR.ports["in"])
+    taper_2.connect("o1",destination=Coup2.ports["out2"])
+    bridgeL.connect("out",destination=taper_2.ports["o2"])
+    # coupler ring out
+    path_ringout1 = gf.path.arc(radius=Radius,angle = -AngleOut1+AngleIn/2)
+    path_ringout2 = gf.path.arc(radius=Radius, angle=-AngleOut2 + AngleIn / 2)
+    ringout_1 = c << gf.path.extrude(path_ringout1,cross_section=CS_ring)
+    ringout_2 = c << gf.path.extrude(path_ringout2, cross_section=CS_ring)
+    ringout_1.connect("out",destination=Coup1.ports["in1"])
+    ringout_2.connect("out", destination=Coup2.ports["in1"])
+    # heat part
+    if IsHeat:
+        HPart = list(range(2))
+        HPartout = list(range(2))
+        HPart[0] = h << SnakeHeater(WidthHeat=WidthHeat,WidthWG=WidthNear,GapHeat=GapHeat,PathHeat=path_heat,heatlayer=heatlayer,PortName=["in","out"])
+        HPart[1] = h << SnakeHeater(WidthHeat=WidthHeat,WidthWG=WidthNear,GapHeat=GapHeat,PathHeat=path_heat,heatlayer=heatlayer,PortName=["in","out"])
+        HPart[0].connect("out",destination=taper_2.ports["o2"],allow_width_mismatch=True,allow_layer_mismatch=True,allow_type_mismatch=True)
+        HPart[1].connect("out", destination=taper_1.ports["o2"],allow_width_mismatch=True,allow_layer_mismatch=True,allow_type_mismatch=True)
+        HPartout[0] = h << gf.c.bend_euler(angle=-90 + AngleBend/2 , radius=10,layer = heatlayer,width=WidthHeat)
+        HPartout[1] = h << gf.c.bend_euler(angle=90 + AngleBend / 2, radius=10, layer=heatlayer,width=WidthHeat)
+        HPartout[0].connect("o1",HPart[0].ports["in"])
+        HPartout[1].connect("o1",HPart[1].ports["in"])
+        c << h
+        c.add_port(name="HeatLin", port=HPartout[0].ports["o2"])
+        c.add_port(name="HeatLout", port=HPart[0].ports["out"])
+        c.add_port(name="HeatRin", port=HPartout[1].ports["o2"])
+        c.add_port(name="HeatRout", port=HPart[1].ports["out"])
+    # set port
+    c.add_port(name="Input1", port=ringout_2.ports["in"])
+    c.add_port(name="Input2", port=Coup2.ports["in2"])
+    c.add_port(name="Output2", port=ringout_1.ports["in"])
+    c.add_port(name="Output1", port=Coup1.ports["in2"])
+    add_labels_to_ports(c)
+    add_labels_to_ports(h,label_layer=(11,5))
+    # test = gf.Component()
+    # test << c
+    # test << h
+    # test.show()
+    return c
 
 # %% SagnacRing
 @gf.cell
@@ -328,7 +391,7 @@ def SagnacRing(
         heatlayer: LayerSpec = LAYER.M1,
         routelayer: LayerSpec = LAYER.M2,
         vialayer: LayerSpec = LAYER.VIA,
-
+        Name="SagnacRing"
 )->Component:
     """
     创建一个 Sagnac 环形结构。
@@ -347,22 +410,22 @@ def SagnacRing(
     Returns:
         包含 input 和 output 端口的 Component
     """
-    c = gf.Component()
+    c = Component(Name)
     PC = c << PulleyCoupler2X2(WidthIn=WidthIn,WidthOut=WidthOut,AngleCouple=AngleCouple,RadiusIn=RadiusIn,
                           GapCoup=GapCoup,oplayer=oplayer,IsParallel=False,AngleIn=AngleIn)
     taper_coup2ring = c << gf.c.taper(width1 = WidthOut,width2 = WidthIn,length = LengthTaper,layer=oplayer)
-    taper_coup2ring.connect("o1",other=PC.ports["out2"])
+    taper_coup2ring.connect("o1",destination=PC.ports["out2"])
     bendpath_ring2coup = euler_Bend_Half(angle=-AngleIn,radius = RadiusBend,p=1,use_eff=False)
     bend_ring2coup = c << gf.path.extrude(bendpath_ring2coup,width=WidthIn,layer=oplayer)
-    bend_ring2coup.connect("o1",other=PC.ports["out1"])
+    bend_ring2coup.connect("o1",destination=PC.ports["out1"])
     bendpath_ring2out = euler_Bend_Half(angle=AngleIn,radius = RadiusBend,p=1,use_eff=False)
     bend_ring2out = c << gf.path.extrude(bendpath_ring2out,width=WidthIn,layer=oplayer)
-    bend_ring2out.connect("o1",other=PC.ports["in1"])
+    bend_ring2out.connect("o1",destination=PC.ports["in1"])
     routering = gf.routing.get_bundle([bend_ring2coup.ports["o2"]],[taper_coup2ring.ports["o2"]],width = WidthIn,layer=oplayer
-                                     ,bend=GfCBendEuler(width = WidthIn,radius = RadiusBend,with_arc_floorplan=False,p=0.8),)
+                                     ,bend=gf.c.bend_euler(width = WidthIn,radius = RadiusBend,with_arc_floorplan=False,p=0.8),)
     for route in routering:
         c.add(route.references)
-    bend = c << GfCBendEuler(angle=90,width=WidthIn,layer=oplayer,radius=RadiusBend,with_arc_floorplan=False,p=1)
+    bend = c << gf.c.bend_euler(angle=90,width=WidthIn,layer=oplayer,radius=RadiusBend,with_arc_floorplan=False,p=1)
     bend.connect("o1",bend_ring2out.ports["o2"])
     if IsTaperIn:
         taper_in = c<< gf.c.taper(width1= WidthSingle,width2 = WidthOut,length=LengthTaper,layer=oplayer)

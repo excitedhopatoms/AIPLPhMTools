@@ -1,4 +1,15 @@
-from .BasicDefine import *
+import gdsfactory as gf
+import numpy as np
+import csv
+from gdsfactory.typings import Layer
+from gdsfactory.component import Component
+from gdsfactory.path import Path, _fresnel, _rotate_points
+from gdsfactory.typings import LayerSpec
+from gdsfactory.cross_section import cross_section
+from gdsfactory.generic_tech import get_generic_pdk
+from gdsfactory.pdk import get_active_pdk
+from gdsfactory.typings import Layer, LayerSpec, LayerSpecs ,Optional, Callable
+from .BasicDefine import add_labels_to_ports,add_labels_decorator,Crossing_taper,TaperRsoa,cir2end,euler_Bend_Half,TWQRcode,LAYER,r_euler_true,r_euler_false
 
 # %% RaceTrackPulley
 @gf.cell
@@ -37,7 +48,7 @@ def RaceTrackPulley(
         Drop: 丢弃端口（如果 IsAD 为 True）。
         Rcen1, Rcen2: 环形波导的中心端口。
     """
-    c = gf.Component()
+    c = gf.Component(Name)
     layer = oplayer
     secring = gf.Section(width=WidthRing, offset=0, layer=layer, port_names=("in", "out"))
     secnring = gf.Section(width=WidthNear, offset=0, layer=layer, port_names=("in", "out"))
@@ -55,10 +66,10 @@ def RaceTrackPulley(
     RP2 = c << gf.path.extrude(RingPath2, cross_section=wgring)
     RP3 = c << gf.path.extrude(RingPath1, cross_section=wgring)
     RP4 = c << gf.path.extrude(RingPath2, cross_section=wgring)
-    RP1.connect("out", other=RP4.ports["out"])
-    RP2.connect("in", other=RP1.ports["in"])
-    RP3.connect("out", other=RP2.ports["out"])
-    RP4.connect("in", other=RP3.ports["in"])
+    RP1.connect("out", destination=RP4.ports["out"])
+    RP2.connect("in", destination=RP1.ports["in"])
+    RP3.connect("out", destination=RP2.ports["out"])
+    RP4.connect("in", destination=RP3.ports["in"])
     # out port
     r_delta = WidthRing / 2 + GapRing + WidthNear / 2
     rcoup1 = gf.path.arc(radius=RadiusRing + r_delta, angle=-AngleCouple / 2)
@@ -70,9 +81,9 @@ def RaceTrackPulley(
     # input through
     RC1 = c << gf.path.extrude(RingCoup1, cross_section=wgnear)
     RC2 = c << gf.path.extrude(RingCoup2, cross_section=wgnear)
-    RC1.connect("in", other=RP3.ports["in"],allow_width_mismatch=True)
+    RC1.connect("in", destination=RP3.ports["in"],allow_width_mismatch=True)
     RC1.movey(r_delta)
-    RC2.connect("in", other=RC1.ports["in"])
+    RC2.connect("in", destination=RC1.ports["in"])
     # ports:
     c.add_port(name="Input", port=RC1.ports["out"],orientation=0)
     c.add_port(name="Through", port=RC2.ports["out"])
@@ -80,9 +91,9 @@ def RaceTrackPulley(
     if IsAD:
         RC3 = c << gf.path.extrude(RingCoup1, cross_section=wgnear)
         RC4 = c << gf.path.extrude(RingCoup2, cross_section=wgnear)
-        RC3.connect("in", other=RP1.ports["in"],allow_width_mismatch=True)
+        RC3.connect("in", destination=RP1.ports["in"],allow_width_mismatch=True)
         RC3.movey(-r_delta)
-        RC4.connect("in", other=RC3.ports["in"])
+        RC4.connect("in", destination=RC3.ports["in"])
         c.add_port(name="Add", port=RC3.ports["out"],orientation=180)
         c.add_port(name="Drop", port=RC4.ports["out"])
     c.add_port(name="Rcen1",port=RP1.ports["out"])
@@ -129,7 +140,7 @@ def RaceTrackPulley2(
         Drop: 丢弃端口（如果 IsAD 为 True）。
         Rcen1, Rcen2: 环形波导的中心端口。
     """
-    c = gf.Component()
+    c = gf.Component(Name)
     layer = oplayer
     secring = gf.Section(width=WidthRing, offset=0, layer=layer, port_names=("in", "out"))
     secnring = gf.Section(width=WidthRing, offset=0, layer=layer, port_names=("in", "out"))
@@ -148,10 +159,10 @@ def RaceTrackPulley2(
     RP2 = CRaceTrack << gf.path.extrude(RingPath2, cross_section=wgring)
     RP3 = CRaceTrack << gf.path.extrude(RingPath1, cross_section=wgring)
     RP4 = CRaceTrack << gf.path.extrude(RingPath2, cross_section=wgring)
-    RP1.connect("out", other=RP4.ports["out"])
-    RP2.connect("in", other=RP1.ports["in"])
-    RP3.connect("out", other=RP2.ports["out"])
-    RP4.connect("in", other=RP3.ports["in"])
+    RP1.connect("out", destination=RP4.ports["out"])
+    RP2.connect("in", destination=RP1.ports["in"])
+    RP3.connect("out", destination=RP2.ports["out"])
+    RP4.connect("in", destination=RP3.ports["in"])
     c << CRaceTrack
     # out port
     rcoup1 = gf.path.straight(length=LengthCouple / 2)
@@ -163,9 +174,9 @@ def RaceTrackPulley2(
     # input through
     RC1 = c << gf.path.extrude(RingCoup1, cross_section=wgnear)
     RC2 = c << gf.path.extrude(RingCoup2, cross_section=wgnear)
-    RC1.connect("out", other=RP3.ports["out"],allow_width_mismatch=True)
+    RC1.connect("out", destination=RP3.ports["out"],allow_width_mismatch=True)
     RC1.movex(-GapRun-WidthRing)
-    RC2.connect("in", other=RC1.ports["out"])
+    RC2.connect("in", destination=RC1.ports["out"])
     # ports:
     c.add_port(name="Input", port=RC1.ports["in"])
     c.add_port(name="Through", port=RC2.ports["out"])
@@ -173,9 +184,9 @@ def RaceTrackPulley2(
     if IsAD:
         RC3 = c << gf.path.extrude(RingCoup1, cross_section=wgnear)
         RC4 = c << gf.path.extrude(RingCoup2, cross_section=wgnear)
-        RC3.connect("out", other=RP1.ports["out"],allow_width_mismatch=True)
+        RC3.connect("out", destination=RP1.ports["out"],allow_width_mismatch=True)
         RC3.movex(GapRun + WidthRing)
-        RC4.connect("in", other=RC3.ports["out"])
+        RC4.connect("in", destination=RC3.ports["out"])
         c.add_port(name="Add", port=RC3.ports["in"])
         c.add_port(name="Drop", port=RC4.ports["out"])
     c.add_port(name="Rcen1", port=RP1.ports["out"])
@@ -227,7 +238,7 @@ def TaperRaceTrackPulley(
         Drop: Drop端口（如果 IsAD 为 True）。
         Rcen1, Rcen2: 环形波导的中心端口。
     """
-    c = gf.Component()
+    c = gf.Component(Name)
     layer = oplayer
     secring = gf.Section(width=WidthRing, offset=0, layer=layer, port_names=("in", "out"))
     secnring = gf.Section(width=WidthNear, offset=0, layer=layer, port_names=("in", "out"))
@@ -245,8 +256,8 @@ def TaperRaceTrackPulley(
     # print("length="+str(RingPath[0].length()*4))
     race = gf.Component()
     racetaper = race << gf.c.taper(width1 = WidthRing,width2 = WidthRun,length = LengthTaper)
-    racestraight = race << GfCStraight(length=(LengthRun-LengthTaper)/2,width = WidthRun)
-    racestraight.connect("o1",other=racetaper.ports["o2"])
+    racestraight = race << gf.c.straight(length=(LengthRun-LengthTaper)/2,width = WidthRun)
+    racestraight.connect("o1",destination=racetaper.ports["o2"])
     race.add_port("out",port=racestraight.ports["o2"])
     race.add_port("in", port=racetaper.ports["o1"])
     RP= list(range(4))
@@ -256,14 +267,14 @@ def TaperRaceTrackPulley(
         RP0 = gf.Component()
         RPr[i]= RP0 << gf.path.extrude(RingPath[i%2], cross_section=wgring)
         RPc[i] = RP0 << race
-        RPc[i].connect("in",other=RPr[i].ports["out"])
+        RPc[i].connect("in",destination=RPr[i].ports["out"])
         RP0.add_port("in",port=RPr[i].ports["in"])
         RP0.add_port("out",port=RPc[i].ports["out"])
         RP[i] = c << RP0
-    RP[0].connect("out", other=RP[3].ports["out"])
-    RP[1].connect("in", other=RP[0].ports["in"])
-    RP[2].connect("out", other=RP[1].ports["out"])
-    RP[3].connect("in", other=RP[2].ports["in"])
+    RP[0].connect("out", destination=RP[3].ports["out"])
+    RP[1].connect("in", destination=RP[0].ports["in"])
+    RP[2].connect("out", destination=RP[1].ports["out"])
+    RP[3].connect("in", destination=RP[2].ports["in"])
     # out port
     r_delta = WidthRing / 2 + GapRing + WidthNear / 2
     rcoup1 = gf.path.arc(radius=RadiusRing + r_delta, angle=-AngleCouple / 2)
@@ -275,9 +286,9 @@ def TaperRaceTrackPulley(
     # input through
     RC1 = c << gf.path.extrude(RingCoup1, cross_section=wgnear)
     RC2 = c << gf.path.extrude(RingCoup2, cross_section=wgnear)
-    RC1.connect("in", other=RP[2].ports["in"],allow_width_mismatch=True)
+    RC1.connect("in", destination=RP[2].ports["in"],allow_width_mismatch=True)
     RC1.movey(r_delta)
-    RC2.connect("in", other=RC1.ports["in"])
+    RC2.connect("in", destination=RC1.ports["in"])
     # ports:
     c.add_port(name="Input", port=RC1.ports["out"],orientation=0)
     c.add_port(name="Through", port=RC2.ports["out"])
@@ -285,9 +296,9 @@ def TaperRaceTrackPulley(
     if IsAD:
         RC3 = c << gf.path.extrude(RingCoup1, cross_section=wgnear)
         RC4 = c << gf.path.extrude(RingCoup2, cross_section=wgnear)
-        RC3.connect("in", other=RP[0].ports["in"],allow_width_mismatch=True)
+        RC3.connect("in", destination=RP[0].ports["in"],allow_width_mismatch=True)
         RC3.movey(-r_delta)
-        RC4.connect("in", other=RC3.ports["in"])
+        RC4.connect("in", destination=RC3.ports["in"])
         c.add_port(name="Add", port=RC3.ports["out"],orientation=180)
         c.add_port(name="Drop", port=RC4.ports["out"])
     c.add_port(name="Rcen1",port=RP[0].ports["out"])
@@ -343,7 +354,7 @@ def RaceTrackPulley2HS(
          Rcen1, Rcen2: 环形波导的中心端口。
          HeatIn: 加热输入端口（如果 IsHeat 为 True）。
      """
-    c = gf.Component()
+    c = gf.Component(Name)
     h = gf.Component(Name+"heat")
     layer = oplayer
     secring = gf.Section(width=WidthRing, offset=0, layer=layer, port_names=("in", "out"))
@@ -363,9 +374,9 @@ def RaceTrackPulley2HS(
     RP2 = CRaceTrack << gf.path.extrude(RingPath2, cross_section=wgring)
     RP3 = CRaceTrack << gf.path.extrude(RingPath1, cross_section=wgring)
     RP4 = CRaceTrack << gf.path.extrude(RingPath2, cross_section=wgring)
-    RP2.connect("in", other=RP1.ports["in"])
-    RP3.connect("out", other=RP2.ports["out"])
-    RP4.connect("in", other=RP3.ports["in"])
+    RP2.connect("in", destination=RP1.ports["in"])
+    RP3.connect("out", destination=RP2.ports["out"])
+    RP4.connect("in", destination=RP3.ports["in"])
     c << CRaceTrack
     # out port
     rcoup1 = gf.path.straight(length=LengthCouple / 2)
@@ -377,9 +388,9 @@ def RaceTrackPulley2HS(
     # input through
     RC1 = c << gf.path.extrude(RingCoup1, cross_section=wgnear)
     RC2 = c << gf.path.extrude(RingCoup2, cross_section=wgnear)
-    RC1.connect("out", other=RP3.ports["out"])
+    RC1.connect("out", destination=RP3.ports["out"])
     RC1.movex(-GapRun-WidthRing)
-    RC2.connect("in", other=RC1.ports["out"])
+    RC2.connect("in", destination=RC1.ports["out"])
     # ports:
     c.add_port(name="Input", port=RC1.ports["in"])
     c.add_port(name="Through", port=RC2.ports["out"])
@@ -387,9 +398,9 @@ def RaceTrackPulley2HS(
     if IsAD:
         RC3 = c << gf.path.extrude(RingCoup1, cross_section=wgnear)
         RC4 = c << gf.path.extrude(RingCoup2, cross_section=wgnear)
-        RC3.connect("out", other=RP1.ports["out"])
+        RC3.connect("out", destination=RP1.ports["out"])
         RC3.movex(GapRun + WidthRing)
-        RC4.connect("in", other=RC3.ports["out"])
+        RC4.connect("in", destination=RC3.ports["out"])
         c.add_port(name="Add", port=RC3.ports["in"])
         c.add_port(name="Drop", port=RC4.ports["out"])
     c.add_port(name="Rcen1", port=RP1.ports["out"])
@@ -414,28 +425,26 @@ def RaceTrackPulley2HS(
     HP2 = h_plus << gf.path.extrude(RingPath2, cross_section=heatring1)
     HP3 = h_plus << gf.path.extrude(RingPath1, cross_section=heatring2)
     HP4 = h_plus << gf.path.extrude(RingPath2, cross_section=heatring1)
-    # HP1.connect("in",other=RP1.ports["in"]).mirror_y("in")
-    HP2.connect("in", other=HP1.ports["in"])
-    HP3.connect("out", other=HP2.ports["out"])
-    HP4.connect("in", other=HP3.ports["in"])
+    # HP1.connect("in",destination=RP1.ports["in"]).mirror_y("in")
+    HP2.connect("in", destination=HP1.ports["in"])
+    HP3.connect("out", destination=HP2.ports["out"])
+    HP4.connect("in", destination=HP3.ports["in"])
     # Heat
     HO1 = h_minus << gf.path.extrude(RingPath1, cross_section=heatout2)
     HO2 = h_minus << gf.path.extrude(RingPath2, cross_section=heatout1)
     HO3 = h_minus << gf.path.extrude(RingPath1, cross_section=heatout2)
     HO4 = h_minus << gf.path.extrude(RingPath2, cross_section=heatout1)
-    HO2.connect("in", other=HO1.ports["in"])
-    HO3.connect("out", other=HO2.ports["out"])
-    HO4.connect("in", other=HO3.ports["in"])
+    HO2.connect("in", destination=HO1.ports["in"])
+    HO3.connect("out", destination=HO2.ports["out"])
+    HO4.connect("in", destination=HO3.ports["in"])
     delta = RP3.ports["in"].center-RP1.ports["in"].center
-    HR1 = h_plus << GfCStraight(width=WidthRoute * 2 + 2 * GapRoute,
+    HR1 = h_plus << gf.c.straight(width=WidthRoute * 2 + 2 * GapRoute,
                                   length=(RadiusRing - WidthRing / 2 - WidthHeat + DeltaHeat - GapRoute),
                                   layer=heatlayer)
-    HR2 = h_minus << GfCStraight(width=2 * GapRoute, length=delta[1],
+    HR2 = h_minus << gf.c.straight(width=2 * GapRoute, length=delta[1],
                                    layer=heatlayer)
-    HR1.connect("o1", other=HP1.ports["in"])
-    HR1.rotate(-90, HR1.ports["o1"].center)
-    HR2.connect("o1", other=HP1.ports["in"])
-    HR2.rotate(-90, HR2.ports["o1"].center)
+    HR1.connect("o1", destination=HP1.ports["in"]).rotate(-90, "o1")
+    HR2.connect("o1", destination=HP1.ports["in"]).rotate(-90, "o1")
     HR2.movey(-GapRoute-WidthHeat+DeltaHeat)
     Htotal = c << gf.geometry.boolean(A=h_plus, B=h_minus, operation="not", layer=heatlayer)
     c.add_port(name="HeatIn",port=HP1.ports["in"],orientation=0)

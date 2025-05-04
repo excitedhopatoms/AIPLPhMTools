@@ -1,3 +1,14 @@
+import gdsfactory as gf
+import numpy as np
+import csv
+from gdsfactory.typings import Layer
+from gdsfactory.component import Component
+from gdsfactory.path import Path, _fresnel, _rotate_points
+from gdsfactory.typings import LayerSpec
+from gdsfactory.cross_section import cross_section
+from gdsfactory.generic_tech import get_generic_pdk
+from gdsfactory.pdk import get_active_pdk
+from gdsfactory.typings import Layer, LayerSpec, LayerSpecs ,Optional, Callable
 from .BasicDefine import *
 from .Heater import *
 from .Ring import *
@@ -36,7 +47,7 @@ def DoubleRingMemyshev(
         width_near
 
     '''
-    c = gf.Component()
+    c = gf.Component("ec_ref")
     # section and cross section
     S_near = gf.Section(width=width_near, offset=0, layer=oplayer, port_names=("o1", "o2"))
     S_single = gf.Section(width=width_single, offset=0, layer=oplayer, port_names=("o1", "o2"))
@@ -66,7 +77,7 @@ def DoubleRingMemyshev(
     taper1.connect('o1',str1.ports["o2"])
     ring1.connect('Input',taper1.ports['o2'])
     taper1_2.connect('o1',ring1.ports['Drop'])
-    reflecter1.connect('o1',taper1_2.ports['o2'],mirror=True)
+    reflecter1.connect('o1',taper1_2.ports['o2']).mirror_y('o1')
     # ring ref1
     str2 = c << gf.c.bend_s(size=[length_c2r,-delta_ring/2],cross_section=X_single)
     taper2 = c << gf.c.taper(width1 = width_single,width2 = width_near,layer= oplayer,length=length_taper)
@@ -79,7 +90,7 @@ def DoubleRingMemyshev(
     )
     str2.connect('o1',coupler.ports["o3"])
     taper2.connect('o1',str2.ports["o2"])
-    ring2.connect('Input',taper2.ports['o2'],mirror=True)
+    ring2.connect('Input',taper2.ports['o2']).mirror_y('Input')
     taper2_2.connect('o1', ring2.ports['Drop'])
     reflecter2.connect('o1', taper2_2.ports['o2'])
     ## Add port

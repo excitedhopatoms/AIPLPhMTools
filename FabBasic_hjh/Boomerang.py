@@ -1,3 +1,5 @@
+import gdsfactory as gf
+from gdsfactory.typings import LayerSpec, Component
 from .BasicDefine import *
 from .Heater import *
 # from Heater import SnakeHeater
@@ -28,7 +30,7 @@ def Boomerang(
         routelayer: LayerSpec = LAYER.M2,
         vialayer: LayerSpec = LAYER.VIA,
 ) -> Component:
-    c = gf.Component()
+    c = gf.Component("RingBoormerang")
     Cring1 = gf.Component()
     Test = gf.Component()
     # sections
@@ -59,8 +61,8 @@ def Boomerang(
     c_euler_bridge = Test << gf.path.extrude(path_euler_bridge,cross_section=X_str)
     Deltaheight = (LengthBridge2+2*(c_euler_bridge.ports["o2"].center[0]-c_euler_bridge.ports["o1"].center[0]))
     cir_out.move([-Deltaheight,Deltaheight])
-    cir_in.rotate(45,cir_in.ports["o1"].center)
-    cir_out.rotate(45,cir_out.ports["o1"].center)
+    cir_in.rotate(45,"o1")
+    cir_out.rotate(45,"o1")
     taper_in.connect("o1",cir_in.ports["o2"])
     taper_out.connect("o1",cir_out.ports["o2"])
     path_str_out = gf.path.straight(length=LengthBridge1)
@@ -79,8 +81,7 @@ def Boomerang(
     Cringhalf.add(route.references)
     ringhalf1 = Cring1 << Cringhalf
     ringhalf2 = Cring1 << Cringhalf
-    ringhalf2.mirror_x(ringhalf2.ports["o1"].center[0])
-    ringhalf2.rotate(90,ringhalf2.ports["o1"].center)
+    ringhalf2.mirror_x("o1").rotate(90,"o1")
     # heat in
     if IsHeatIn:
         path_heat_in = path_circle_in + path_euler_in + path_taper_in
@@ -92,8 +93,8 @@ def Boomerang(
         heat_in_l = c << HeatInHalf
         heat_in_r = c << HeatInHalf
         heat_in_l.connect('HeatIn',ringhalf1.ports["o1"],allow_layer_mismatch=True,allow_width_mismatch=True)
-        heat_in_r.connect('HeatIn',heat_in_l.ports["HeatIn"],mirror=True)
-        heat_in_l.rotate(-90,heat_in_l.ports['HeatIn'].center)
+        heat_in_r.connect('HeatIn',heat_in_l.ports["HeatIn"])
+        heat_in_l.mirror_x('HeatIn').rotate(-90,'HeatIn')
         c.add_port("HeatILIn",port=heat_in_l.ports["HeatLOut"])
         c.add_port("HeatILOut", port=heat_in_r.ports["HeatLOut"])
         c.add_port("HeatIRIn", port=heat_in_l.ports["HeatROut"])
@@ -108,8 +109,8 @@ def Boomerang(
         heat_out_l = c << HeatOutHalf
         heat_out_r = c << HeatOutHalf
         heat_out_l.connect('HeatIn',ringhalf1.ports["o2"],allow_layer_mismatch=True,allow_width_mismatch=True)
-        heat_out_r.connect('HeatIn',heat_out_l.ports["HeatIn"],mirror=True)
-        heat_out_l.rotate(-90,heat_out_l.ports['HeatIn'].center)
+        heat_out_r.connect('HeatIn',heat_out_l.ports["HeatIn"])
+        heat_out_l.mirror_x('HeatIn').rotate(-90,'HeatIn')
         c.add_port("HeatOLIn",port=heat_out_l.ports["HeatLOut"])
         c.add_port("HeatOLOut", port=heat_out_r.ports["HeatLOut"])
         c.add_port("HeatORIn", port=heat_out_l.ports["HeatROut"])
@@ -160,7 +161,7 @@ def RingBoomerang(
         routelayer: LayerSpec = LAYER.M2,
         vialayer: LayerSpec = LAYER.VIA,
 ) -> Component:
-    c = gf.Component()
+    c = gf.Component("RingBoormerang")
     # sections
     C_in = gf.Section(layer= oplayer,width=WidthRingIn,port_names = ["o1","o2"])
     C_out = gf.Section(layer= oplayer,width=WidthRingOut,port_names = ["o1","o2"])
@@ -176,23 +177,21 @@ def RingBoomerang(
                             LengthBridge1,LengthBridge2,LengthTaper,
                             IsHeatIn,IsHeatOut,TypeHeater,
                             oplayer,heatlayer,routelayer,vialayer)
-    Cring1.rotate(90,Cring1.ports["Lo1"].center)
+    Cring1.rotate(90,"Lo1")
     # input-through
     sbend_in = c << gf.c.bend_s(size=[100,10],cross_section=X_str)
     sbend_out = c << gf.c.bend_s(size=[100,10],cross_section=X_str)
-    str_couple_in = c << GfCStraight(width=WidthStraight,length=LengthCouple,layer = oplayer)
-    str_couple_in.connect("o1",Cring1.ports["Lb1"])
-    str_couple_in.movex(-GapRB-WidthStraight).movey(LengthBridge2/2-LengthCouple/2)
-    sbend_in.connect("o2",str_couple_in.ports["o1"],mirror=True)
+    str_couple_in = c << gf.c.straight(width=WidthStraight,length=LengthCouple,layer = oplayer)
+    str_couple_in.connect("o1",Cring1.ports["Lb1"]).movex(-GapRB-WidthStraight).movey(LengthBridge2/2-LengthCouple/2)
+    sbend_in.connect("o2",str_couple_in.ports["o1"]).mirror_x("o2")
     sbend_out.connect("o1",str_couple_in.ports["o2"])
     # add drop
     sbend_add = c << gf.c.bend_s(size=[100,10],cross_section=X_str)
     sbend_drop = c << gf.c.bend_s(size=[100,10],cross_section=X_str)
-    str_couple_ad = c << GfCStraight(width=WidthStraight,length=LengthCouple,layer = oplayer)
-    str_couple_ad.connect("o1",Cring1.ports["Rb1"])
-    str_couple_ad.movey(-GapRB-WidthStraight).movex(LengthBridge2/2-LengthCouple/2)
+    str_couple_ad = c << gf.c.straight(width=WidthStraight,length=LengthCouple,layer = oplayer)
+    str_couple_ad.connect("o1",Cring1.ports["Rb1"]).movey(-GapRB-WidthStraight).movex(LengthBridge2/2-LengthCouple/2)
     sbend_add.connect("o2",str_couple_ad.ports["o1"])
-    sbend_drop.connect("o1",str_couple_ad.ports["o2"],mirror=True)
+    sbend_drop.connect("o1",str_couple_ad.ports["o2"]).mirror_y("o1")
     c.add_port("Input",port=sbend_in.ports["o1"])
     c.add_port("Through",port=sbend_out.ports["o2"])
     c.add_port("Add",port=sbend_add.ports["o1"])
@@ -227,7 +226,7 @@ def RingDouBoomerang(
         routelayer: LayerSpec = LAYER.M2,
         vialayer: LayerSpec = LAYER.VIA,
 ) -> Component:
-    c = gf.Component()
+    c = gf.Component("RingBoormerang")
     # sections
     C_in = gf.Section(layer= oplayer,width=WidthRingIn,port_names = ["o1","o2"])
     C_out = gf.Section(layer= oplayer,width=WidthRingOut,port_names = ["o1","o2"])
@@ -243,20 +242,19 @@ def RingDouBoomerang(
                             LengthBridge1,LengthBridge2,LengthTaper,
                             False,IsHeat,TypeHeater,
                             oplayer,heatlayer,routelayer,vialayer)
-    Cring1.rotate(90,Cring1.ports["Lo1"].center)
+    Cring1.rotate(90,"Lo1")
     Cring2 = c << Boomerang(WidthRingIn,WidthRingOut,WidthStraight,WidthHeat,WidthRoute,WidthVia,
                             RadiusRing,RadiusEuler,Spacing,GapRR,GapHeat,DeltaHeat,
                             LengthBridge1,LengthBridge2+DeltaLB2,LengthTaper,
                             IsHeat,False,TypeHeater,
                             oplayer,heatlayer,routelayer,vialayer)
     Cring2.connect("Lo2",Cring1.ports["Ro1"],allow_width_mismatch=True)
-    Cring2.move(((WidthRingIn/2+WidthRingOut/2+GapRR)/np.sqrt(2),(WidthRingIn/2+WidthRingOut/2+GapRR)/np.sqrt(2)))
+    Cring2.move([(WidthRingIn/2+WidthRingOut/2+GapRR)/np.sqrt(2),(WidthRingIn/2+WidthRingOut/2+GapRR)/np.sqrt(2)])
     # add drop
     sbend_add = c << gf.c.bend_euler(radius=RadiusEuler*1.1,angle=90,cross_section=X_str)
     sbend_drop = c << gf.c.bend_s(size=[100,10],cross_section=X_str)
-    str_couple_ad = c << GfCStraight(width=WidthStraight,length=LengthCouple,layer = oplayer)
-    str_couple_ad.connect("o1",Cring2.ports["Lb1"])
-    str_couple_ad.movex(-GapRB-WidthStraight).movey(LengthBridge2/2-LengthCouple/2)
+    str_couple_ad = c << gf.c.straight(width=WidthStraight,length=LengthCouple,layer = oplayer)
+    str_couple_ad.connect("o1",Cring2.ports["Lb1"]).movex(-GapRB-WidthStraight).movey(LengthBridge2/2-LengthCouple/2)
     sbend_add.connect("o2",str_couple_ad.ports["o1"])
     sbend_drop.connect("o1",str_couple_ad.ports["o2"])
     c.add_port("Add",port=sbend_add.ports['o1'])
@@ -266,11 +264,10 @@ def RingDouBoomerang(
     # input through
     sbend_in = c << gf.c.bend_s(size=[100,10],cross_section=X_str)
     sbend_th = c << gf.c.bend_s(size=[100,10],cross_section=X_str)
-    str_couple_in = c << GfCStraight(width=WidthStraight,length=LengthCouple,layer = oplayer)
-    str_couple_in.connect("o1",Cring1.ports["Rb1"])
-    str_couple_in.movey(-GapRB-WidthStraight).movex(LengthBridge2/2-LengthCouple/2)
+    str_couple_in = c << gf.c.straight(width=WidthStraight,length=LengthCouple,layer = oplayer)
+    str_couple_in.connect("o1",Cring1.ports["Rb1"]).movey(-GapRB-WidthStraight).movex(LengthBridge2/2-LengthCouple/2)
     sbend_in.connect("o2",str_couple_in.ports["o1"])
-    sbend_th.connect("o1",str_couple_in.ports["o2"],mirror=True)
+    sbend_th.connect("o1",str_couple_in.ports["o2"]).mirror_y("o1")
     c.add_port("Input",port=sbend_in.ports['o1'])
     c.add_port("Through",port= sbend_th.ports['o2'])
     for port in Cring1.ports:
@@ -306,7 +303,7 @@ def RingTriBoomerang(
         routelayer: LayerSpec = LAYER.M2,
         vialayer: LayerSpec = LAYER.VIA,
 ) -> Component:
-    c = gf.Component()
+    c = gf.Component("RingBoormerang")
     # sections
     C_in = gf.Section(layer= oplayer,width=WidthRingIn,port_names = ["o1","o2"])
     C_out = gf.Section(layer= oplayer,width=WidthRingOut,port_names = ["o1","o2"])
@@ -322,28 +319,28 @@ def RingTriBoomerang(
                             LengthBridge1,LengthBridge2,LengthTaper,
                             False,False,TypeHeater,
                             oplayer,heatlayer,routelayer,vialayer)
-    Cring1.rotate(90,Cring1.ports["Lo1"].center)
+    Cring1.rotate(90,"Lo1")
     Cring2 = c << Boomerang(WidthRingIn,WidthRingOut,WidthStraight,WidthHeat,WidthRoute,WidthVia,
                             RadiusRing,RadiusEuler,Spacing,GapRR,GapHeat,DeltaHeat,
                             LengthBridge1,LengthBridge2+DeltaLB2,LengthTaper,
                             IsHeat,False,TypeHeater,
                             oplayer,heatlayer,routelayer,vialayer)
     Cring2.connect("Lo2",Cring1.ports["Ro1"],allow_width_mismatch=True)
-    Cring2.move(((WidthRingIn/2+WidthRingOut/2+GapRR)/np.sqrt(2),(WidthRingIn/2+WidthRingOut/2+GapRR)/np.sqrt(2)))
+    Cring2.move([(WidthRingIn/2+WidthRingOut/2+GapRR)/np.sqrt(2),(WidthRingIn/2+WidthRingOut/2+GapRR)/np.sqrt(2)])
     Cring3 = c << Boomerang(WidthRingIn,WidthRingOut,WidthStraight,WidthHeat,WidthRoute,WidthVia,
                             RadiusRing,RadiusEuler,Spacing,GapRR,GapHeat,DeltaHeat,
                             LengthBridge1,LengthBridge2-DeltaLB2,LengthTaper,
                             False,IsHeat,TypeHeater,
                             oplayer,heatlayer,routelayer,vialayer)
     Cring3.connect("Lo1",Cring1.ports["Ro2"],allow_width_mismatch=True)
-    Cring3.move((-(WidthRingIn/2+WidthRingOut/2+GapRR)/np.sqrt(2),-(WidthRingIn/2+WidthRingOut/2+GapRR)/np.sqrt(2)))
+    Cring3.move([-(WidthRingIn/2+WidthRingOut/2+GapRR)/np.sqrt(2),-(WidthRingIn/2+WidthRingOut/2+GapRR)/np.sqrt(2)])
     c.info['R1length'] = Cring1.info['length']
     c.info['R2length'] = Cring2.info['length']
     c.info['R3length'] = Cring3.info['length']
     # input-through
     sbend_in = c << gf.c.bend_euler(radius=RadiusEuler*1.1,angle=90,cross_section=X_str)
     sbend_out = c << gf.c.bend_s(size=[100,10],cross_section=X_str)
-    str_couple_in = c << GfCStraight(width=WidthStraight,length=LengthCouple,layer = oplayer)
+    str_couple_in = c << gf.c.straight(width=WidthStraight,length=LengthCouple,layer = oplayer)
     str_couple_in.connect("o1",Cring1.ports["Lb1"]).movex(-GapRB-WidthStraight).movey(LengthBridge2/2-LengthCouple/2)
     sbend_in.connect("o2",str_couple_in.ports["o1"])
     sbend_out.connect("o1",str_couple_in.ports["o2"])
@@ -352,7 +349,7 @@ def RingTriBoomerang(
     # add drop
     sbend_add = c << gf.c.bend_euler(radius=RadiusEuler*1.1,angle=-90,cross_section=X_str)
     sbend_drop = c << gf.c.bend_s(size=[100,-10],cross_section=X_str)
-    str_couple_ad = c << GfCStraight(width=WidthStraight,length=LengthCouple,layer = oplayer)
+    str_couple_ad = c << gf.c.straight(width=WidthStraight,length=LengthCouple,layer = oplayer)
     str_couple_ad.connect("o1",Cring1.ports["Rb1"]).movey(-GapRB-WidthStraight).movex(LengthBridge2/2-LengthCouple/2)
     sbend_add.connect("o2",str_couple_ad.ports["o1"])
     sbend_drop.connect("o1",str_couple_ad.ports["o2"])

@@ -1,3 +1,14 @@
+import gdsfactory as gf
+import numpy as np
+import csv
+from gdsfactory.typings import Layer
+from gdsfactory.component import Component
+from gdsfactory.path import Path, _fresnel, _rotate_points
+from gdsfactory.typings import LayerSpec
+from gdsfactory.cross_section import cross_section
+from gdsfactory.generic_tech import get_generic_pdk
+from gdsfactory.pdk import get_active_pdk
+from gdsfactory.typings import Layer, LayerSpec, LayerSpecs, Optional, Callable
 from .BasicDefine import *
 from .Ring import *
 from .RaceTrack import *
@@ -18,9 +29,10 @@ def DoubleRingPulley(
         AngleCouple: float = 20,
         IsHeat: bool = False,
         TypeHeater:str = "default",
-        TypeR2R:str = "straight",
+        TypeR2R:str = "strsight",
         DirectionsHeater:[str] = ["up","up"],
         DirectionsRing:[str] = ["up","up"],
+        Name: str = "Ring_Pulley",
         oplayer: LayerSpec = LAYER.WG,
         heatlayer: LayerSpec = LAYER.M1,
         routelayer: LayerSpec = LAYER.M2,
@@ -70,7 +82,7 @@ def DoubleRingPulley(
         R2HeatIn: 第二个环形波导的加热输入端口（如果包含加热电极）。
         R2HeatOut: 第二个环形波导的加热输出端口（如果包含加热电极）。
     """
-    c = gf.Component()
+    c = gf.Component(Name)
     ring1 = c << RingPulleyT1(
         WidthRing=WidthRing, WidthNear=WidthNear, WidthHeat=WidthHeat,
         RadiusRing=RadiusRing, GapRing=GapRing, GapHeat=GapHeat,DeltaHeat=DeltaHeat,
@@ -84,13 +96,13 @@ def DoubleRingPulley(
         oplayer=oplayer, heatlayer=heatlayer,TypeHeater=TypeHeater,IsHeat=IsHeat,DirectionHeater=DirectionsHeater[1]
     )
     if TypeR2R == "straight":
-        str_R2R = c << GfCStraight(width=WidthNear, length=LengthR2R, layer=oplayer)
+        str_R2R = c << gf.c.straight(width=WidthNear, length=LengthR2R, layer=oplayer)
         str_R2R.connect("o1", ring1.ports["Drop"])
         ring2.connect("Drop", str_R2R.ports["o2"], allow_width_mismatch=True)
     elif TypeR2R == "bend":
         if RadiusR2R is None:
             RadiusR2R = RadiusRing-10
-        str_R2R = c << GfCStraight(width=WidthNear, length=LengthR2R, layer=oplayer)
+        str_R2R = c << gf.c.straight(width=WidthNear, length=LengthR2R, layer=oplayer)
         str_R2R.connect("o1", ring1.ports["Drop"])
         ring2.connect("Drop", str_R2R.ports["o2"], allow_width_mismatch=True)
         # Add circular bends for ring-to-ring connection
@@ -102,17 +114,17 @@ def DoubleRingPulley(
         bendl2.connect("o1", bendl1.ports["o2"])
         bendr1.connect("o2", ring2.ports["Drop"])
         bendr2.connect("o2", bendr1.ports["o1"])
-        route = gf.routing.route_single(c,bendl2.ports["o2"], bendr2.ports["o1"],route_width=WidthNear, layer=oplayer)
-        # c.add(route.references)
+        route = gf.routing.get_route(bendl2.ports["o2"], bendr2.ports["o1"], width=WidthNear, layer=oplayer)
+        c.add(route.references)
         c.remove(str_R2R)
 
     if DirectionsRing[0] == "down":
-        ring1.mirror_y(ring1.ports["Drop"].center[1])
+        ring1.mirror_y("Drop")
     if DirectionsRing[1] == "up":
-        ring2.mirror_y(ring2.ports["Drop"].center[1])
+        ring2.mirror_y("Drop")
     c.add_port(name="o1", port=ring1.ports["Input"])
     c.add_port(name="o2", port=ring2.ports["Input"])
-    c.add_port(name="R2Ro1", port=ring1.ports["Drop"])
+    c.add_port(name="R2Ro1", port=str_R2R.ports["o1"])
     c.add_port(name="R1Add", port=ring1.ports["Add"])
     c.add_port(name="R1Drop", port=ring1.ports["Drop"])
     c.add_port(name="R1Input", port=ring1.ports["Input"])
@@ -124,11 +136,11 @@ def DoubleRingPulley(
 
     if IsHeat:
         for port in ring1.ports:
-            if "Heat" in port.name:
-                c.add_port(name="R1"+port.name, port=ring1.ports[port.name])
+            if "Heat" in port:
+                c.add_port(name="R1"+port, port=ring1.ports[port])
         for port in ring2.ports:
-            if "Heat" in port.name:
-                c.add_port(name="R2"+port.name, port=ring2.ports[port.name])
+            if "Heat" in port:
+                c.add_port(name="R2"+port, port=ring2.ports[port])
     add_labels_to_ports(c,label_layer=(512,8))
     return c
 
@@ -146,6 +158,8 @@ def DoubleRingPulley2HSn(
         GapHeat: float = 1,
         AngleCouple: float = 20,
         IsHeat: bool = True,
+        TypeHeater:str = "snake",
+        Name: str = "Ring_Pulley_Snake_Heater",
         oplayer: LayerSpec = LAYER.WG,
         heatlayer: LayerSpec = LAYER.M1,
         routelayer: LayerSpec = LAYER.M2,
@@ -200,11 +214,12 @@ def DoubleRingPulley2HSn(
         GapHeat=GapHeat,
         AngleCouple=AngleCouple,
         IsHeat=IsHeat,
+        Name=Name,
         oplayer=oplayer,
         heatlayer=heatlayer,
-        TypeHeater="snake",
+        TypeHeater=TypeHeater,
     )
-    # add_labels_to_ports(c)
+    add_labels_to_ports(c)
     return c
 
 
@@ -350,7 +365,7 @@ def ADRAPRADR(
         co2: 交叉波导的输出端口 2。
         co3: 交叉波导的输出端口 3。
     """
-    TriRing = gf.Component()
+    TriRing = gf.Component(Name)
     ring1 = TriRing << RingPulley(
         IsAD=True, WidthRing=WidthRing, RadiusRing=RadiusRing, oplayer=oplayer, GapRing=GapRing,
         WidthNear=WidthNear, AngleCouple=AngleCouple, IsHeat=IsHeat, heatlayer=heatlayer, WidthHeat=WidthHeat
@@ -363,17 +378,17 @@ def ADRAPRADR(
         WidthRing=WidthRing, RadiusRing=RadiusRing + DeltaRadius / 2, oplayer=oplayer, GapRing=GapRing,
         WidthNear=WidthNear, AngleCouple=AngleCouple3, IsHeat=IsHeat, heatlayer=heatlayer, WidthHeat=WidthHeat
     )
-    str_r1r3 = TriRing << GfCStraight(length=LengthR2R, width=WidthNear, layer=oplayer)
-    str_r2r3 = TriRing << GfCStraight(length=LengthR2R, width=WidthNear, layer=oplayer)
+    str_r1r3 = TriRing << gf.c.straight(length=LengthR2R, width=WidthNear, layer=oplayer)
+    str_r2r3 = TriRing << gf.c.straight(length=LengthR2R, width=WidthNear, layer=oplayer)
     str_r1r3.connect("o1", ring1.ports["Drop"])
-    ring3.connect("Input", str_r1r3.ports["o2"],mirror=True)
+    ring3.connect("Input", str_r1r3.ports["o2"]).mirror_y("Input")
     str_r2r3.connect("o1", ring3.ports["Through"])
     ring2.connect("Drop", str_r2r3.ports["o2"])
 
     if IsSquare and CrossComp:
         crossing = TriRing << CrossComp
-        str_r12c = TriRing << GfCStraight(length=LengthR2C, width=WidthNear, layer=oplayer)
-        str_r22c = TriRing << GfCStraight(length=LengthR2C, width=WidthNear, layer=oplayer)
+        str_r12c = TriRing << gf.c.straight(length=LengthR2C, width=WidthNear, layer=oplayer)
+        str_r22c = TriRing << gf.c.straight(length=LengthR2C, width=WidthNear, layer=oplayer)
         str_r12c.connect("o2", ring1.ports["Input"])
         str_r22c.connect("o1", ring2.ports["Input"])
         bend_r12c = TriRing << gf.c.bend_euler(width=WidthNear, radius=RadiusCrossBend, angle=-90, layer=oplayer)
@@ -452,7 +467,7 @@ def DoubleRaceTrackPulley(
         R2cen1: 第二个跑道形波导的中心端口 1。
         R2cen2: 第二个跑道形波导的中心端口 2。
     """
-    c = gf.Component()
+    c = gf.Component(Name)
     layer = gf.get_layer(layer)
     ring1 = c << RaceTrackPulley(
         WidthRing=WidthRing, WidthNear=WidthNear, GapRing=GapRing,
@@ -462,11 +477,11 @@ def DoubleRaceTrackPulley(
         WidthRing=WidthRing, WidthNear=WidthNear, GapRing=GapRing,
         LengthRun=LengthRun + DeltaLength, RadiusRing=RadiusRing, AngleCouple=AngleCouple, layer=layer
     )
-    str_r2r = c << GfCStraight(width=WidthNear, length=LengthR2R, layer=layer)
+    str_r2r = c << gf.c.straight(width=WidthNear, length=LengthR2R, layer=layer)
     str_r2r.connect("o1", ring1.ports["Drop"])
     ring2.connect("Drop", str_r2r.ports["o2"])
     if IsSameSide:
-        ring2.mirror_y(ring2.ports["Drop"].center[1])
+        ring2.mirror_y(port_name="Drop")
 
     c.add_port(name="o1", port=ring1.ports["Input"])
     c.add_port(name="o2", port=ring2.ports["Input"])
@@ -566,7 +581,7 @@ def CoupleRingDRT1(
         GapHeat2 = GapHeat1
     if DeltaHeat2 is None:
         DeltaHeat2 = DeltaHeat1
-    c = gf.Component()
+    c = gf.Component(Name)
     ring1 = c << RingPulleyT1(
         WidthRing=WidthRing1, WidthNear=WidthNear1, WidthHeat=WidthHeat1,
         RadiusRing=RadiusRing1, GapRing=GapRB1, GapHeat=GapHeat1,DeltaHeat=DeltaHeat1,
@@ -579,9 +594,9 @@ def CoupleRingDRT1(
     ring2 = c << ring2_c
     ring2.move(ring1.ports['RingC'].center+[0,-(RadiusRing1+RadiusRing2+WidthRing1/2+WidthRing2/2+GapRR)])
     ring2.rotate(AngleR12,ring1.ports['RingC'].center)
-    str_ring2_1 = c << GfCStraight(width=WidthNear2,length=LengthNear2/2,layer=oplayer)
+    str_ring2_1 = c << gf.c.straight(width=WidthNear2,length=LengthNear2/2,layer=oplayer)
     str_ring2_1.move(ring2.ports["RingC"].center+[0,-WidthRing2/2-WidthNear2/2-RadiusRing2-GapRB2])
-    str_ring2_2 = c << GfCStraight(width=WidthNear2, length=LengthNear2/2, layer=oplayer)
+    str_ring2_2 = c << gf.c.straight(width=WidthNear2, length=LengthNear2/2, layer=oplayer)
     str_ring2_2.connect('o2',str_ring2_1.ports['o1'])
     ring2_hc = RingPulleyT1(
         WidthRing=WidthRing2, WidthNear=WidthNear2, WidthHeat=WidthHeat2,

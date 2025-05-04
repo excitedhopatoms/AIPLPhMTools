@@ -1,3 +1,16 @@
+import gdsfactory as gf
+import numpy as np
+import csv
+from gdsfactory.typings import Layer
+from gdsfactory.component import Component
+from gdsfactory.path import Path, _fresnel, _rotate_points
+from gdsfactory.typings import LayerSpec
+from gdsfactory.cross_section import cross_section
+from gdsfactory.generic_tech import get_generic_pdk
+from gdsfactory.pdk import get_active_pdk
+from gdsfactory.typings import Layer, LayerSpec, LayerSpecs ,Optional, Callable
+from .BasicDefine import add_labels_to_ports,add_labels_decorator,Crossing_taper,TaperRsoa,cir2end,euler_Bend_Half,TWQRcode,LAYER,r_euler_true,r_euler_false
+from .Heater import SnakeHeater
 from .Ring import *
 from .BasicDefine import *
 # %% SingleRingIsolator0: SingleRingIsolator:ADD-DROP ring + monitor
@@ -25,7 +38,7 @@ def SingleRingIsolator0(
         tin:Component = None,
         oplayer: LayerSpec = LAYER.WG,
 ) -> Component:
-    sr = gf.Component()
+    sr = gf.Component("Ring")
     # Section CrossSection
     S_near1 = gf.Section(width=width_near1,layer=oplayer,port_names=("o1", "o2"))
     CS_near1 = gf.CrossSection(sections=[S_near1])
@@ -49,38 +62,36 @@ def SingleRingIsolator0(
         WidthHeat=width_heat
     )
     taper_s2n_in.movex(pos_ring-length_taper)
-    ring.connect("Input",other=taper_s2n_in.ports["o2"],mirror=True)
+    ring.connect("Input",destination=taper_s2n_in.ports["o2"]).mirror_y("Input")
     length_tout = abs(toutring_th.ports["o1"].center[0]-toutring_th.ports["o2"].center[0])
     # add
-    taper_s2n_ad.connect("o2",other=ring.ports["Add"])
-    toutring_ad.connect("o1",other=taper_s2n_ad.ports["o1"])
+    taper_s2n_ad.connect("o2",destination=ring.ports["Add"])
+    toutring_ad.connect("o1",destination=taper_s2n_ad.ports["o1"])
     toutring_ad.movex(length_total-length_tout-taper_s2n_ad.ports["o1"].center[0])
     # through
     bend_th1 = sr << gf.c.bend_euler(width=width_near1,layer=oplayer,angle=-angle_th1,
                                      radius= r_euler_false*1.2)
     bend_th2 = sr << gf.c.bend_euler(width=width_near1, layer=oplayer, angle=angle_th1,
                                      radius= r_euler_false*1.2)
-    str_th1 = sr << GfCStraight(width=width_near1,layer=oplayer,length=length_thadd)
-    bend_th1.connect("o1", other=ring.ports["Through"])
-    str_th1.connect("o1",other=bend_th1.ports["o2"])
-    bend_th2.connect("o1", other=str_th1.ports["o2"])
+    str_th1 = sr << gf.c.straight(width=width_near1,layer=oplayer,length=length_thadd)
+    bend_th1.connect("o1", destination=ring.ports["Through"])
+    str_th1.connect("o1",destination=bend_th1.ports["o2"])
+    bend_th2.connect("o1", destination=str_th1.ports["o2"])
     # bend_th2.movey(0)
     gf.routing.get_route(bend_th2.ports["o1"],bend_th1.ports["o2"],width = width_near1,layer = oplayer,radius=150)
-    taper_s2n_th.connect("o2",other=bend_th2.ports["o2"])
-    toutring_th.connect("o1",other=taper_s2n_th.ports["o1"])
-    toutring_th.movex(length_total-length_tout-taper_s2n_th.ports["o1"].center[0])
+    taper_s2n_th.connect("o2",destination=bend_th2.ports["o2"])
+    toutring_th.connect("o1",destination=taper_s2n_th.ports["o1"]).movex(length_total-length_tout-taper_s2n_th.ports["o1"].center[0])
     # drop
-    taper_s2n_dr.connect("o2",other=ring.ports["Drop"],mirror=True)
-    taper_s2n_dr.move([-100,-gap_ad])
+    taper_s2n_dr.connect("o2",destination=ring.ports["Drop"])
+    taper_s2n_dr.mirror_x("o2").move([-100,-gap_ad])
     bend_dr1 = sr << gf.c.bend_euler(width=width_near2,layer=oplayer,angle=-angle_dr,
                                      radius= r_euler_false*1.2)
     bend_dr2 = sr << gf.c.bend_euler(width=width_near2, layer=oplayer, angle=angle_dr,
                                      radius= r_euler_false*1.2)
-    bend_dr1.connect("o1",other=ring.ports["Drop"])
-    bend_dr2.connect("o1",other=bend_dr1.ports["o2"])
+    bend_dr1.connect("o1",destination=ring.ports["Drop"])
+    bend_dr2.connect("o1",destination=bend_dr1.ports["o2"])
     route_drop = gf.routing.get_route(taper_s2n_dr.ports["o2"],bend_dr2.ports["o2"],radius=120,cross_section=CS_near2)
-    toutring_dr.connect("o1",other=taper_s2n_dr.ports["o1"])
-    toutring_dr.movex(length_total-length_tout-taper_s2n_dr.ports["o1"].center[0])
+    toutring_dr.connect("o1",destination=taper_s2n_dr.ports["o1"]).movex(length_total-length_tout-taper_s2n_dr.ports["o1"].center[0])
     # route io
     route_io = gf.routing.get_bundle(
         [tinring.ports["o2"],taper_s2n_ad.ports["o1"],taper_s2n_dr.ports["o1"],taper_s2n_th.ports["o1"]],
@@ -128,7 +139,7 @@ def SingleRingIsolator1(
         tin:Component = None,
         oplayer: LayerSpec = LAYER.WG,
 ) -> Component:
-    sr = gf.Component()
+    sr = gf.Component("Ring")
     # Section CrossSection
     S_near1 = gf.Section(width=width_near1,layer=oplayer,port_names=("o1", "o2"))
     CS_near1 = gf.CrossSection(sections=[S_near1])
@@ -152,49 +163,46 @@ def SingleRingIsolator1(
         WidthHeat=width_heat
     )
     taper_s2n_in.movex(pos_ring-length_taper)
-    ring.connect("Input",other=taper_s2n_in.ports["o2"],mirror=True)
+    ring.connect("Input",destination=taper_s2n_in.ports["o2"]).mirror_y("Input")
     length_tout = abs(toutring_th.ports["o1"].center[0]-toutring_th.ports["o2"].center[0])
     # add
-    taper_s2n_ad.connect("o2",other=ring.ports["Add"])
-    toutring_ad.connect("o1",other=taper_s2n_ad.ports["o1"])
+    taper_s2n_ad.connect("o2",destination=ring.ports["Add"])
+    toutring_ad.connect("o1",destination=taper_s2n_ad.ports["o1"])
     toutring_ad.movex(length_total-length_tout-taper_s2n_ad.ports["o1"].center[0])
     # through
     bend_th1 = sr << gf.c.bend_euler(width=width_near1,layer=oplayer,angle=-angle_th1,
                                      radius= r_euler_false*1.2)
     bend_th2 = sr << gf.c.bend_euler(width=width_near1, layer=oplayer, angle=angle_th1,
                                      radius= r_euler_false*1.2)
-    bend_th1.connect("o1",other=ring.ports["Through"])
-    bend_th2.connect("o1",other=bend_th1.ports["o2"])
+    bend_th1.connect("o1",destination=ring.ports["Through"])
+    bend_th2.connect("o1",destination=bend_th1.ports["o2"])
     # bend_th2.movey(0)
     gf.routing.get_route(bend_th2.ports["o1"],bend_th1.ports["o2"],width = width_near1,layer = oplayer,radius=150)
-    taper_s2n_th.connect("o2",other=bend_th2.ports["o2"])
-    toutring_th.connect("o1",other=taper_s2n_th.ports["o1"])
-    toutring_th.movex(length_total-length_tout-taper_s2n_th.ports["o1"].center[0])
+    taper_s2n_th.connect("o2",destination=bend_th2.ports["o2"])
+    toutring_th.connect("o1",destination=taper_s2n_th.ports["o1"]).movex(length_total-length_tout-taper_s2n_th.ports["o1"].center[0])
     # drop
-    taper_s2n_dr.connect("o2",other=ring.ports["Drop"],mirror=True)
-    taper_s2n_dr.move([-100,-30])
+    taper_s2n_dr.connect("o2",destination=ring.ports["Drop"])
+    taper_s2n_dr.mirror_x("o2").move([-100,-30])
     bend_dr1 = sr << gf.c.bend_euler(width=width_near2,layer=oplayer,angle=-angle_th2,
                                      radius= r_euler_false*1.2)
     bend_dr2 = sr << gf.c.bend_euler(width=width_near2, layer=oplayer, angle=angle_th2,
                                      radius= r_euler_false*1.2)
-    bend_dr1.connect("o1",other=ring.ports["Drop"])
-    bend_dr2.connect("o1",other=bend_dr1.ports["o2"])
+    bend_dr1.connect("o1",destination=ring.ports["Drop"])
+    bend_dr2.connect("o1",destination=bend_dr1.ports["o2"])
     route_drop = gf.routing.get_route(taper_s2n_dr.ports["o2"],bend_dr2.ports["o2"],radius=120,cross_section=CS_near2)
-    toutring_dr.connect("o1",other=taper_s2n_dr.ports["o1"])
-    toutring_dr.movex(length_total-length_tout-taper_s2n_dr.ports["o1"].center[0])
+    toutring_dr.connect("o1",destination=taper_s2n_dr.ports["o1"]).movex(length_total-length_tout-taper_s2n_dr.ports["o1"].center[0])
     # monitor
-    str_moni =sr <<  GfCStraight(length = length_monicouple,width = width_single,layer = oplayer)
-    str_moni.connect("o1",other=taper_s2n_in.ports["o1"])
-    str_moni.movey(-width_single-gap_mc)
+    str_moni =sr <<  gf.c.straight(length = length_monicouple,width = width_single,layer = oplayer)
+    str_moni.connect("o1",destination=taper_s2n_in.ports["o1"]).movey(-width_single-gap_mc)
     taper_moni = sr << OffsetRamp(width1=width_single,width2=0,offset = width_single/2,length=50,layer=oplayer)
-    taper_moni.connect("o1",other=str_moni.ports["o1"])
+    taper_moni.connect("o1",destination=str_moni.ports["o1"])
     bend_moni = sr << gf.c.bend_euler(width=width_single,radius=r_euler_moni,layer = oplayer,angle=90)
-    bend_moni.connect("o1",other=str_moni.ports["o2"])
+    bend_moni.connect("o1",destination=str_moni.ports["o2"])
     toutring_mn = sr << tout
-    toutring_mn.connect("o1",other=toutring_dr.ports["o1"],mirror=True)
+    toutring_mn.connect("o1",destination=toutring_dr.ports["o1"]).mirror_x("o1")
     toutring_mn.movey(-127)
-    str_moni_out = sr << GfCStraight(width=width_single,length=toutring_mn.ports["o1"].center[0]-taper_s2n_dr.ports["o1"].center[0])
-    str_moni_out.connect("o2",other=toutring_mn.ports["o1"])
+    str_moni_out = sr << gf.c.straight(width=width_single,length=toutring_mn.ports["o1"].center[0]-taper_s2n_dr.ports["o1"].center[0])
+    str_moni_out.connect("o2",destination=toutring_mn.ports["o1"])
     # route io
     route_io = gf.routing.get_bundle(
         [tinring.ports["o2"],taper_s2n_ad.ports["o1"],taper_s2n_dr.ports["o1"],taper_s2n_th.ports["o1"]],
@@ -281,7 +289,7 @@ def RingAndIsolator0(
     Returns:
         Ring and SingleRingIsolator0: ring for comb and ADD-DROP ring
     '''
-    sr = gf.Component()
+    sr = gf.Component("Ring")
     if width_Cring == None:
         width_Cring=width_ring
     # Section CrossSection
@@ -312,8 +320,8 @@ def RingAndIsolator0(
         WidthHeat=width_heat
     )
     taper_s2n_in.movex(pos_ring - length_taper)
-    ring_iso.connect("Input", other=taper_s2n_in.ports["o2"],mirror=True)
-    ring_comb.connect("Input", other=taper_s2n_in.ports["o2"],allow_width_mismatch=True,mirror=True)
+    ring_iso.connect("Input", destination=taper_s2n_in.ports["o2"]).mirror_y("Input")
+    ring_comb.connect("Input", destination=taper_s2n_in.ports["o2"],allow_width_mismatch=True).mirror_y("Input")
     ring_comb.movex(pos_Cring-pos_ring)
     length_tout = abs(toutring_th.ports["o1"].center[0] - toutring_th.ports["o2"].center[0])
     # comb ring taper
@@ -323,36 +331,36 @@ def RingAndIsolator0(
     taper_CRout2s.connect("o1", ring_comb.ports["Through"])
 
     # add
-    taper_s2n_ad.connect("o2", other=ring_iso.ports["Add"])
-    toutring_ad.connect("o1", other=taper_s2n_ad.ports["o1"])
+    taper_s2n_ad.connect("o2", destination=ring_iso.ports["Add"])
+    toutring_ad.connect("o1", destination=taper_s2n_ad.ports["o1"])
     toutring_ad.movex(length_total - length_tout - taper_s2n_ad.ports["o1"].center[0])
     # through
     bend_th1 = sr << gf.c.bend_euler(width=width_near1, layer=oplayer, angle=-angle_th1,
                                      radius=r_euler_false * 1.2)
     bend_th2 = sr << gf.c.bend_euler(width=width_near1, layer=oplayer, angle=angle_th1,
                                      radius=r_euler_false * 1.2)
-    str_th1 = sr << GfCStraight(width=width_near1,layer=oplayer,length=length_thadd)
-    bend_th1.connect("o1", other=ring_iso.ports["Through"])
-    str_th1.connect("o1",other=bend_th1.ports["o2"])
-    bend_th2.connect("o1", other=str_th1.ports["o2"])
+    str_th1 = sr << gf.c.straight(width=width_near1,layer=oplayer,length=length_thadd)
+    bend_th1.connect("o1", destination=ring_iso.ports["Through"])
+    str_th1.connect("o1",destination=bend_th1.ports["o2"])
+    bend_th2.connect("o1", destination=str_th1.ports["o2"])
     # bend_th2.movey(0)
     gf.routing.get_route(bend_th2.ports["o1"], bend_th1.ports["o2"], width=width_near1, layer=oplayer, radius=150)
-    taper_s2n_th.connect("o2", other=bend_th2.ports["o2"])
-    toutring_th.connect("o1", other=taper_s2n_th.ports["o1"])
-    toutring_th.movex(length_total - length_tout - taper_s2n_th.ports["o1"].center[0])
+    taper_s2n_th.connect("o2", destination=bend_th2.ports["o2"])
+    toutring_th.connect("o1", destination=taper_s2n_th.ports["o1"]).movex(
+        length_total - length_tout - taper_s2n_th.ports["o1"].center[0])
     # drop
-    taper_s2n_dr.connect("o2", other=ring_iso.ports["Drop"],mirror=True)
-    taper_s2n_dr.move([-100, -gap_ad])
+    taper_s2n_dr.connect("o2", destination=ring_iso.ports["Drop"])
+    taper_s2n_dr.mirror_x("o2").move([-100, -gap_ad])
     bend_dr1 = sr << gf.c.bend_euler(width=width_near2, layer=oplayer, angle=-angle_dr,
                                      radius=r_euler_false * 1.2)
     bend_dr2 = sr << gf.c.bend_euler(width=width_near2, layer=oplayer, angle=angle_dr,
                                      radius=r_euler_false * 1.2)
-    bend_dr1.connect("o1", other=ring_iso.ports["Drop"])
-    bend_dr2.connect("o1", other=bend_dr1.ports["o2"])
+    bend_dr1.connect("o1", destination=ring_iso.ports["Drop"])
+    bend_dr2.connect("o1", destination=bend_dr1.ports["o2"])
     route_drop = gf.routing.get_route(taper_s2n_dr.ports["o2"], bend_dr2.ports["o2"], radius=120,
                                       cross_section=CS_near2)
-    toutring_dr.connect("o1", other=taper_s2n_dr.ports["o1"])
-    toutring_dr.movex(length_total - length_tout - taper_s2n_dr.ports["o1"].center[0])
+    toutring_dr.connect("o1", destination=taper_s2n_dr.ports["o1"]).movex(
+        length_total - length_tout - taper_s2n_dr.ports["o1"].center[0])
     # route io
     route_io = gf.routing.get_bundle(
         [tinring.ports["o2"],taper_CRout2s.ports["o2"], taper_s2n_ad.ports["o1"], taper_s2n_dr.ports["o1"], taper_s2n_th.ports["o1"]],
