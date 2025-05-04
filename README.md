@@ -1,4 +1,6 @@
-# 光子器件设计代码库 README
+# PKU-AIPL 光子器件设计代码库
+
+- *version:* **G9v1m**
 
 ## 概述
 本代码库包含了一系列用于光子器件设计的Python代码，主要集中在三个文件中：`BasicDefine.py`、`CouplerMZI.py` 和 `Boomerang.py`。这些代码利用了 `gdsfactory` 库，用于创建、操作和优化光子集成电路（PIC）中的各种组件。
@@ -274,7 +276,7 @@
 ### 创建直线波导
 ```python
 import gdsfactory as gf
-from BasicDefine import GfCStraight
+from FabBasic_hjh.BasicDefine import GfCStraight
 
 # 创建一个长度为20um，宽度为1um的直线波导
 straight_waveguide = GfCStraight(length=20, width=1)
@@ -283,7 +285,7 @@ straight_waveguide.show()  # 显示波导
 
 ### 创建Pulley耦合MZI结构
 ```python
-from CouplerMZI import PMZI
+from FabBasic_hjh.CouplerMZI import PMZI
 
 # 创建一个Pulley耦合MZI结构
 mzi = PMZI()
@@ -292,7 +294,7 @@ mzi.show()  # 显示MZI结构
 
 ### 创建环形三角回旋镖结构
 ```python
-from Boomerang import RingTriBoomerang
+from FabBasic_hjh.Boomerang import RingTriBoomerang
 
 # 创建一个环形三角回旋镖结构
 ring_tri_boomerang = RingTriBoomerang()
