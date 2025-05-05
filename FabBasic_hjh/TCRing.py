@@ -1,9 +1,12 @@
 from .BasicDefine import *
 from .Heater import *
 from .Ring import *
-r_euler_false=60
+
+r_euler_false = 60
+
+
 # %% defult in out taper
-def create_taper(name, width1, width2, lengthleft=100,lengthtaper=100,lengthright=100, layer:LayerSpec=(1,0)):
+def create_taper(name, width1, width2, lengthleft=100, lengthtaper=100, lengthright=100, layer: LayerSpec = (1, 0)):
     taper = gf.Component(name)
     taper_te = taper << gf.c.taper(width1=width1, width2=width2, length=lengthtaper, layer=layer)
     taper_straight1 = taper << GfCStraight(width=width1, length=lengthleft, layer=layer)
@@ -14,27 +17,30 @@ def create_taper(name, width1, width2, lengthleft=100,lengthtaper=100,lengthrigh
     taper.add_port(name="o2", port=taper_straight2.ports["o2"])
     return taper
 
-taper_in = create_taper("taper_in", width1=0.3, width2=1,  layer=LAYER.WG)
+
+taper_in = create_taper("taper_in", width1=0.3, width2=1, layer=LAYER.WG)
 taper_out = create_taper("taper_out", width1=1, width2=0.2, layer=LAYER.WG)
+
+
 # % TCRing: simple straight pulley
 @gf.cell
 def TCRing(
         r_ring: float = 120,
-        r_euler_true:float = 150,
+        r_euler_true: float = 150,
         width_ring: float = 1,
         width_near: float = 2,
-        width_heat:float = 5,
-        width_single:float =1,
+        width_heat: float = 5,
+        width_single: float = 1,
         angle_rc: float = 20,
         length_taper: float = 150,
-        length_total:float = 10000,
-        pos_ring:float = 500,
-        length_th_vertical = 100,
+        length_total: float = 10000,
+        pos_ring: float = 500,
+        length_th_vertical=100,
         gap_rc: float = 1,
-        tin:Component = taper_in,
-        tout:Component = taper_out,
-        is_heat:bool = True,
-        is_ad:bool = False,
+        tin: Component = taper_in,
+        tout: Component = taper_out,
+        is_heat: bool = True,
+        is_ad: bool = False,
         oplayer: LayerSpec = LAYER.WG,
         heatlayer: LayerSpec = LAYER.M1,
 ) -> Component:
@@ -93,21 +99,23 @@ def TCRing(
         heatlayer=heatlayer,
     )
     return sr
+
+
 # %% TCRing1_2: add-drop ring
 @gf.cell
 def TCRing1AD(
         r_ring: float = 120,
         width_ring: float = 1,
         width_near: float = 2,
-        width_heat:float =5,
-        width_single:float =1,
+        width_heat: float = 5,
+        width_single: float = 1,
         angle_rc: float = 20,
         length_taper: float = 150,
-        length_total:float = 2000,
-        pos_ring:float = 500,
+        length_total: float = 2000,
+        pos_ring: float = 500,
         gap_rc: float = 1,
-        tout:Component = taper_out,
-        tin:Component = taper_in,
+        tout: Component = taper_out,
+        tin: Component = taper_in,
         oplayer: LayerSpec = LAYER.WG,
 ) -> Component:
     """
@@ -141,60 +149,62 @@ def TCRing1AD(
     """
     sr = gf.Component()
     # Section CrossSection
-    S_near = gf.Section(width=width_near,layer=oplayer,port_names=("o1", "o2"))
+    S_near = gf.Section(width=width_near, layer=oplayer, port_names=("o1", "o2"))
     CS_near = gf.CrossSection(sections=[S_near])
     # component
     tinring = sr << tin
     toutring_th = sr << tout
     toutring_ad = sr << tout
     toutring_dr = sr << tout
-    taper_s2n = gf.c.taper(width1 = width_single,width2=width_near,length=length_taper,layer=oplayer)
+    taper_s2n = gf.c.taper(width1=width_single, width2=width_near, length=length_taper, layer=oplayer)
     taper_s2n_in = sr << taper_s2n
     taper_s2n_th = sr << taper_s2n
     taper_s2n_ad = sr << taper_s2n
     taper_s2n_dr = sr << taper_s2n
     ring = sr << RingPulley(
-        WidthRing=width_ring,WidthNear=width_near,GapRing=gap_rc,oplayer=oplayer,RadiusRing=r_ring,
-        AngleCouple=angle_rc,WidthHeat=width_heat,IsAD=True
+        WidthRing=width_ring, WidthNear=width_near, GapRing=gap_rc, oplayer=oplayer, RadiusRing=r_ring,
+        AngleCouple=angle_rc, WidthHeat=width_heat, IsAD=True
     )
-    taper_s2n_in.movex(pos_ring-length_taper).movey(tinring.ports['o1'].center[1]-taper_s2n_in.ports['o1'].center[1])
-    ring.connect("Input",other=taper_s2n_in.ports["o2"],mirror=True)
-    length_tout = abs(toutring_th.ports["o1"].center[0]-toutring_th.ports["o2"].center[0])
+    taper_s2n_in.movex(pos_ring - length_taper).movey(
+        tinring.ports['o1'].center[1] - taper_s2n_in.ports['o1'].center[1])
+    ring.connect("Input", other=taper_s2n_in.ports["o2"], mirror=True)
+    length_tout = abs(toutring_th.ports["o1"].center[0] - toutring_th.ports["o2"].center[0])
     # add
-    taper_s2n_ad.connect("o2",other=ring.ports["Add"])
-    toutring_ad.connect("o1",other=taper_s2n_ad.ports["o1"])
-    toutring_ad.movex(length_total-length_tout-taper_s2n_ad.ports["o1"].center[0])
+    taper_s2n_ad.connect("o2", other=ring.ports["Add"])
+    toutring_ad.connect("o1", other=taper_s2n_ad.ports["o1"])
+    toutring_ad.movex(length_total - length_tout - taper_s2n_ad.ports["o1"].center[0])
     # through
-    bend_th1 = sr << GfCBendEuler(width=width_near,layer=oplayer,angle=-90,
-                                     radius= r_euler_false / 2+r_ring*np.sin((20-angle_rc/2)*3.14/180))
+    bend_th1 = sr << GfCBendEuler(width=width_near, layer=oplayer, angle=-90,
+                                  radius=r_euler_false / 2 + r_ring * np.sin((20 - angle_rc / 2) * 3.14 / 180))
     bend_th2 = sr << GfCBendEuler(width=width_near, layer=oplayer, angle=90,
-                                     radius= r_euler_false / 2+r_ring*np.sin((10-angle_rc/2)*3.14/180))
-    bend_th1.connect("o1",other=ring.ports["Through"])
-    delta = bend_th1.ports["o2"].center[1]-taper_s2n_ad.ports["o2"].center[1]
-    bend_th2.connect("o1",other=bend_th1.ports["o2"])
-    bend_th2.movey(-delta+r_ring / 2 + r_euler_false / 2+15++r_ring*np.sin((10-angle_rc/2)*3.14/180))
-    route = gf.routing.route_single(sr,bend_th2.ports["o1"],bend_th1.ports["o2"],route_width=width_near,layer=oplayer)
-    taper_s2n_th.connect("o2",other=bend_th2.ports["o2"])
-    toutring_th.connect("o1",other=taper_s2n_th.ports["o1"])
-    toutring_th.movex(length_total-length_tout-taper_s2n_th.ports["o1"].center[0])
+                                  radius=r_euler_false / 2 + r_ring * np.sin((10 - angle_rc / 2) * 3.14 / 180))
+    bend_th1.connect("o1", other=ring.ports["Through"])
+    delta = bend_th1.ports["o2"].center[1] - taper_s2n_ad.ports["o2"].center[1]
+    bend_th2.connect("o1", other=bend_th1.ports["o2"])
+    bend_th2.movey(-delta + r_ring / 2 + r_euler_false / 2 + 15 + +r_ring * np.sin((10 - angle_rc / 2) * 3.14 / 180))
+    route = gf.routing.route_single(sr, bend_th2.ports["o1"], bend_th1.ports["o2"], route_width=width_near,
+                                    layer=oplayer)
+    taper_s2n_th.connect("o2", other=bend_th2.ports["o2"])
+    toutring_th.connect("o1", other=taper_s2n_th.ports["o1"])
+    toutring_th.movex(length_total - length_tout - taper_s2n_th.ports["o1"].center[0])
     # drop
-    taper_s2n_dr.connect("o2",other=ring.ports["Drop"],mirror=True)
+    taper_s2n_dr.connect("o2", other=ring.ports["Drop"], mirror=True)
     taper_s2n_dr.mirror_x(taper_s2n_dr.ports["o2"].center[0])
-    taper_s2n_dr.movey(-35-r_ring*(1-np.cos(angle_rc/2*3.14/180)))
-    bend_dr1 = sr << GfCBendEuler(width=width_near,layer=oplayer,angle=-30,radius=r_euler_false*3)
+    taper_s2n_dr.movey(-35 - r_ring * (1 - np.cos(angle_rc / 2 * 3.14 / 180)))
+    bend_dr1 = sr << GfCBendEuler(width=width_near, layer=oplayer, angle=-30, radius=r_euler_false * 3)
     bend_dr1.connect("o1", other=ring.ports["Drop"])
-    bend_dr2 = sr << GfCBendEuler(width=width_near,layer=oplayer,angle=210,radius=r_euler_false*2/3)
-    bend_dr2.connect("o1",other=bend_dr1.ports["o2"])
-    route = gf.routing.route_single_sbend(sr,bend_dr2.ports["o2"],taper_s2n_dr.ports["o2"],cross_section=CS_near)
+    bend_dr2 = sr << GfCBendEuler(width=width_near, layer=oplayer, angle=210, radius=r_euler_false * 2 / 3)
+    bend_dr2.connect("o1", other=bend_dr1.ports["o2"])
+    route = gf.routing.route_single_sbend(sr, bend_dr2.ports["o2"], taper_s2n_dr.ports["o2"], cross_section=CS_near)
     # sr.add(route.references)
-    toutring_dr.connect("o1",other=taper_s2n_dr.ports["o1"])
-    toutring_dr.movex(length_total-length_tout-taper_s2n_dr.ports["o1"].center[0])
+    toutring_dr.connect("o1", other=taper_s2n_dr.ports["o1"])
+    toutring_dr.movex(length_total - length_tout - taper_s2n_dr.ports["o1"].center[0])
     # route io
     route_io = gf.routing.route_bundle(
         sr,
-        [tinring.ports["o2"],taper_s2n_ad.ports["o1"],taper_s2n_dr.ports["o1"],taper_s2n_th.ports["o1"]],
-        [taper_s2n_in.ports["o1"],toutring_ad.ports["o1"],toutring_dr.ports["o1"],toutring_th.ports["o1"]],
-        route_width=width_single,layer = oplayer
+        [tinring.ports["o2"], taper_s2n_ad.ports["o1"], taper_s2n_dr.ports["o1"], taper_s2n_th.ports["o1"]],
+        [taper_s2n_in.ports["o1"], toutring_ad.ports["o1"], toutring_dr.ports["o1"], toutring_th.ports["o1"]],
+        route_width=width_single, layer=oplayer
     )
     # for route in route_io:
     #     sr.add(route.references)
@@ -203,28 +213,31 @@ def TCRing1AD(
     # # sr_cld1 = gf.geometry.offset(sr, distance=width_cld, layer=LAYER.CLD2)
     # # sr_cld2 = gf.geometry.offset(sr_cld1, distance=-0.8, layer=LAYER.CLD2)
     # # sr.add_ref(sr_cld2)
-    sr.add_port("input",port=tinring.ports["o1"])
-    sr.add_port("through",port=toutring_th.ports["o2"])
+    sr.add_port("input", port=tinring.ports["o1"])
+    sr.add_port("through", port=toutring_th.ports["o2"])
     sr.add_port("drop", port=toutring_dr.ports["o2"])
     sr.add_port("add", port=toutring_ad.ports["o2"])
-    sr.add_port("RingC",port=sr.ports["input"],center=np.array(ring.ports["RingL"].center)/2+np.array(ring.ports["RingR"].center)/2)
+    sr.add_port("RingC", port=sr.ports["input"],
+                center=np.array(ring.ports["RingL"].center) / 2 + np.array(ring.ports["RingR"].center) / 2)
     add_labels_to_ports(sr)
     sr.flatten()
     return sr
+
+
 # %% TCRing: simple straight pulley
 @gf.cell
 def TCRing1_3(
         r_ring: float = 120,
         width_ring: float = 1,
         width_near: float = 2,
-        width_single:float =1,
+        width_single: float = 1,
         angle_rc: float = 20,
         length_taper: float = 150,
-        length_total:float = 10000,
-        pos_ring:float = 500,
+        length_total: float = 10000,
+        pos_ring: float = 500,
         gap_rc: float = 1,
-        tin:Component = taper_in,
-        tout:Component = taper_out,
+        tin: Component = taper_in,
+        tout: Component = taper_out,
         oplayer: LayerSpec = LAYER.WG,
 ) -> Component:
     """
@@ -273,6 +286,7 @@ def TCRing1_3(
     )
     return sr
 
+
 # %% TCRing1DC: RingPulley1 different coupling
 @gf.cell
 def TCRing1DC(
@@ -281,18 +295,18 @@ def TCRing1DC(
         width_ring: float = 1,
         width_near1: float = 2,
         width_near2: float = 3,
-        width_heat:float =5,
-        width_single:float =1,
+        width_heat: float = 5,
+        width_single: float = 1,
         angle_rc1: float = 20,
         angle_rc2: float = 30,
         angle_th: float = 60,
         length_taper: float = 150,
-        length_total:float = 3000,
-        pos_ring:float = 2000,
+        length_total: float = 3000,
+        pos_ring: float = 2000,
         gap_rc1: float = 1,
         gap_rc2: float = 4,
-        tout:Component = taper_out,
-        tin:Component = taper_in,
+        tout: Component = taper_out,
+        tin: Component = taper_in,
         oplayer: LayerSpec = LAYER.WG,
 ) -> Component:
     """
@@ -331,96 +345,103 @@ def TCRing1DC(
     """
     sr = gf.Component()
     # Section CrossSection
-    S_near1 = gf.Section(width=width_near1,layer=oplayer,port_names=("o1", "o2"))
+    S_near1 = gf.Section(width=width_near1, layer=oplayer, port_names=("o1", "o2"))
     CS_near1 = gf.CrossSection(sections=[S_near1])
-    S_near2 = gf.Section(width=width_near2,layer=oplayer,port_names=("o1", "o2"))
+    S_near2 = gf.Section(width=width_near2, layer=oplayer, port_names=("o1", "o2"))
     CS_near2 = gf.CrossSection(sections=[S_near2])
     # component
     tinring = sr << tin
     toutring_th = sr << tout
     toutring_ad = sr << tout
     toutring_dr = sr << tout
-    taper_s2n1 = gf.c.taper(width1 = width_single,width2=width_near1,length=length_taper,layer=oplayer)
+    taper_s2n1 = gf.c.taper(width1=width_single, width2=width_near1, length=length_taper, layer=oplayer)
     taper_s2n2 = gf.c.taper(width1=width_single, width2=width_near2, length=length_taper, layer=oplayer)
     taper_s2n_in = sr << taper_s2n1
     taper_s2n_th = sr << taper_s2n1
     taper_s2n_ad = sr << taper_s2n2
     taper_s2n_dr = sr << taper_s2n2
     ring = sr << RingPulley1DC(
-        WidthRing=width_ring,oplayer=oplayer,RadiusRing=r_ring,
-        WidthNear1=width_near1,GapRing1=gap_rc1,AngleCouple1=angle_rc1,
+        WidthRing=width_ring, oplayer=oplayer, RadiusRing=r_ring,
+        WidthNear1=width_near1, GapRing1=gap_rc1, AngleCouple1=angle_rc1,
         WidthNear2=width_near2, GapRing2=gap_rc2, AngleCouple2=angle_rc2,
         WidthHeat=width_heat
     )
-    taper_s2n_in.movex(pos_ring-length_taper).movey(tinring.ports['o1'].center[1]-taper_s2n_in.ports['o1'].center[1])
-    ring.connect("Input",other=taper_s2n_in.ports["o2"],mirror=True)
-    length_tout = abs(toutring_th.ports["o1"].center[0]-toutring_th.ports["o2"].center[0])
+    taper_s2n_in.movex(pos_ring - length_taper).movey(
+        tinring.ports['o1'].center[1] - taper_s2n_in.ports['o1'].center[1])
+    ring.connect("Input", other=taper_s2n_in.ports["o2"], mirror=True)
+    length_tout = abs(toutring_th.ports["o1"].center[0] - toutring_th.ports["o2"].center[0])
     # add
-    taper_s2n_ad.connect("o2",other=ring.ports["Add"])
-    toutring_ad.connect("o1",other=taper_s2n_ad.ports["o1"])
-    toutring_ad.movex(length_total-length_tout-taper_s2n_ad.ports["o1"].center[0])
+    taper_s2n_ad.connect("o2", other=ring.ports["Add"])
+    toutring_ad.connect("o1", other=taper_s2n_ad.ports["o1"])
+    toutring_ad.movex(length_total - length_tout - taper_s2n_ad.ports["o1"].center[0])
     # through
-    bend_th1 = sr << GfCBendEuler(width=width_near1,layer=oplayer,angle=-angle_th,
-                                     radius= r_euler_false*1.5)
+    bend_th1 = sr << GfCBendEuler(width=width_near1, layer=oplayer, angle=-angle_th,
+                                  radius=r_euler_false * 1.5)
     bend_th2 = sr << GfCBendEuler(width=width_near1, layer=oplayer, angle=angle_th,
-                                     radius= r_euler_false*1.5)
-    bend_th1.connect("o1",other=ring.ports["Through"])
-    bend_th2.connect("o1",other=bend_th1.ports["o2"])
+                                  radius=r_euler_false * 1.5)
+    bend_th1.connect("o1", other=ring.ports["Through"])
+    bend_th2.connect("o1", other=bend_th1.ports["o2"])
     # bend_th2.movey(0)
-    gf.routing.route_single(sr,bend_th2.ports["o1"],bend_th1.ports["o2"],route_width = width_near1,layer = oplayer,radius=150)
-    taper_s2n_th.connect("o2",other=bend_th2.ports["o2"])
-    toutring_th.connect("o1",other=taper_s2n_th.ports["o1"])
-    toutring_th.movex(length_total-length_tout-taper_s2n_th.ports["o1"].center[0])
+    gf.routing.route_single(sr, bend_th2.ports["o1"], bend_th1.ports["o2"], route_width=width_near1, layer=oplayer,
+                            radius=150)
+    taper_s2n_th.connect("o2", other=bend_th2.ports["o2"])
+    toutring_th.connect("o1", other=taper_s2n_th.ports["o1"])
+    toutring_th.movex(length_total - length_tout - taper_s2n_th.ports["o1"].center[0])
     # drop
-    taper_s2n_dr.connect("o2",other=ring.ports["Drop"],mirror=True)
+    taper_s2n_dr.connect("o2", other=ring.ports["Drop"], mirror=True)
     taper_s2n_dr.mirror_x(taper_s2n_dr.ports["o2"].center[0])
-    taper_s2n_dr.move([300,-30])
-    bend_dr1 = sr << GfCBendEuler(width=width_near2,layer=oplayer,angle=-angle_th,
-                                     radius= r_euler_false)
-    bend_dr2 = sr << GfCBendEuler(width=width_near2, layer=oplayer, angle=angle_th+180,
-                                     radius= r_euler_false)
-    bend_dr1.connect("o1",other=ring.ports["Drop"])
-    bend_dr2.connect("o1",other=bend_dr1.ports["o2"])
-    route_drop = gf.routing.route_single_sbend(sr,taper_s2n_dr.ports["o2"],bend_dr2.ports["o2"],cross_section=CS_near2)
-    toutring_dr.connect("o1",other=taper_s2n_dr.ports["o1"])
-    toutring_dr.movex(length_total-length_tout-taper_s2n_dr.ports["o1"].center[0])
+    taper_s2n_dr.move([300, -30])
+    bend_dr1 = sr << GfCBendEuler(width=width_near2, layer=oplayer, angle=-angle_th,
+                                  radius=r_euler_false)
+    bend_dr2 = sr << GfCBendEuler(width=width_near2, layer=oplayer, angle=angle_th + 180,
+                                  radius=r_euler_false)
+    bend_dr1.connect("o1", other=ring.ports["Drop"])
+    bend_dr2.connect("o1", other=bend_dr1.ports["o2"])
+    route_drop = gf.routing.route_single_sbend(sr, taper_s2n_dr.ports["o2"], bend_dr2.ports["o2"],
+                                               cross_section=CS_near2)
+    toutring_dr.connect("o1", other=taper_s2n_dr.ports["o1"])
+    toutring_dr.movex(length_total - length_tout - taper_s2n_dr.ports["o1"].center[0])
     # route io
     route_io = gf.routing.route_bundle(sr,
-        [tinring.ports["o2"],taper_s2n_ad.ports["o1"],taper_s2n_dr.ports["o1"],taper_s2n_th.ports["o1"]],
-        [taper_s2n_in.ports["o1"],toutring_ad.ports["o1"],toutring_dr.ports["o1"],toutring_th.ports["o1"]],
-        route_width=width_single,layer = oplayer,radius = 150,
-    )
+                                       [tinring.ports["o2"], taper_s2n_ad.ports["o1"], taper_s2n_dr.ports["o1"],
+                                        taper_s2n_th.ports["o1"]],
+                                       [taper_s2n_in.ports["o1"], toutring_ad.ports["o1"], toutring_dr.ports["o1"],
+                                        toutring_th.ports["o1"]],
+                                       route_width=width_single, layer=oplayer, radius=150,
+                                       )
     # for route in route_drop:
     #     sr.add(route.references)
     # # sr_cld1 = gf.geometry.offset(sr, distance=width_cld, layer=LAYER.CLD2)
     # # sr_cld2 = gf.geometry.offset(sr_cld1, distance=-0.8, layer=LAYER.CLD2)
     # # sr.add_ref(sr_cld2)
-    sr.add_port("input",port=tinring.ports["o1"])
-    sr.add_port("through",port=toutring_th.ports["o2"])
+    sr.add_port("input", port=tinring.ports["o1"])
+    sr.add_port("through", port=toutring_th.ports["o2"])
     sr.add_port("drop", port=toutring_dr.ports["o2"])
     sr.add_port("add", port=toutring_ad.ports["o2"])
-    Rcenter = [ring.ports["RingL"].center[i]/2+ring.ports["RingR"].center[i]/2 for i in range(2)]
-    sr.add_port("RingC",port=sr.ports["input"],center=Rcenter)
+    Rcenter = [ring.ports["RingL"].center[i] / 2 + ring.ports["RingR"].center[i] / 2 for i in range(2)]
+    sr.add_port("RingC", port=sr.ports["input"], center=Rcenter)
     sr.flatten()
     add_labels_to_ports(sr)
     return sr
+
+
 # %% TCRing2: bend PulleyRing
 @gf.cell
 def TCRing2(
         r_ring: float = 120,
         width_ring: float = 1,
         width_near: float = 2,
-        width_heat:float =5,
-        width_single:float =1,
+        width_heat: float = 5,
+        width_single: float = 1,
         angle_rc: float = 20,
         length_taper: float = 150,
-        length_total:float = 10000,
-        length_th_vertical:float = 101,
-        pos_ring:float = 500,
-        delta_io = 500,
+        length_total: float = 10000,
+        length_th_vertical: float = 101,
+        pos_ring: float = 500,
+        delta_io=500,
         gap_rc: float = 1,
-        tout:Component = taper_out,
-        tin:Component = taper_in,
+        tout: Component = taper_out,
+        tin: Component = taper_in,
         oplayer: LayerSpec = LAYER.WG,
 ) -> Component:
     """
@@ -453,39 +474,41 @@ def TCRing2(
         RingC: 环形波导的中心端口。
     """
     sr = TCRingT2(
-        r_ring = r_ring,
-        width_ring = width_ring,
-        width_near = width_near,
-        width_single = width_single,
+        r_ring=r_ring,
+        width_ring=width_ring,
+        width_near=width_near,
+        width_single=width_single,
         width_heat=width_heat,
-        angle_rc = angle_rc,
-        length_taper = length_taper,
-        length_total = length_total,
+        angle_rc=angle_rc,
+        length_taper=length_taper,
+        length_total=length_total,
         length_th_vertical=length_th_vertical,
-        pos_ring = pos_ring,
-        gap_rc = gap_rc,
-        tin = tin,
-        tout = tout,
-        is_heat = False,
-        oplayer = oplayer,
+        pos_ring=pos_ring,
+        gap_rc=gap_rc,
+        tin=tin,
+        tout=tout,
+        is_heat=False,
+        oplayer=oplayer,
     )
     return sr
+
+
 # %% TCRing2ES: bend PulleyRing + side ele
 def TCRing2ES(
         r_ring: float = 120,
         width_ring: float = 1,
         width_near: float = 2,
-        width_ele:float =5,
-        width_single:float =1,
+        width_ele: float = 5,
+        width_single: float = 1,
         angle_rc: float = 20,
         length_taper: float = 150,
-        length_total:float = 10000,
-        pos_ring:float = 500,
-        length_th_vertical = 500,
-        delta_ele = 5,
+        length_total: float = 10000,
+        pos_ring: float = 500,
+        length_th_vertical=500,
+        delta_ele=5,
         gap_rc: float = 1,
-        tout:Component = taper_out,
-        tin:Component = taper_in,
+        tout: Component = taper_out,
+        tin: Component = taper_in,
         oplayer: LayerSpec = LAYER.WG,
         elelayer: LayerSpec = LAYER.M1,
 ) -> [Component]:
@@ -524,28 +547,29 @@ def TCRing2ES(
         EleRout: 右侧电极输出端口。
     """
     s0 = TCRingT2(
-        r_ring = r_ring,
-        width_ring = width_ring,
-        width_near = width_near,
-        width_single = width_single,
+        r_ring=r_ring,
+        width_ring=width_ring,
+        width_near=width_near,
+        width_single=width_single,
         width_heat=width_ele,
-        angle_rc = angle_rc,
+        angle_rc=angle_rc,
         gap_heat=delta_ele,
-        length_taper = length_taper,
-        length_total = length_total,
+        length_taper=length_taper,
+        length_total=length_total,
         length_th_vertical=length_th_vertical,
-        pos_ring = pos_ring,
-        gap_rc = gap_rc,
-        tin = tin,
-        tout = tout,
-        is_heat = True,
+        pos_ring=pos_ring,
+        gap_rc=gap_rc,
+        tin=tin,
+        tout=tout,
+        is_heat=True,
         type_heater='bothside',
-        oplayer = oplayer,
+        oplayer=oplayer,
         heatlayer=elelayer,
     )
     sr = GetFromLayer(CompOriginal=s0, OLayer=oplayer)
     se = GetFromLayer(CompOriginal=s0, OLayer=elelayer)
-    return [sr,se]
+    return [sr, se]
+
 
 # %% TCRing2_2: pulleyRing taper_s2n after output bend
 @gf.cell
@@ -553,15 +577,15 @@ def TCRing2_2(
         r_ring: float = 120,
         width_ring: float = 1,
         width_near: float = 2,
-        width_heat:float =5,
-        width_single:float =1,
+        width_heat: float = 5,
+        width_single: float = 1,
         angle_rc: float = 20,
         length_taper: float = 150,
-        length_total:float = 10000,
-        pos_ring:float = 500,
+        length_total: float = 10000,
+        pos_ring: float = 500,
         gap_rc: float = 1,
-        tin:Component = taper_in,
-        tout:Component = taper_out,
+        tin: Component = taper_in,
+        tout: Component = taper_out,
         oplayer: LayerSpec = LAYER.WG,
 ) -> Component:
     """
@@ -591,22 +615,24 @@ def TCRing2_2(
         RingC: 环形波导的中心端口。
     """
     sr = TCRingT2(
-        r_ring = r_ring,
-        width_ring = width_ring,
-        width_near = width_near,
-        width_single = width_single,
-        angle_rc = angle_rc,
-        length_taper = length_taper,
-        length_total = length_total,
-        pos_ring = pos_ring,
-        gap_rc = gap_rc,
-        tin = tin,
-        tout = tout,
-        is_heat = False,
-        oplayer = oplayer,
+        r_ring=r_ring,
+        width_ring=width_ring,
+        width_near=width_near,
+        width_single=width_single,
+        angle_rc=angle_rc,
+        length_taper=length_taper,
+        length_total=length_total,
+        pos_ring=pos_ring,
+        gap_rc=gap_rc,
+        tin=tin,
+        tout=tout,
+        is_heat=False,
+        oplayer=oplayer,
         position_taper="after_bend"
     )
     return sr
+
+
 # %% TCRing2_3: pulleyRing taper_s2n before output bend
 @gf.cell
 def TCRing2_3(
@@ -614,15 +640,15 @@ def TCRing2_3(
         r_bend: float = 100,
         width_ring: float = 1,
         width_near: float = 2,
-        width_heat:float =5,
-        width_single:float =1,
+        width_heat: float = 5,
+        width_single: float = 1,
         angle_rc: float = 20,
         length_taper: float = 200,
-        length_total:float = 10000,
-        pos_ring:float = 500,
+        length_total: float = 10000,
+        pos_ring: float = 500,
         gap_rc: float = 1,
-        tin:Component = taper_in,
-        tout:Component = taper_out,
+        tin: Component = taper_in,
+        tout: Component = taper_out,
         oplayer: LayerSpec = LAYER.WG,
 ) -> Component:
     """
@@ -654,23 +680,25 @@ def TCRing2_3(
         RingC: 环形波导的中心端口。
     """
     sr = TCRingT2(
-        r_ring = r_ring,
-        width_ring = width_ring,
-        width_near = width_near,
-        width_single = width_single,
-        angle_rc = angle_rc,
-        length_taper = length_taper,
-        length_total = length_total,
-        pos_ring = pos_ring,
-        gap_rc = gap_rc,
-        tin = tin,
-        tout = tout,
-        is_heat = False,
-        oplayer = oplayer,
+        r_ring=r_ring,
+        width_ring=width_ring,
+        width_near=width_near,
+        width_single=width_single,
+        angle_rc=angle_rc,
+        length_taper=length_taper,
+        length_total=length_total,
+        pos_ring=pos_ring,
+        gap_rc=gap_rc,
+        tin=tin,
+        tout=tout,
+        is_heat=False,
+        oplayer=oplayer,
         position_taper="before_bend"
     )
     return sr
     return sr
+
+
 # %% TCRing3:couple angle could lager than 90,less than 180
 @gf.cell
 def TCRing3(
@@ -678,15 +706,15 @@ def TCRing3(
         r_bend: float = r_euler_true,
         width_ring: float = 1,
         width_near: float = 2,
-        width_heat:float =5,
-        width_single:float =1,
+        width_heat: float = 5,
+        width_single: float = 1,
         angle_rc: float = 20,
         length_taper: float = 150,
-        length_total:float = 10000,
-        pos_ring:float = 500,
+        length_total: float = 10000,
+        pos_ring: float = 500,
         gap_rc: float = 1,
-        tout:Component = taper_out,
-        tin:Component = taper_in,
+        tout: Component = taper_out,
+        tin: Component = taper_in,
         oplayer: LayerSpec = LAYER.WG,
 ) -> Component:
     """
@@ -721,38 +749,40 @@ def TCRing3(
     tinring = sr << tin
     toutring = sr << tout
     ring = sr << RingPulley3(
-        WidthRing=width_ring,WidthNear=width_near,GapRing=gap_rc,oplayer=oplayer,RadiusRing=r_ring,
-        AngleCouple=angle_rc,WidthHeat=width_heat
+        WidthRing=width_ring, WidthNear=width_near, GapRing=gap_rc, oplayer=oplayer, RadiusRing=r_ring,
+        AngleCouple=angle_rc, WidthHeat=width_heat
     )
-    ring.connect("Input",other=tinring.ports["o2"],mirror=True)
+    ring.connect("Input", other=tinring.ports["o2"], mirror=True)
     ring.movex(pos_ring)
-    delta = toutring.ports["o2"].center-toutring.ports["o1"].center
-    #input
-    toutring.connect("o1",tinring.ports["o1"],mirror=True)
-    toutring.movex(length_total-delta[0])
-    taper_s2n1 = sr << gf.c.taper(width1 = width_single,width2 = width_near,length=length_taper,layer=oplayer)
-    taper_s2n1.connect("o2",ring.ports["Input"])
-    delta = taper_s2n1.ports["o1"].center-tinring.ports["o2"].center
-    str_tin2r = sr << GfCStraight(length=delta[0],layer = oplayer,width = width_single)
-    str_tin2r.connect("o1",tinring.ports["o2"])
-    #output
+    delta = toutring.ports["o2"].center - toutring.ports["o1"].center
+    # input
+    toutring.connect("o1", tinring.ports["o1"], mirror=True)
+    toutring.movex(length_total - delta[0])
+    taper_s2n1 = sr << gf.c.taper(width1=width_single, width2=width_near, length=length_taper, layer=oplayer)
+    taper_s2n1.connect("o2", ring.ports["Input"])
+    delta = taper_s2n1.ports["o1"].center - tinring.ports["o2"].center
+    str_tin2r = sr << GfCStraight(length=delta[0], layer=oplayer, width=width_single)
+    str_tin2r.connect("o1", tinring.ports["o2"])
+    # output
     taper_s2n2 = sr << gf.c.taper(width1=width_near, width2=width_single, length=length_taper, layer=oplayer)
     taper_s2n2.connect("o1", ring.ports["Through"])
-    bend_out2 = sr << GfCBendEuler(width = width_single,layer = oplayer,angle=180,radius=r_bend,p=1)
-    bend_out2.connect("o1",taper_s2n2.ports["o2"])
-    delta = bend_out2.ports["o2"].center-toutring.ports["o2"].center
+    bend_out2 = sr << GfCBendEuler(width=width_single, layer=oplayer, angle=180, radius=r_bend, p=1)
+    bend_out2.connect("o1", taper_s2n2.ports["o2"])
+    delta = bend_out2.ports["o2"].center - toutring.ports["o2"].center
     toutring.movey(delta[1])
-    str_tout2r = gf.routing.get_bundle(bend_out2.ports["o2"],toutring.ports["o1"],layer = oplayer,width = width_single
-                                                ,radius = r_euler_false)
+    str_tout2r = gf.routing.get_bundle(bend_out2.ports["o2"], toutring.ports["o1"], layer=oplayer, width=width_single
+                                       , radius=r_euler_false)
     for route in str_tout2r:
         sr.add(route.references)
     # sr_cld1 = gf.geometry.offset(sr, distance=width_cld, layer=LAYER.CLD2)
     # sr_cld2 = gf.geometry.offset(sr_cld1, distance=-0.8, layer=LAYER.CLD2)
     # sr.add_ref(sr_cld2)
-    sr.add_port("input",port=tinring.ports["o1"])
-    sr.add_port("output",port=toutring.ports["o1"])
-    sr.add_port("RingC",port=toutring.ports["o1"],center=ring.ports["RingL"].center/2+ring.ports["RingR"].center/2)
+    sr.add_port("input", port=tinring.ports["o1"])
+    sr.add_port("output", port=toutring.ports["o1"])
+    sr.add_port("RingC", port=toutring.ports["o1"],
+                center=ring.ports["RingL"].center / 2 + ring.ports["RingR"].center / 2)
     return sr
+
 
 # %% TCRing4: couple angle could lager than 180
 @gf.cell
@@ -761,15 +791,15 @@ def TCRing4(
         r_bend: float = r_euler_true,
         width_ring: float = 1,
         width_near: float = 2,
-        width_heat:float =5,
-        width_single:float =1,
+        width_heat: float = 5,
+        width_single: float = 1,
         angle_rc: float = 20,
         length_taper: float = 150,
-        length_total:float = 10000,
-        pos_ring:float = 500,
+        length_total: float = 10000,
+        pos_ring: float = 500,
         gap_rc: float = 1,
-        tout:Component = taper_out,
-        tin:Component = taper_in,
+        tout: Component = taper_out,
+        tin: Component = taper_in,
         oplayer: LayerSpec = LAYER.WG,
 ) -> Component:
     """
@@ -804,58 +834,60 @@ def TCRing4(
     tinring = sr << tin
     toutring = sr << tout
     ring = sr << RingPulley4(
-        WidthRing=width_ring,WidthNear=width_near,GapRing=gap_rc,oplayer=oplayer,RadiusRing=r_ring,
-        AngleCouple=angle_rc,WidthHeat=width_heat
+        WidthRing=width_ring, WidthNear=width_near, GapRing=gap_rc, oplayer=oplayer, RadiusRing=r_ring,
+        AngleCouple=angle_rc, WidthHeat=width_heat
     )
-    ring.connect("Input",other=tinring.ports["o2"],mirror=True)
+    ring.connect("Input", other=tinring.ports["o2"], mirror=True)
     ring.movex(pos_ring)
-    delta = toutring.ports["o2"].center-toutring.ports["o1"].center
-    #input
-    toutring.connect("o1",tinring.ports["o1"],mirror=True)
-    toutring.movex(length_total-delta[0])
-    taper_s2n1 = sr << gf.c.taper(width1 = width_single,width2 = width_near,length=length_taper,layer=oplayer)
-    taper_s2n1.connect("o2",ring.ports["Input"])
-    delta = taper_s2n1.ports["o1"].center-tinring.ports["o2"].center
-    str_tin2r = sr << GfCStraight(length=delta[0],layer = oplayer,width = width_single)
-    str_tin2r.connect("o1",tinring.ports["o2"])
-    #output
+    delta = toutring.ports["o2"].center - toutring.ports["o1"].center
+    # input
+    toutring.connect("o1", tinring.ports["o1"], mirror=True)
+    toutring.movex(length_total - delta[0])
+    taper_s2n1 = sr << gf.c.taper(width1=width_single, width2=width_near, length=length_taper, layer=oplayer)
+    taper_s2n1.connect("o2", ring.ports["Input"])
+    delta = taper_s2n1.ports["o1"].center - tinring.ports["o2"].center
+    str_tin2r = sr << GfCStraight(length=delta[0], layer=oplayer, width=width_single)
+    str_tin2r.connect("o1", tinring.ports["o2"])
+    # output
     taper_s2n2 = sr << gf.c.taper(width1=width_near, width2=width_single, length=length_taper, layer=oplayer)
     taper_s2n2.connect("o1", ring.ports["Through"])
-    delta = taper_s2n2.ports["o2"].center-toutring.ports["o2"].center
+    delta = taper_s2n2.ports["o2"].center - toutring.ports["o2"].center
     toutring.movey(delta[1])
-    str_tout2r = gf.routing.get_bundle(taper_s2n2.ports["o2"],toutring.ports["o1"],layer = oplayer,width = width_single
-                                                ,radius = r_euler_false)
+    str_tout2r = gf.routing.get_bundle(taper_s2n2.ports["o2"], toutring.ports["o1"], layer=oplayer, width=width_single
+                                       , radius=r_euler_false)
     for route in str_tout2r:
         sr.add(route.references)
     # sr_cld1 = gf.geometry.offset(sr, distance=width_cld, layer=LAYER.CLD2)
     # sr_cld2 = gf.geometry.offset(sr_cld1, distance=-0.8, layer=LAYER.CLD2)
     # sr.add_ref(sr_cld2)
-    sr.add_port("input",port=tinring.ports["o1"])
-    sr.add_port("output",port=toutring.ports["o1"])
-    sr.add_port("RingC",port=toutring.ports["o1"],center=ring.ports["RingL"].center/2+ring.ports["RingR"].center/2)
+    sr.add_port("input", port=tinring.ports["o1"])
+    sr.add_port("output", port=toutring.ports["o1"])
+    sr.add_port("RingC", port=toutring.ports["o1"],
+                center=ring.ports["RingL"].center / 2 + ring.ports["RingR"].center / 2)
     return sr
+
 
 # % TCFingerRing1: taper before bend out
 @gf.cell
 def TCFingerRing1(
         r_ring: float = 120,
         r_side: float = 120,
-        r_euler_true:float = 150,
+        r_euler_true: float = 150,
         width_ring: float = 1,
         width_near: float = 2,
-        width_single:float =1,
+        width_single: float = 1,
         angle_rc: float = 20,
         angle_side: float = 190,
         length_taper: float = 150,
-        length_total:float = 10000,
-        length_th:float = 10,
-        length_side:float = 120,
+        length_total: float = 10000,
+        length_th: float = 10,
+        length_side: float = 120,
         length_couple: float = 120,
         length_connect: float = 120,
-        pos_ring:float = 500,
+        pos_ring: float = 500,
         gap_rc: float = 1,
-        tin:Component = taper_in,
-        tout:Component = taper_out,
+        tin: Component = taper_in,
+        tout: Component = taper_out,
         oplayer: LayerSpec = LAYER.WG,
 ) -> Component:
     """
@@ -900,48 +932,52 @@ def TCFingerRing1(
     ring = gf.Component()
     ## ring
     ring0 = ring << RingFinger(
-        WidthRing=width_ring,WidthNear=width_near,LengthSide=length_side,LengthCouple=length_couple,LengthConnect=length_connect,
-        GapRing=gap_rc,AngleCouple=angle_rc,AngleSide=angle_side,RadiusCouple=r_ring,RadiusSide=r_side,
+        WidthRing=width_ring, WidthNear=width_near, LengthSide=length_side, LengthCouple=length_couple,
+        LengthConnect=length_connect,
+        GapRing=gap_rc, AngleCouple=angle_rc, AngleSide=angle_side, RadiusCouple=r_ring, RadiusSide=r_side,
         oplayer=oplayer,
     )
-    taper_s2n1 = ring << gf.c.taper(width1 = width_single,width2 = width_near,length=length_taper,layer=oplayer)
-    taper_s2n2 = ring << gf.c.taper(width1 = width_near,width2 = width_single,length=length_taper,layer=oplayer)
-    bend_thr1 = ring << GfCBendEuler(width = width_single,radius=r_euler_true,layer=oplayer,angle = 90,)
-    str_thr = ring << GfCStraight(width = width_single,length = length_th,layer=oplayer)
-    bend_thr2 = ring << GfCBendEuler(width = width_single,radius=r_euler_true,layer=oplayer,angle = -90)
+    taper_s2n1 = ring << gf.c.taper(width1=width_single, width2=width_near, length=length_taper, layer=oplayer)
+    taper_s2n2 = ring << gf.c.taper(width1=width_near, width2=width_single, length=length_taper, layer=oplayer)
+    bend_thr1 = ring << GfCBendEuler(width=width_single, radius=r_euler_true, layer=oplayer, angle=90, )
+    str_thr = ring << GfCStraight(width=width_single, length=length_th, layer=oplayer)
+    bend_thr2 = ring << GfCBendEuler(width=width_single, radius=r_euler_true, layer=oplayer, angle=-90)
     ## input & output near ring
-    taper_s2n1.connect("o2",ring0.ports["Input"])
+    taper_s2n1.connect("o2", ring0.ports["Input"])
     taper_s2n2.connect("o1", other=ring0.ports["Through"])
-    bend_thr1.connect("o1",other=taper_s2n2.ports["o2"])
-    str_thr.connect("o1",other=bend_thr1.ports["o2"])
-    bend_thr2.connect("o1",other=str_thr.ports["o2"])
+    bend_thr1.connect("o1", other=taper_s2n2.ports["o2"])
+    str_thr.connect("o1", other=bend_thr1.ports["o2"])
+    bend_thr2.connect("o1", other=str_thr.ports["o2"])
 
-    ring.add_port("Input",port=ring0.ports["Input"])
+    ring.add_port("Input", port=ring0.ports["Input"])
     ring.add_port("Con1", port=ring0.ports["Con1"])
     ring.add_port("Con2", port=ring0.ports["Con2"])
-    ring.add_port("Ts2n1_o1",port=taper_s2n1.ports["o1"])
+    ring.add_port("Ts2n1_o1", port=taper_s2n1.ports["o1"])
     ring.add_port("Ts2n2_o2", port=bend_thr2.ports["o2"])
     Ring = sr << ring
     if tin != None:
         tinring = sr << tin
-        Ring.connect("Input", other=tinring.ports["o2"],allow_width_mismatch=True,mirror=True)
+        Ring.connect("Input", other=tinring.ports["o2"], allow_width_mismatch=True, mirror=True)
         Ring.movex(pos_ring)
-        delta = Ring.ports["Ts2n1_o1"].center-tinring.ports["o2"].center
-        str_tin2r = sr << GfCStraight(length=delta[0],layer = oplayer,width = width_single)
-        str_tin2r.connect("o1",tinring.ports["o2"])
+        delta = Ring.ports["Ts2n1_o1"].center - tinring.ports["o2"].center
+        str_tin2r = sr << GfCStraight(length=delta[0], layer=oplayer, width=width_single)
+        str_tin2r.connect("o1", tinring.ports["o2"])
         sr.add_port("input", port=tinring.ports["o1"])
     if tout != None:
         toutring = sr << tout
-        toutring.connect("o2", other=Ring.ports["Ts2n2_o2"],allow_width_mismatch=True,mirror=True)
-        toutring.movex(length_total-Ring.ports["Ts2n2_o2"].center[0])
-        str_tout2r = gf.routing.get_bundle(toutring.ports["o1"],Ring.ports["Ts2n2_o2"],layer = oplayer,width = width_single,radius = r_euler_true)
+        toutring.connect("o2", other=Ring.ports["Ts2n2_o2"], allow_width_mismatch=True, mirror=True)
+        toutring.movex(length_total - Ring.ports["Ts2n2_o2"].center[0])
+        str_tout2r = gf.routing.get_bundle(toutring.ports["o1"], Ring.ports["Ts2n2_o2"], layer=oplayer,
+                                           width=width_single, radius=r_euler_true)
         for route in str_tout2r:
             sr.add(route.references)
         sr.add_port("output", port=toutring.ports["o2"])
 
-
-    sr.add_port("RingC",port=toutring.ports["o1"],center=Ring.ports["Con1"].center/2+ring.ports["Con2"].center/2)
+    sr.add_port("RingC", port=toutring.ports["o1"],
+                center=Ring.ports["Con1"].center / 2 + ring.ports["Con2"].center / 2)
     return sr
+
+
 # TCRingT1: TCRing use RingPulleyT1
 @gf.cell
 def TCRingT1(
@@ -1012,56 +1048,61 @@ def TCRingT1(
     sr = gf.Component()
     ring = gf.Component("Ring")
     ring0 = ring << RingPulleyT1(
-        WidthRing=width_ring, WidthNear=width_near, WidthHeat=width_heat,GapRing=gap_rc,GapHeat=gap_heat,
-        RadiusRing=r_ring, AngleCouple=angle_rc,DeltaHeat=delta_heat,DirectionHeater=direction_heater,
-        IsAD=is_ad, IsHeat=is_heat,oplayer=oplayer, heatlayer=heatlayer, TypeHeater=type_heater
+        WidthRing=width_ring, WidthNear=width_near, WidthHeat=width_heat, GapRing=gap_rc, GapHeat=gap_heat,
+        RadiusRing=r_ring, AngleCouple=angle_rc, DeltaHeat=delta_heat, DirectionHeater=direction_heater,
+        IsAD=is_ad, IsHeat=is_heat, oplayer=oplayer, heatlayer=heatlayer, TypeHeater=type_heater
     )
     taper_s2n1 = ring << gf.c.taper(width1=width_single, width2=width_near, length=length_taper, layer=oplayer)
     taper_s2n1.connect("o2", ring0.ports["Input"])
     taper_s2n2 = ring << gf.c.taper(width1=width_near, width2=width_single, length=length_taper, layer=oplayer)
 
-
     # 根据 position_taper 参数调整锥形波导的位置
     if position_taper == "before_bend":
-        bend_thr1 = ring << GfCBendEuler(width=width_single, radius=r_euler_min, layer=oplayer,angle=90,with_arc_floorplan=False)
-        bend_thr2 = ring << GfCBendEuler(width=width_single, radius=r_euler_min, layer=oplayer,angle=-90,with_arc_floorplan=False)
-        str_th_horizontal = ring << GfCStraight(width=width_single,length=length_th_horizontal,layer=oplayer)
+        bend_thr1 = ring << GfCBendEuler(width=width_single, radius=r_euler_min, layer=oplayer, angle=90,
+                                         with_arc_floorplan=False)
+        bend_thr2 = ring << GfCBendEuler(width=width_single, radius=r_euler_min, layer=oplayer, angle=-90,
+                                         with_arc_floorplan=False)
+        str_th_horizontal = ring << GfCStraight(width=width_single, length=length_th_horizontal, layer=oplayer)
         str_th_vertical = ring << GfCStraight(width=width_single, length=length_th_vertical, layer=oplayer)
         taper_s2n2.connect("o1", ring0.ports["Through"])
-        str_th_horizontal.connect("o1",other=taper_s2n2.ports["o2"])
-        bend_thr1.connect("o1",other=str_th_horizontal.ports["o2"])
-        str_th_vertical.connect("o1",other=bend_thr1.ports["o2"])
-        bend_thr2.connect("o1",other=str_th_vertical.ports["o2"])
+        str_th_horizontal.connect("o1", other=taper_s2n2.ports["o2"])
+        bend_thr1.connect("o1", other=str_th_horizontal.ports["o2"])
+        str_th_vertical.connect("o1", other=bend_thr1.ports["o2"])
+        bend_thr2.connect("o1", other=str_th_vertical.ports["o2"])
         ring.add_port("o1", port=taper_s2n1.ports["o1"])
         ring.add_port("o2", port=bend_thr2.ports["o2"])
     elif position_taper == "after_bend":
-        bend_thr1 = ring << GfCBendEuler(width=width_near, radius=r_euler_min, layer=oplayer,angle=90,with_arc_floorplan=False)
-        bend_thr2 = ring << GfCBendEuler(width=width_near, radius=r_euler_min, layer=oplayer,angle=-90,with_arc_floorplan=False)
+        bend_thr1 = ring << GfCBendEuler(width=width_near, radius=r_euler_min, layer=oplayer, angle=90,
+                                         with_arc_floorplan=False)
+        bend_thr2 = ring << GfCBendEuler(width=width_near, radius=r_euler_min, layer=oplayer, angle=-90,
+                                         with_arc_floorplan=False)
         str_th_horizontal = ring << GfCStraight(width=width_near, length=length_th_horizontal, layer=oplayer)
         str_th_vertical = ring << GfCStraight(width=width_near, length=length_th_vertical, layer=oplayer)
 
         str_th_horizontal.connect("o1", ring0.ports["Through"])
-        bend_thr1.connect("o1",other=str_th_horizontal.ports["o2"])
-        str_th_vertical.connect("o1",other=bend_thr1.ports["o2"])
-        bend_thr2.connect("o1",other=str_th_vertical.ports["o2"])
-        taper_s2n2.connect("o1",other=bend_thr2.ports["o2"])
+        bend_thr1.connect("o1", other=str_th_horizontal.ports["o2"])
+        str_th_vertical.connect("o1", other=bend_thr1.ports["o2"])
+        bend_thr2.connect("o1", other=str_th_vertical.ports["o2"])
+        taper_s2n2.connect("o1", other=bend_thr2.ports["o2"])
 
         ring.add_port("o1", port=taper_s2n1.ports["o1"])
         ring.add_port("o2", port=taper_s2n2.ports["o2"])
     elif position_taper == "between_bend":
-        bend_thr1 = ring << GfCBendEuler(width=width_near, radius=r_euler_min, layer=oplayer,angle=90,with_arc_floorplan=False)
-        bend_thr2 = ring << GfCBendEuler(width=width_single, radius=r_euler_min, layer=oplayer,angle=-90,with_arc_floorplan=False)
-        str_th_horizontal = ring << GfCStraight(width=width_near,length=length_th_horizontal,layer=oplayer)
+        bend_thr1 = ring << GfCBendEuler(width=width_near, radius=r_euler_min, layer=oplayer, angle=90,
+                                         with_arc_floorplan=False)
+        bend_thr2 = ring << GfCBendEuler(width=width_single, radius=r_euler_min, layer=oplayer, angle=-90,
+                                         with_arc_floorplan=False)
+        str_th_horizontal = ring << GfCStraight(width=width_near, length=length_th_horizontal, layer=oplayer)
         str_th_vertical = ring << GfCStraight(width=width_single, length=length_th_vertical, layer=oplayer)
         str_th_horizontal.connect("o1", ring0.ports["Through"])
         bend_thr1.connect("o1", other=str_th_horizontal.ports["o2"])
         taper_s2n2.connect("o1", other=bend_thr1.ports["o2"])
-        str_th_vertical.connect("o1",other=taper_s2n2.ports["o2"])
-        bend_thr2.connect("o1",other=str_th_vertical.ports["o2"])
+        str_th_vertical.connect("o1", other=taper_s2n2.ports["o2"])
+        bend_thr2.connect("o1", other=str_th_vertical.ports["o2"])
         ring.add_port("o1", port=taper_s2n1.ports["o1"])
         ring.add_port("o2", port=bend_thr2.ports["o2"])
     elif position_taper == "no_bend":
-        taper_s2n2.connect("o1",other=ring0.ports["Through"])
+        taper_s2n2.connect("o1", other=ring0.ports["Through"])
         ring.add_port("o1", port=taper_s2n1.ports["o1"])
         ring.add_port("o2", port=taper_s2n2.ports["o2"])
     else:
@@ -1081,21 +1122,23 @@ def TCRingT1(
 
     # input
     tinring = sr << tin
-    Ring.connect("o1", other=tinring.ports["o2"], allow_width_mismatch=True,mirror=True)
+    Ring.connect("o1", other=tinring.ports["o2"], allow_width_mismatch=True, mirror=True)
     Ring.movex(pos_ring)
     sr.add_port("input", port=tinring.ports["o1"])
 
     # output
     toutring = sr << tout
     delta = np.array(toutring.ports["o2"].center) - np.array(toutring.ports["o1"].center)
-    toutring.connect("o1",other=Ring.ports["o2"])
+    toutring.connect("o1", other=Ring.ports["o2"])
     toutring.movex(length_total - toutring.ports["o2"].center[0])
     sr.add_port("output", port=toutring.ports["o2"])
 
     # route
-    str_tout2r = gf.routing.route_bundle(sr,[toutring.ports["o1"],Ring.ports["o1"]], [Ring.ports["o2"],tinring.ports["o2"]],
-                                       layer=oplayer, route_width=width_single, radius=r_euler_min)
-    sr.add_port("RingC", port=toutring.ports["o1"], center=np.array(Ring.ports["RingL"].center )/ 2 + np.array(Ring.ports["RingR"].center) / 2)
+    str_tout2r = gf.routing.route_bundle(sr, [toutring.ports["o1"], Ring.ports["o1"]],
+                                         [Ring.ports["o2"], tinring.ports["o2"]],
+                                         layer=oplayer, route_width=width_single, radius=r_euler_min)
+    sr.add_port("RingC", port=toutring.ports["o1"],
+                center=np.array(Ring.ports["RingL"].center) / 2 + np.array(Ring.ports["RingR"].center) / 2)
     for port in Ring.ports:
         if "Heat" in port.name:
             sr.add_port(port.name, port=Ring.ports[port.name])
@@ -1103,9 +1146,11 @@ def TCRingT1(
             sr.add_port(port.name, port=Ring.ports[port.name])
         if "Drop" in port.name:
             sr.add_port(port.name, port=Ring.ports[port.name])
-    add_labels_to_ports(sr,(512,8))
+    add_labels_to_ports(sr, (512, 8))
     return sr
-#TCRingT2
+
+
+# TCRingT2
 @gf.cell
 def TCRingT2(
         r_ring: float = 120,
@@ -1183,20 +1228,22 @@ def TCRingT2(
 
     # 根据 position_taper 参数调整锥形波导的位置
     if position_taper == "before_bend":
-        bend_thr1 = ring << GfCBendEuler(width=width_single, radius=max((1 - angle_rc / 180) * r_ring,r_euler_min), layer=oplayer, angle=-90,with_arc_floorplan=False)
+        bend_thr1 = ring << GfCBendEuler(width=width_single, radius=max((1 - angle_rc / 180) * r_ring, r_euler_min),
+                                         layer=oplayer, angle=-90, with_arc_floorplan=False)
         str_th_vertical = ring << GfCStraight(width=width_single, length=length_th_vertical, layer=oplayer)
-        taper_s2n2.connect("o1",other=ring0.ports["Through"])
-        str_th_vertical.connect("o1",other=taper_s2n2.ports["o2"])
-        bend_thr1.connect("o1",other=str_th_vertical.ports["o2"])
+        taper_s2n2.connect("o1", other=ring0.ports["Through"])
+        str_th_vertical.connect("o1", other=taper_s2n2.ports["o2"])
+        bend_thr1.connect("o1", other=str_th_vertical.ports["o2"])
         ring.add_port("o1", port=taper_s2n1.ports["o1"])
         ring.add_port("o2", port=bend_thr1.ports["o2"])
 
     elif position_taper == "after_bend":
-        bend_thr1 = ring << GfCBendEuler(width=width_near, radius=max((1 - angle_rc / 180) * r_ring,r_euler_min), layer=oplayer, angle=-90,with_arc_floorplan=False)
+        bend_thr1 = ring << GfCBendEuler(width=width_near, radius=max((1 - angle_rc / 180) * r_ring, r_euler_min),
+                                         layer=oplayer, angle=-90, with_arc_floorplan=False)
         str_th_vertical = ring << GfCStraight(width=width_near, length=length_th_vertical, layer=oplayer)
-        str_th_vertical.connect("o1",other=ring0.ports["Through"])
-        bend_thr1.connect("o1",other=str_th_vertical.ports["o2"])
-        taper_s2n2.connect("o1",other=bend_thr1.ports["o2"])
+        str_th_vertical.connect("o1", other=ring0.ports["Through"])
+        bend_thr1.connect("o1", other=str_th_vertical.ports["o2"])
+        taper_s2n2.connect("o1", other=bend_thr1.ports["o2"])
         ring.add_port("o1", port=taper_s2n1.ports["o1"])
         ring.add_port("o2", port=taper_s2n2.ports["o2"])
     else:
@@ -1213,7 +1260,7 @@ def TCRingT2(
 
     # input
     tinring = sr << tin
-    Ring.connect("o1", other=tinring.ports["o2"], allow_width_mismatch=True,mirror=True)
+    Ring.connect("o1", other=tinring.ports["o2"], allow_width_mismatch=True, mirror=True)
     Ring.movex(pos_ring)
     sr.add_port("input", port=tinring.ports["o1"])
 
@@ -1225,7 +1272,8 @@ def TCRingT2(
     sr.add_port("output", port=toutring.ports["o2"])
 
     # route
-    str_tout2r = gf.routing.get_bundle([toutring.ports["o1"], Ring.ports["o1"]], [Ring.ports["o2"], tinring.ports["o2"]],
+    str_tout2r = gf.routing.get_bundle([toutring.ports["o1"], Ring.ports["o1"]],
+                                       [Ring.ports["o2"], tinring.ports["o2"]],
                                        layer=oplayer, width=width_single)
     for route in str_tout2r:
         sr.add(route.references)
@@ -1236,6 +1284,8 @@ def TCRingT2(
             sr.add_port(port.name, port=Ring.ports[port.name])
     add_labels_to_ports(sr, (512, 8))
     return sr
+
+
 @gf.cell
 def TCRingDCouple(
         r_ring: float = 120,
@@ -1244,7 +1294,7 @@ def TCRingDCouple(
         width_near: float = 2,
         width_heat: float = 5,
         width_single: float = 1,
-        width_route:float = 20,
+        width_route: float = 20,
         angle_rc: float = 20,
         length_taper: float = 200,
         length_total: float = 10000,
@@ -1302,35 +1352,40 @@ def TCRingDCouple(
     """
     sr = gf.Component()
     ring = gf.Component("Ring")
-    C_near = gf.Section(layer = oplayer,width=width_near,port_names=["o1", "o2"])
-    C_heat = gf.Section(layer = heatlayer, width=width_heat,port_names=["CoupHeatIn", "CoupHeatOut"])
+    C_near = gf.Section(layer=oplayer, width=width_near, port_names=["o1", "o2"])
+    C_heat = gf.Section(layer=heatlayer, width=width_heat, port_names=["CoupHeatIn", "CoupHeatOut"])
     ring0 = ring << RingPulleyT1(
-        WidthRing=width_ring, WidthNear=width_near, WidthHeat=width_heat,GapRing=gap_rc,GapHeat=gap_heat,DeltaHeat=delta_heat,
+        WidthRing=width_ring, WidthNear=width_near, WidthHeat=width_heat, GapRing=gap_rc, GapHeat=gap_heat,
+        DeltaHeat=delta_heat,
         RadiusRing=r_ring, AngleCouple=angle_rc,
-        IsAD=True, IsHeat=is_heat,oplayer=oplayer, heatlayer=heatlayer, TypeHeater=type_heater
+        IsAD=True, IsHeat=is_heat, oplayer=oplayer, heatlayer=heatlayer, TypeHeater=type_heater
     )
 
     # bend 2 bend
-    str_i2b = ring  << GfCStraight(width = width_near,length=length_th_horizontal,layer=oplayer)
-    str_d2b = ring << GfCStraight(width = width_near,length=length_th_horizontal,layer=oplayer)
-    str_i2b.connect("o1",other=ring0.ports["Input"])
-    str_d2b.connect("o1",other=ring0.ports["Drop"])
-    bend_input = ring << GfCBendEuler(width=width_near, radius=r_euler_min, layer=oplayer,angle=-90,with_arc_floorplan=False)
-    bend_drop = ring << GfCBendEuler(width=width_near, radius=r_euler_min, layer=oplayer,angle=90,with_arc_floorplan=False)
-    bend_input.connect("o1",other=str_i2b.ports["o2"])
-    bend_drop.connect("o1",other=str_d2b.ports["o2"])
-    path_near = gf.path.straight(bend_input.ports["o2"].center[1]-bend_drop.ports["o2"].center[1])
+    str_i2b = ring << GfCStraight(width=width_near, length=length_th_horizontal, layer=oplayer)
+    str_d2b = ring << GfCStraight(width=width_near, length=length_th_horizontal, layer=oplayer)
+    str_i2b.connect("o1", other=ring0.ports["Input"])
+    str_d2b.connect("o1", other=ring0.ports["Drop"])
+    bend_input = ring << GfCBendEuler(width=width_near, radius=r_euler_min, layer=oplayer, angle=-90,
+                                      with_arc_floorplan=False)
+    bend_drop = ring << GfCBendEuler(width=width_near, radius=r_euler_min, layer=oplayer, angle=90,
+                                     with_arc_floorplan=False)
+    bend_input.connect("o1", other=str_i2b.ports["o2"])
+    bend_drop.connect("o1", other=str_d2b.ports["o2"])
+    path_near = gf.path.straight(bend_input.ports["o2"].center[1] - bend_drop.ports["o2"].center[1])
     str_near = ring << gf.path.extrude(p=path_near, width=width_near, layer=oplayer)
-    heat_near = ring << DifferentHeater(path_near,WidthHeat=width_heat,WidthWG=width_near,WidthRoute=width_route,GapHeat=gap_heat,DeltaHeat=delta_heat,TypeHeater=type_heater)
-    heat_near.connect('HeatIn',bend_input.ports['o2'],allow_width_mismatch=True,allow_layer_mismatch=True)
-    str_near.connect('o1',bend_input.ports['o2'])
+    heat_near = ring << DifferentHeater(path_near, WidthHeat=width_heat, WidthWG=width_near, WidthRoute=width_route,
+                                        GapHeat=gap_heat, DeltaHeat=delta_heat, TypeHeater=type_heater)
+    heat_near.connect('HeatIn', bend_input.ports['o2'], allow_width_mismatch=True, allow_layer_mismatch=True)
+    str_near.connect('o1', bend_input.ports['o2'])
 
-    bend_through = ring << GfCBendEuler(width=width_near, radius=r_euler_min, layer=oplayer,angle=-180,with_arc_floorplan=False)
-    bend_through.connect("o1",ring0.ports["Through"])
-    taper_through = ring << gf.c.taper(width1=width_near,width2 = width_single,layer=oplayer,length=length_taper)
-    taper_through.connect("o1",bend_through.ports["o2"])
-    taper_add = ring << gf.c.taper(width1=width_near,width2 = width_single,layer=oplayer,length=length_taper)
-    taper_add.connect("o1",ring0.ports["Add"])
+    bend_through = ring << GfCBendEuler(width=width_near, radius=r_euler_min, layer=oplayer, angle=-180,
+                                        with_arc_floorplan=False)
+    bend_through.connect("o1", ring0.ports["Through"])
+    taper_through = ring << gf.c.taper(width1=width_near, width2=width_single, layer=oplayer, length=length_taper)
+    taper_through.connect("o1", bend_through.ports["o2"])
+    taper_add = ring << gf.c.taper(width1=width_near, width2=width_single, layer=oplayer, length=length_taper)
+    taper_add.connect("o1", ring0.ports["Add"])
     ring.add_port("RingIn", port=taper_through.ports["o2"])
     ring.add_port("RingOut", port=taper_add.ports["o2"])
     ring.add_port("RingL", port=ring0.ports["RingL"])
@@ -1338,36 +1393,39 @@ def TCRingDCouple(
     # ring.show()
     for port in ring0.ports:
         if "Heat" in port.name:
-            ring.add_port("R"+port, port=ring0.ports[port])
+            ring.add_port("R" + port, port=ring0.ports[port])
     for port in heat_near.ports:
         if "Heat" in port.name:
-            ring.add_port("N"+port, port=heat_near.ports[port])
+            ring.add_port("N" + port, port=heat_near.ports[port])
     Ring = sr << ring
 
     # input
     tinring = sr << tin
-    Ring.connect("RingIn", other=tinring.ports["o2"], allow_width_mismatch=True,mirror=True)
+    Ring.connect("RingIn", other=tinring.ports["o2"], allow_width_mismatch=True, mirror=True)
     Ring.movex(pos_ring)
     sr.add_port("input", port=tinring.ports["o1"])
 
     # output
     toutring = sr << tout
-    toutring.connect("o1",other = Ring.ports["RingOut"])
+    toutring.connect("o1", other=Ring.ports["RingOut"])
     toutring.movex(length_total - toutring.ports["o2"].center[0])
     sr.add_port("output", port=toutring.ports["o2"])
 
     # route
-    str_tout2r = gf.routing.get_bundle([toutring.ports["o1"],Ring.ports["RingIn"]], [Ring.ports["RingOut"],tinring.ports["o2"]],
+    str_tout2r = gf.routing.get_bundle([toutring.ports["o1"], Ring.ports["RingIn"]],
+                                       [Ring.ports["RingOut"], tinring.ports["o2"]],
                                        layer=oplayer, width=width_single, radius=r_euler_min)
     for route in str_tout2r:
         sr.add(route.references)
-    sr.add_port("RingC", port=toutring.ports["o1"], center=Ring.ports["RingL"].center / 2 + ring.ports["RingR"].center / 2)
+    sr.add_port("RingC", port=toutring.ports["o1"],
+                center=Ring.ports["RingL"].center / 2 + ring.ports["RingR"].center / 2)
     for port in Ring.ports:
         if "Heat" in port.name:
             sr.add_port(port.name, port=Ring.ports[port.name])
-    add_labels_to_ports(sr,)
+    add_labels_to_ports(sr, )
     return sr
 
-__all__=['TCRing','TCRing2','TCRing3','TCRing4','TCRing1DC','TCRing2ES','TCRing2_2','TCRing2_3',
-         'TCRing1AD','TCRing1_3','TCFingerRing1','TCRingT1',
-         'TCRingT2','TCRingDCouple']
+
+__all__ = ['TCRing', 'TCRing2', 'TCRing3', 'TCRing4', 'TCRing1DC', 'TCRing2ES', 'TCRing2_2', 'TCRing2_3',
+           'TCRing1AD', 'TCRing1_3', 'TCFingerRing1', 'TCRingT1',
+           'TCRingT2', 'TCRingDCouple']

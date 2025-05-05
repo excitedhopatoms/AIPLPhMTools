@@ -1,6 +1,8 @@
-import gdsfactory as gf
 import csv
+
 from .BasicDefine import *
+
+
 # %% DBR: 分布式布拉格反射器
 @gf.cell
 def DBR(
@@ -43,7 +45,7 @@ def DBR(
     Returns:
         包含 o1, o2 端口的 Component，如果包含加热器则还有 h1, h2 端口
     """
-    c=gf.Component()
+    c = gf.Component()
     if IsSG:
         # 渐变长度模式
         deltap1 = (Length1E - Length1) / (Period - 1)  # 第一部分长度增量 (µm)
@@ -75,15 +77,21 @@ def DBR(
         # 添加加热器
         length_dbr = c.ports["o2"].center - c.ports["o1"].center
         heater = c << GfCStraight(width=WidthHeat, length=length_dbr[0], layer=heatlayer)
-        heater.connect("o1", c.ports["o1"], allow_width_mismatch=True, allow_layer_mismatch=True, allow_type_mismatch=True)
+        heater.connect("o1", c.ports["o1"], allow_width_mismatch=True, allow_layer_mismatch=True,
+                       allow_type_mismatch=True)
         heater.rotate(180, heater.ports["o1"].center)
-        heattaper1 = c << gf.c.taper(width1=WidthHeat, width2=WidthRoute, length=WidthRoute / 2 - WidthHeat / 2, layer=heatlayer)
-        heattaper2 = c << gf.c.taper(width1=WidthHeat, width2=WidthRoute, length=WidthRoute / 2 - WidthHeat / 2, layer=heatlayer)
-        heattaper1.connect("o1", other=heater.ports["o1"], allow_width_mismatch=True, allow_layer_mismatch=True, allow_type_mismatch=True)
-        heattaper2.connect("o1", other=heater.ports["o2"], allow_width_mismatch=True, allow_layer_mismatch=True, allow_type_mismatch=True)
+        heattaper1 = c << gf.c.taper(width1=WidthHeat, width2=WidthRoute, length=WidthRoute / 2 - WidthHeat / 2,
+                                     layer=heatlayer)
+        heattaper2 = c << gf.c.taper(width1=WidthHeat, width2=WidthRoute, length=WidthRoute / 2 - WidthHeat / 2,
+                                     layer=heatlayer)
+        heattaper1.connect("o1", other=heater.ports["o1"], allow_width_mismatch=True, allow_layer_mismatch=True,
+                           allow_type_mismatch=True)
+        heattaper2.connect("o1", other=heater.ports["o2"], allow_width_mismatch=True, allow_layer_mismatch=True,
+                           allow_type_mismatch=True)
         c.add_port(name="h1", port=heattaper1.ports["o2"])
         c.add_port(name="h2", port=heattaper2.ports["o2"])
     return c
+
 
 # %% DBRFromCsv: 从 CSV 文件创建 DBR
 @gf.cell
@@ -126,25 +134,28 @@ def DBRFromCsv(
         length1 = float(length[3])  # 第二部分长度 (µm)
         width1 = float(length[2])  # 第二部分长度 (µm)
         if length0 < 1e-5:
-            length0 = length0*1e6
+            length0 = length0 * 1e6
         if length1 < 1e-5:
-            length1 = length1*1e6
+            length1 = length1 * 1e6
         if width0 < 1e-5:
-            width0 = width0*1e6
+            width0 = width0 * 1e6
         if width1 < 1e-5:
             width1 = width1 * 1e6
         r1.append(c << GfCStraight(length=length0, width=width0, layer=oplayer))
         r2.append(c << GfCStraight(length=length1, width=width1, layer=oplayer))
-        if width0<width_min:
-            width_min=width0
-        elif width1<width_min:
-            width_min=width1
+        if width0 < width_min:
+            width_min = width0
+        elif width1 < width_min:
+            width_min = width1
         if i == 0:
-            r2[0].connect(port="o1", other=r1[0].ports["o2"],allow_width_mismatch=True, allow_layer_mismatch=True, allow_type_mismatch=True)
+            r2[0].connect(port="o1", other=r1[0].ports["o2"], allow_width_mismatch=True, allow_layer_mismatch=True,
+                          allow_type_mismatch=True)
         else:
-            r1[i].connect(port="o1", other=r2[i - 1].ports["o2"],allow_width_mismatch=True, allow_layer_mismatch=True, allow_type_mismatch=True)
-            r2[i].connect(port="o1", other=r1[i].ports["o2"],allow_width_mismatch=True, allow_layer_mismatch=True, allow_type_mismatch=True)
-    c << GfCStraight(length=-r1[0].ports["o1"].center[0]+r2[-1].ports["o2"].center[0], width=width_min, layer=oplayer)
+            r1[i].connect(port="o1", other=r2[i - 1].ports["o2"], allow_width_mismatch=True, allow_layer_mismatch=True,
+                          allow_type_mismatch=True)
+            r2[i].connect(port="o1", other=r1[i].ports["o2"], allow_width_mismatch=True, allow_layer_mismatch=True,
+                          allow_type_mismatch=True)
+    c << GfCStraight(length=-r1[0].ports["o1"].center[0] + r2[-1].ports["o2"].center[0], width=width_min, layer=oplayer)
     c.add_port("o1", port=r1[0].ports["o1"])
     c.add_port("o2", port=r2[-1].ports["o2"])
 
@@ -153,14 +164,17 @@ def DBRFromCsv(
         length_dbr = c.ports["o2"].center - c.ports["o1"].center
         heater = c << GfCStraight(width=WidthHeat, length=length_dbr[0], layer=heatlayer)
         heater.connect("o1", c.ports["o1"]).rotate(180, heater.ports["o1"].center)
-        heattaper1 = c << gf.c.taper(width1=WidthHeat, width2=WidthRoute, length=WidthRoute / 2 - WidthHeat / 2, layer=heatlayer)
-        heattaper2 = c << gf.c.taper(width1=WidthHeat, width2=WidthRoute, length=WidthRoute / 2 - WidthHeat / 2, layer=heatlayer)
+        heattaper1 = c << gf.c.taper(width1=WidthHeat, width2=WidthRoute, length=WidthRoute / 2 - WidthHeat / 2,
+                                     layer=heatlayer)
+        heattaper2 = c << gf.c.taper(width1=WidthHeat, width2=WidthRoute, length=WidthRoute / 2 - WidthHeat / 2,
+                                     layer=heatlayer)
         heattaper1.connect("o1", other=heater.ports["o1"])
         heattaper2.connect("o1", other=heater.ports["o2"])
         c.add_port(name="h1", port=heattaper1.ports["o2"])
         c.add_port(name="h2", port=heattaper2.ports["o2"])
 
     return c
+
 
 # %% DBRFromCsv: 从 CSV 文件创建 DBR
 @gf.cell
@@ -192,7 +206,7 @@ def DBRFromCsvOffset(
     Returns:
         包含 o1, o2 端口的 Component，如果包含加热器则还有 h1, h2 端口
     """
-    c=gf.Component()
+    c = gf.Component()
     lengthrows = csv.reader(open(CSVName))
     Period = len(list(lengthrows))
     lengthrows = csv.reader(open(CSVName))
@@ -206,29 +220,29 @@ def DBRFromCsvOffset(
         length1 = float(length[3])  # 第二部分长度 (µm)
         width1 = float(length[2])  # 第二部分长度 (µm)
         if length0 < 1e-5:
-            length0 = length0*1e6
+            length0 = length0 * 1e6
         if length1 < 1e-5:
-            length1 = length1*1e6
+            length1 = length1 * 1e6
         if width0 < 1e-5:
-            width0 = width0*1e6
+            width0 = width0 * 1e6
         if width1 < 1e-5:
             width1 = width1 * 1e6
         if width0 > width1:
-            width0 = width0+Offset
+            width0 = width0 + Offset
         else:
-            width1 = width1+Offset
+            width1 = width1 + Offset
         r1.append(c << GfCStraight(length=length0, width=width0, layer=oplayer))
         r2.append(c << GfCStraight(length=length1, width=width1, layer=oplayer))
-        if width0<width_min:
-            width_min=width0
-        elif width1<width_min:
-            width_min=width1
+        if width0 < width_min:
+            width_min = width0
+        elif width1 < width_min:
+            width_min = width1
         if i == 0:
             r2[0].connect(port="o1", other=r1[0].ports["o2"])
         else:
             r1[i].connect(port="o1", other=r2[i - 1].ports["o2"])
             r2[i].connect(port="o1", other=r1[i].ports["o2"])
-    c << GfCStraight(length=-r1[0].ports["o1"].center[0]+r2[-1].ports["o2"].center[0], width=width_min, layer=oplayer)
+    c << GfCStraight(length=-r1[0].ports["o1"].center[0] + r2[-1].ports["o2"].center[0], width=width_min, layer=oplayer)
     c.add_port("o1", port=r1[0].ports["o1"])
     c.add_port("o2", port=r2[-1].ports["o2"])
 
@@ -237,8 +251,10 @@ def DBRFromCsvOffset(
         length_dbr = c.ports["o2"].center - c.ports["o1"].center
         heater = c << GfCStraight(width=WidthHeat, length=length_dbr[0], layer=heatlayer)
         heater.connect("o1", c.ports["o1"]).rotate(180, heater.ports["o1"].center)
-        heattaper1 = c << gf.c.taper(width1=WidthHeat, width2=WidthRoute, length=WidthRoute / 2 - WidthHeat / 2, layer=heatlayer)
-        heattaper2 = c << gf.c.taper(width1=WidthHeat, width2=WidthRoute, length=WidthRoute / 2 - WidthHeat / 2, layer=heatlayer)
+        heattaper1 = c << gf.c.taper(width1=WidthHeat, width2=WidthRoute, length=WidthRoute / 2 - WidthHeat / 2,
+                                     layer=heatlayer)
+        heattaper2 = c << gf.c.taper(width1=WidthHeat, width2=WidthRoute, length=WidthRoute / 2 - WidthHeat / 2,
+                                     layer=heatlayer)
         heattaper1.connect("o1", other=heater.ports["o1"])
         heattaper2.connect("o1", other=heater.ports["o2"])
         c.add_port(name="h1", port=heattaper1.ports["o2"])
@@ -246,5 +262,6 @@ def DBRFromCsvOffset(
 
     return c
 
+
 # %% 导出所有函数
-__all__ = ['DBR', 'DBRFromCsv','DBRFromCsvOffset']
+__all__ = ['DBR', 'DBRFromCsv', 'DBRFromCsvOffset']

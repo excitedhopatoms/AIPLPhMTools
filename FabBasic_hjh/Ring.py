@@ -1,7 +1,8 @@
-from .BasicDefine import *
-from .Heater import SnakeHeater,DifferentHeater
 from gdsfactory.component import Component
-import numpy as np
+
+from .BasicDefine import *
+from .Heater import SnakeHeater, DifferentHeater
+
 
 # %% RingPulley1:straight pulley
 @gf.cell
@@ -50,20 +51,21 @@ def RingPulley(
         HeatOut: 加热输出端口（仅在 IsHeat=True 时存在）。
     """
     c = RingPulleyT1(
-        WidthRing= WidthRing,
-        WidthNear= WidthNear,
-        WidthHeat = WidthHeat,
-        RadiusRing= RadiusRing,
-        GapRing= GapRing,
-        AngleCouple= AngleCouple,
-        IsHeat= IsHeat,
-        IsAD= IsAD,
-        Name= Name,
-        oplayer= oplayer,
+        WidthRing=WidthRing,
+        WidthNear=WidthNear,
+        WidthHeat=WidthHeat,
+        RadiusRing=RadiusRing,
+        GapRing=GapRing,
+        AngleCouple=AngleCouple,
+        IsHeat=IsHeat,
+        IsAD=IsAD,
+        Name=Name,
+        oplayer=oplayer,
         heatlayer=heatlayer,
         TypeHeater="default",
     )
     return c
+
 
 # %% RingPulley1DC: 不同耦合器
 @gf.cell
@@ -116,22 +118,23 @@ def RingPulley1DC(
         HeatOut: 加热输出端口（仅在 IsHeat=True 时存在）。
     """
     c = RingPulleyT1(
-        WidthRing= WidthRing,
-        WidthNear= WidthNear1,
+        WidthRing=WidthRing,
+        WidthNear=WidthNear1,
         WidthNear2=WidthNear2,
-        WidthHeat = WidthHeat,
-        RadiusRing= RadiusRing,
-        GapRing= GapRing1,
+        WidthHeat=WidthHeat,
+        RadiusRing=RadiusRing,
+        GapRing=GapRing1,
         GapRing2=GapRing2,
-        AngleCouple= AngleCouple1,
+        AngleCouple=AngleCouple1,
         AngleCouple2=AngleCouple2,
-        IsHeat= IsHeat,
-        Name= Name,
-        oplayer= oplayer,
+        IsHeat=IsHeat,
+        Name=Name,
+        oplayer=oplayer,
         heatlayer=heatlayer,
         TypeHeater="default",
     )
     return c
+
 
 # %% RingPulley1HS: 加热侧
 @gf.cell
@@ -184,21 +187,22 @@ def RingPulley1HS(
         HeatOut: 加热输出端口。
     """
     c = RingPulleyT1(
-        WidthRing= WidthRing,
-        WidthNear= WidthNear,
-        WidthHeat = WidthHeat,
-        RadiusRing= RadiusRing,
-        GapRing= GapRing,
-        GapHeat= DeltaHeat,
-        AngleCouple= AngleCouple,
-        IsAD= IsAD,
+        WidthRing=WidthRing,
+        WidthNear=WidthNear,
+        WidthHeat=WidthHeat,
+        RadiusRing=RadiusRing,
+        GapRing=GapRing,
+        GapHeat=DeltaHeat,
+        AngleCouple=AngleCouple,
+        IsAD=IsAD,
         IsHeat=True,
-        Name= Name,
-        oplayer= oplayer,
+        Name=Name,
+        oplayer=oplayer,
         heatlayer=heatlayer,
         TypeHeater="side",
     )
     return c
+
 
 # %% RingPulley1HSn: 加热蛇形
 @gf.cell
@@ -285,8 +289,10 @@ def RingPulley2(
         vialayer: LayerSpec = LAYER.VIA,
 ) -> Component:
     """创建一个带有滑轮输入输出的环形结构。"""
-    c = RingPulleyT2(WidthRing,WidthNear,WidthHeat,RadiusRing,0,GapRing,0,AngleCouple,IsHeat,"default",Name,oplayer,heatlayer)
+    c = RingPulleyT2(WidthRing, WidthNear, WidthHeat, RadiusRing, 0, GapRing, 0, AngleCouple, IsHeat, "default", Name,
+                     oplayer, heatlayer)
     return c
+
 
 # %% RingPulley2ES: 滑轮输入输出 + 电子线路
 @gf.cell
@@ -305,8 +311,10 @@ def RingPulley2ES(
         vialayer: LayerSpec = LAYER.VIA,
 ) -> Component:
     """创建一个带有滑轮输入输出和电子线路的环形结构。"""
-    c = RingPulleyT2(WidthRing, WidthNear, WidthEle, RadiusRing, DeltaEle, GapRing, 0, AngleCouple, True, "bothside", Name,oplayer, heatlayer)
+    c = RingPulleyT2(WidthRing, WidthNear, WidthEle, RadiusRing, DeltaEle, GapRing, 0, AngleCouple, True, "bothside",
+                     Name, oplayer, heatlayer)
     return c
+
 
 # %% RingPulley3: 大角度耦合器
 @gf.cell
@@ -331,7 +339,8 @@ def RingPulley3(
     ring_path_all = ring_path90 + ring_path90 + ring_path90 + ring_path90
     ring_comp = c << gf.path.extrude(ring_path_all, width=WidthRing, layer=oplayer)
     couple_path_ring = gf.path.arc(radius=RadiusRing + GapRing + WidthNear / 2 + WidthRing / 2, angle=AngleCouple / 2)
-    couple_path_euler = euler_Bend_Half(radius=RadiusRing + GapRing + WidthNear / 2 + WidthRing / 2, angle=(180 - AngleCouple) / 2, p=0.5)
+    couple_path_euler = euler_Bend_Half(radius=RadiusRing + GapRing + WidthNear / 2 + WidthRing / 2,
+                                        angle=(180 - AngleCouple) / 2, p=0.5)
     couple_path = couple_path_ring + couple_path_euler
     upcouple_comp1 = c << gf.path.extrude(couple_path, width=WidthNear, layer=oplayer)
     upcouple_comp1.connect("o1", other=ring_comp.ports["o1"], allow_width_mismatch=True)
@@ -339,12 +348,14 @@ def RingPulley3(
     upcouple_comp2 = c << gf.path.extrude(couple_path, width=WidthNear, layer=oplayer)
     upcouple_comp2.connect("o1", other=ring_comp.ports["o1"], allow_width_mismatch=True)
     upcouple_comp2.movey(2 * RadiusRing + GapRing + WidthNear / 2 + WidthRing / 2)
-    upcouple_comp2.rotate(center=upcouple_comp2.ports["o1"].center, angle=180).mirror_y(upcouple_comp2.ports["o1"].center[1])
+    upcouple_comp2.rotate(center=upcouple_comp2.ports["o1"].center, angle=180).mirror_y(
+        upcouple_comp2.ports["o1"].center[1])
     c.add_port(name="Input", port=upcouple_comp2.ports["o2"])
     c.add_port(name="Through", port=upcouple_comp1.ports["o2"])
     c.add_port(name="RingL", port=ring_comp.ports["o1"], center=[-RadiusRing, RadiusRing], orientation=90)
     c.add_port(name="RingR", port=ring_comp.ports["o1"], center=[RadiusRing, RadiusRing], orientation=90)
     return c
+
 
 # %% RingPulley4: 大角度耦合器
 @gf.cell
@@ -383,12 +394,14 @@ def RingPulley4(
     upcouple_comp2.connect("o1", other=ring_comp.ports["o1"], allow_width_mismatch=True)
     upcouple_comp1.movey(
         2 * RadiusRing + GapRing + WidthNear / 2 + WidthRing / 2)
-    upcouple_comp2.rotate(center=upcouple_comp2.ports["o1"].center, angle=180).mirror_y(upcouple_comp2.ports["o1"].center[1])
+    upcouple_comp2.rotate(center=upcouple_comp2.ports["o1"].center, angle=180).mirror_y(
+        upcouple_comp2.ports["o1"].center[1])
     c.add_port(name="Input", port=upcouple_comp2.ports["o2"])
     c.add_port(name="Through", port=upcouple_comp1.ports["o2"])
     c.add_port(name="RingL", port=ring_comp.ports["o1"], center=[-RadiusRing, RadiusRing], orientation=90)
     c.add_port(name="RingR", port=ring_comp.ports["o1"], center=[RadiusRing, RadiusRing], orientation=90)
     return c
+
 
 # %% RingFinger: 山形环形结构
 @gf.cell
@@ -422,7 +435,8 @@ def RingFinger(
     path_str_ring = gf.path.straight(length=LengthCouple)
     path_euler_ring = euler_Bend_Half(radius=RadiusCouple, angle=45)
     path_arc_couple = gf.path.arc(radius=RadiusCouple + WidthRing / 2 + GapRing + WidthNear / 2, angle=AngleCouple / 2)
-    path_euler_couple = gf.path.euler(radius=RadiusCouple + WidthRing / 2 + GapRing + WidthNear / 2, angle=-AngleCouple / 2)
+    path_euler_couple = gf.path.euler(radius=RadiusCouple + WidthRing / 2 + GapRing + WidthNear / 2,
+                                      angle=-AngleCouple / 2)
     path_euler_side = gf.path.euler(radius=RadiusSide, angle=-AngleSide)
     path_euler_side2 = gf.path.euler(radius=RadiusSide, angle=AngleSide)
     path_str_side = gf.path.straight(length=LengthSide)
@@ -453,6 +467,7 @@ def RingFinger(
     c.add_port(name="Con1", port=str_connect.ports["o1"])
     c.add_port(name="Con2", port=str_connect.ports["o2"])
     return c
+
 
 # %% RingPulleyT1: 通用环形耦合器
 @gf.cell
@@ -532,15 +547,17 @@ def RingPulleyT1(
             GapRing2 = GapRing
         if AngleCouple2 is None:
             AngleCouple2 = AngleCouple
-        IsAD=True
+        IsAD = True
     # 光学部分：创建环形波导
     ring_path90 = gf.path.arc(radius=RadiusRing, angle=90)  # 创建 90 度的圆弧路径
     ring_path_all = ring_path90 + ring_path90 + ring_path90 + ring_path90  # 拼接成完整的环形路径
     ring_comp = c << gf.path.extrude(ring_path_all, width=WidthRing, layer=oplayer)  # 将路径转换为波导
 
     # 创建耦合波导
-    couple_path_ring = gf.path.arc(radius=RadiusRing + GapRing + WidthNear / 2 + WidthRing / 2, angle=AngleCouple / 2)  # 创建耦合圆弧路径
-    couple_path_euler = euler_Bend_Half(radius=RadiusRing + GapRing + WidthNear / 2 + WidthRing / 2, angle=-AngleCouple / 2)  # 创建欧拉弯曲路径
+    couple_path_ring = gf.path.arc(radius=RadiusRing + GapRing + WidthNear / 2 + WidthRing / 2,
+                                   angle=AngleCouple / 2)  # 创建耦合圆弧路径
+    couple_path_euler = euler_Bend_Half(radius=RadiusRing + GapRing + WidthNear / 2 + WidthRing / 2,
+                                        angle=-AngleCouple / 2)  # 创建欧拉弯曲路径
     couple_path = couple_path_ring + couple_path_euler  # 拼接成完整的耦合路径
 
     # 上耦合波导
@@ -550,21 +567,23 @@ def RingPulleyT1(
     upcouple_comp2 = c << gf.path.extrude(couple_path, width=WidthNear, layer=oplayer)  # 创建上耦合波导
     upcouple_comp2.connect("o1", other=ring_comp.ports["o1"], allow_width_mismatch=True)
     upcouple_comp2.movey(2 * RadiusRing + GapRing + WidthNear / 2 + WidthRing / 2)  # 连接并移动
-    upcouple_comp2.rotate(angle=180,center=upcouple_comp2.ports["o1"].center)
+    upcouple_comp2.rotate(angle=180, center=upcouple_comp2.ports["o1"].center)
     upcouple_comp2.mirror_y(upcouple_comp2.ports["o1"].center[1])  # 旋转和镜像
     c.add_port(name="Input", port=upcouple_comp2.ports["o2"])  # 添加输入端口
     c.add_port(name="Through", port=upcouple_comp1.ports["o2"])  # 添加直通端口
 
     # 环形波导端口
-    c.add_port(name="RingL",  center=[-RadiusRing, RadiusRing], orientation=90,width=WidthRing,layer=oplayer)  # 添加左侧环形端口
-    c.add_port(name="RingR", center=[RadiusRing, RadiusRing], orientation=90,width=WidthRing,layer=oplayer)  # 添加右侧环形端口
-    c.add_port(name="RingC",  center=[0, RadiusRing], orientation=90,width=WidthRing,layer=oplayer)  # 添加中间环形端口
+    c.add_port(name="RingL", center=[-RadiusRing, RadiusRing], orientation=90, width=WidthRing,
+               layer=oplayer)  # 添加左侧环形端口
+    c.add_port(name="RingR", center=[RadiusRing, RadiusRing], orientation=90, width=WidthRing,
+               layer=oplayer)  # 添加右侧环形端口
+    c.add_port(name="RingC", center=[0, RadiusRing], orientation=90, width=WidthRing, layer=oplayer)  # 添加中间环形端口
     # Add-Drop 端口
     if IsAD:
         couple_path_ring2 = gf.path.arc(radius=RadiusRing + GapRing2 + WidthNear2 / 2 + WidthRing / 2,
-                                       angle=AngleCouple2 / 2)  # 创建耦合圆弧路径
+                                        angle=AngleCouple2 / 2)  # 创建耦合圆弧路径
         couple_path_euler2 = euler_Bend_Half(radius=RadiusRing + GapRing2 + WidthNear2 / 2 + WidthRing / 2,
-                                            angle=-AngleCouple2 / 2)  # 创建欧拉弯曲路径
+                                             angle=-AngleCouple2 / 2)  # 创建欧拉弯曲路径
         couple_path2 = couple_path_ring2 + couple_path_euler2  # 拼接成完整的耦合路径
         downcouple_comp1 = c << gf.path.extrude(couple_path2, width=WidthNear2, layer=oplayer)  # 创建下耦合波导
         downcouple_comp1.connect("o1", other=ring_comp.ports["o1"], allow_width_mismatch=True)
@@ -579,12 +598,16 @@ def RingPulleyT1(
 
     # 加热部分
     if IsHeat:
-        DifferentHeater_local(c,WidthHeat,WidthRing,DeltaHeat,GapHeat,RadiusRing,heatlayer,TypeHeater,DirectionHeater=DirectionHeater,Name = Name + "Heater",WidthRoute=WidthRoute)
+        DifferentHeater_local(c, WidthHeat, WidthRing, DeltaHeat, GapHeat, RadiusRing, heatlayer, TypeHeater,
+                              DirectionHeater=DirectionHeater, Name=Name + "Heater", WidthRoute=WidthRoute)
     if IsTrench:
-        ring_tr = c << gf.c.ring(width=WidthTrench,layer=trelayer,radius=RadiusRing-WidthRing/2-WidthTrench/2-GapTrench)
+        ring_tr = c << gf.c.ring(width=WidthTrench, layer=trelayer,
+                                 radius=RadiusRing - WidthRing / 2 - WidthTrench / 2 - GapTrench)
         ring_tr.movey(RadiusRing)
     add_labels_to_ports(c)
     return c
+
+
 # %% RingPulleyT2: 通用环形耦合器2
 @gf.cell
 def RingPulleyT2(
@@ -643,7 +666,8 @@ def RingPulleyT2(
 
     # 光学部分：创建耦合波导
     couple_path_ring = gf.path.arc(radius=RadiusRing + GapRing + WidthNear / 2 + WidthRing / 2, angle=AngleCouple / 2)
-    couple_path_euler = euler_Bend_Half(radius=RadiusRing + GapRing + WidthNear / 2 + WidthRing / 2, angle=(90 - AngleCouple) / 2, p=1)
+    couple_path_euler = euler_Bend_Half(radius=RadiusRing + GapRing + WidthNear / 2 + WidthRing / 2,
+                                        angle=(90 - AngleCouple) / 2, p=1)
     couple_path = couple_path_ring + couple_path_euler
     upcouple_comp1 = c << gf.path.extrude(couple_path, width=WidthNear, layer=oplayer)
     upcouple_comp1.connect("o1", other=ring_comp.ports["o1"], allow_width_mismatch=True)
@@ -658,32 +682,34 @@ def RingPulleyT2(
     c.add_port(name="Through", port=upcouple_comp1.ports["o2"])
     c.add_port(name="RingL", port=ring_comp.ports["o1"], center=[-RadiusRing, RadiusRing], orientation=90)
     c.add_port(name="RingR", port=ring_comp.ports["o1"], center=[RadiusRing, RadiusRing], orientation=90)
-    c.add_port(name="RingD", port=ring_comp.ports["o1"],orientation=0)
-    c.add_port(name="RingU", port=ring_comp.ports["o1"], center=[0, 2*RadiusRing])
+    c.add_port(name="RingD", port=ring_comp.ports["o1"], orientation=0)
+    c.add_port(name="RingU", port=ring_comp.ports["o1"], center=[0, 2 * RadiusRing])
     c.add_port(name="RingC", port=ring_comp.ports["o1"], center=[0, RadiusRing])
     # 添加加热电极
     if IsHeat:
-        DifferentHeater_local(c,WidthHeat,WidthRing,DeltaHeat,GapHeat,RadiusRing,heatlayer,TypeHeater,DirectionHeater="up",Name = Name + "Heater")
+        DifferentHeater_local(c, WidthHeat, WidthRing, DeltaHeat, GapHeat, RadiusRing, heatlayer, TypeHeater,
+                              DirectionHeater="up", Name=Name + "Heater")
     add_labels_to_ports(c)
     return c
+
 
 # %% different heater
 @gf.cell
 def DifferentHeater_local(
-        c:Component = None,
-        WidthHeat:float = 1,
-        WidthRing:float = 1,
-        DeltaHeat:float = 2,
-        GapHeat:float = 3,
+        c: Component = None,
+        WidthHeat: float = 1,
+        WidthRing: float = 1,
+        DeltaHeat: float = 2,
+        GapHeat: float = 3,
         RadiusRing: float = 100.0,
-        heatlayer:LayerSpec = LAYER.M1,
-        TypeHeater:str = "default",
+        heatlayer: LayerSpec = LAYER.M1,
+        TypeHeater: str = "default",
         DirectionHeater: str = "down",
-        Name:str = "Heater",
-        WidthRoute = 20,
+        Name: str = "Heater",
+        WidthRoute=20,
         routelayer: LayerSpec = LAYER.M2,
         vialayer: LayerSpec = LAYER.VIA,
-)->Component:
+) -> Component:
     """
     创建一个加热电极组件，支持多种加热电极类型和方向。
     加热电极可以添加到环形波导的左侧或右侧，并根据类型生成不同的形状。
@@ -715,17 +741,19 @@ def DifferentHeater_local(
         heatout_path1 = euler_Bend_Half(radius=RadiusRing / 2, angle=30)  # 创建欧拉弯曲路径
         heatout_path2 = euler_Bend_Half(radius=20, angle=-60)  # 创建欧拉弯曲路径
         heatL_comp1 = h << gf.path.extrude(heat_path + heatout_path2, width=WidthHeat, layer=heatlayer)  # 创建左侧加热电极
-        heatL_comp1.connect("o1", c.ports["RingL"], allow_layer_mismatch=True,allow_width_mismatch=True,mirror=True) # 连接并镜像
+        heatL_comp1.connect("o1", c.ports["RingL"], allow_layer_mismatch=True, allow_width_mismatch=True,
+                            mirror=True)  # 连接并镜像
         # heatL_comp1.mirror_x(heatL_comp1.ports["o1"].center[0])
         heatL_comp2 = h << gf.path.extrude(heat_path + heatout_path1, width=WidthHeat, layer=heatlayer)  # 创建左侧加热电极
-        heatL_comp2.connect("o1", c.ports["RingL"], allow_layer_mismatch=True,allow_width_mismatch=True)
+        heatL_comp2.connect("o1", c.ports["RingL"], allow_layer_mismatch=True, allow_width_mismatch=True)
         heatL_comp2.rotate(180, heatL_comp2.ports["o1"].center)  # 连接并旋转
         heatR_comp1 = h << gf.path.extrude(heat_path + heatout_path2, width=WidthHeat, layer=heatlayer)  # 创建右侧加热电极
-        heatR_comp1.connect("o1", c.ports["RingR"], allow_layer_mismatch=True,allow_width_mismatch=True)  # 连接
+        heatR_comp1.connect("o1", c.ports["RingR"], allow_layer_mismatch=True, allow_width_mismatch=True)  # 连接
         heatR_comp2 = h << gf.path.extrude(heat_path + heatout_path1, width=WidthHeat, layer=heatlayer)  # 创建右侧加热电极
-        heatR_comp2.connect("o1", c.ports["RingR"], allow_layer_mismatch=True,mirror=True,allow_width_mismatch=True)  # 连接并镜像
+        heatR_comp2.connect("o1", c.ports["RingR"], allow_layer_mismatch=True, mirror=True,
+                            allow_width_mismatch=True)  # 连接并镜像
         heatR_comp2.rotate(180, heatR_comp2.ports["o1"].center)
-        heatRing_route = gf.routing.route_single(h,heatL_comp2.ports["o2"], heatR_comp2.ports["o2"], layer=heatlayer,
+        heatRing_route = gf.routing.route_single(h, heatL_comp2.ports["o2"], heatR_comp2.ports["o2"], layer=heatlayer,
                                                  route_width=WidthHeat)  # 创建加热电极之间的路由
         h.add_port(name="HeatIn", port=heatL_comp1.ports["o2"])  # 添加加热输入端口
         h.add_port(name="HeatOut", port=heatR_comp1.ports["o2"])  # 添加加热输出端口
@@ -738,8 +766,8 @@ def DifferentHeater_local(
     elif TypeHeater == "snake":
         # 蛇形加热电极
         heat_path = gf.path.arc(radius=RadiusRing + DeltaHeat, angle=60)  # 创建加热电极路径
-        heatout_path1 = euler_Bend_Half(radius=20, angle=30,use_eff=True)  # 创建欧拉弯曲路径
-        heatout_path2 = euler_Bend_Half(radius=20, angle=-60,use_eff=True)  # 创建欧拉弯曲路径
+        heatout_path1 = euler_Bend_Half(radius=20, angle=30, use_eff=True)  # 创建欧拉弯曲路径
+        heatout_path2 = euler_Bend_Half(radius=20, angle=-60, use_eff=True)  # 创建欧拉弯曲路径
         HPart = [
             SnakeHeater(WidthHeat, WidthRing, GapHeat, heat_path + heatout_path1, ["o1", "o2"], heatlayer) if i % 2 == 1
             else SnakeHeater(WidthHeat, WidthRing, GapHeat, heat_path + heatout_path2, ["o1", "o2"], heatlayer) for i in
@@ -747,17 +775,20 @@ def DifferentHeater_local(
         HeatLR = [h << HPart[i] for i in range(4)]  # 将蛇形加热电极添加到组件
         for i, comp in enumerate(HeatLR):
             if i == 0:
-                comp.connect("o1", c.ports["RingL"], allow_layer_mismatch=True, allow_width_mismatch=True,mirror=True)# 连接并镜像
+                comp.connect("o1", c.ports["RingL"], allow_layer_mismatch=True, allow_width_mismatch=True,
+                             mirror=True)  # 连接并镜像
             elif i == 1:
-                comp.connect("o1", c.ports["RingL"], allow_layer_mismatch=True, allow_width_mismatch=True,mirror=True)  # 连接并旋转
+                comp.connect("o1", c.ports["RingL"], allow_layer_mismatch=True, allow_width_mismatch=True,
+                             mirror=True)  # 连接并旋转
                 comp.mirror_y(comp.ports["o1"].center[1])
             elif i == 2:
-                comp.connect("o1", c.ports["RingR"], allow_layer_mismatch=True, allow_width_mismatch=True,)  # 连接
+                comp.connect("o1", c.ports["RingR"], allow_layer_mismatch=True, allow_width_mismatch=True, )  # 连接
             elif i == 3:
-                comp.connect("o1", c.ports["RingR"], allow_layer_mismatch=True,allow_width_mismatch=True)  # 连接并镜像
+                comp.connect("o1", c.ports["RingR"], allow_layer_mismatch=True, allow_width_mismatch=True)  # 连接并镜像
                 comp.mirror_y(comp.ports["o1"].center[1])
-            comp.movex((i//2*2-1)*DeltaHeat)
-        heatRing_route = gf.routing.route_single(h,HeatLR[1].ports["o2"], HeatLR[3].ports["o2"], layer=heatlayer,route_width=WidthHeat)  # 创建加热电极之间的路由
+            comp.movex((i // 2 * 2 - 1) * DeltaHeat)
+        heatRing_route = gf.routing.route_single(h, HeatLR[1].ports["o2"], HeatLR[3].ports["o2"], layer=heatlayer,
+                                                 route_width=WidthHeat)  # 创建加热电极之间的路由
         h.add_port(name="HeatIn", port=HeatLR[0].ports["o2"])  # 添加加热输入端口
         h.add_port(name="HeatOut", port=HeatLR[2].ports["o2"])  # 添加加热输出端口
         h.add_port(name="RingL", port=HeatLR[2].ports["o1"])
@@ -774,18 +805,20 @@ def DifferentHeater_local(
         heatout_path3 = euler_Bend_Half(radius=RadiusRing / 4, angle=60)  # 创建欧拉弯曲路径
         heatout_path4 = euler_Bend_Half(radius=RadiusRing / 4, angle=-60)  # 创建欧拉弯曲路径
         heatL_comp1 = h << gf.path.extrude(heat_path + heatout_path4, width=WidthHeat, layer=heatlayer)  # 创建左侧加热电极
-        heatL_comp1.connect("o1", c.ports["RingL"], allow_layer_mismatch=True,allow_width_mismatch=True,mirror=True)  # 连接并镜像
+        heatL_comp1.connect("o1", c.ports["RingL"], allow_layer_mismatch=True, allow_width_mismatch=True,
+                            mirror=True)  # 连接并镜像
         heatL_comp1.movex(-DeltaHeat)
         heatL_comp2 = h << gf.path.extrude(heat_path + heatout_path1, width=WidthHeat, layer=heatlayer)  # 创建左侧加热电极
-        heatL_comp2.connect("o1", c.ports["RingL"], allow_layer_mismatch=True,allow_width_mismatch=True)
+        heatL_comp2.connect("o1", c.ports["RingL"], allow_layer_mismatch=True, allow_width_mismatch=True)
         heatL_comp2.rotate(180, heatL_comp2.ports["o1"].center)  # 连接并旋转
         heatL_comp2.movex(-DeltaHeat)
         heatR_comp1 = h << gf.path.extrude(heat_path + heatout_path4, width=WidthHeat, layer=heatlayer)  # 创建右侧加热电极
-        heatR_comp1.connect("o1", c.ports["RingR"], allow_layer_mismatch=True,allow_width_mismatch=True)  # 连接
+        heatR_comp1.connect("o1", c.ports["RingR"], allow_layer_mismatch=True, allow_width_mismatch=True)  # 连接
         heatR_comp1.movex(DeltaHeat)
         heatR_comp2 = h << gf.path.extrude(heat_path + heatout_path1, width=WidthHeat, layer=heatlayer)  # 创建右侧加热电极
-        heatR_comp2.connect("o1", heatR_comp1.ports["o1"], allow_layer_mismatch=True,allow_width_mismatch=True,mirror=True)  # 连接并镜像
-        heatRing_route = gf.routing.route_single(h,heatL_comp2.ports["o2"], heatR_comp2.ports["o2"], layer=heatlayer,
+        heatR_comp2.connect("o1", heatR_comp1.ports["o1"], allow_layer_mismatch=True, allow_width_mismatch=True,
+                            mirror=True)  # 连接并镜像
+        heatRing_route = gf.routing.route_single(h, heatL_comp2.ports["o2"], heatR_comp2.ports["o2"], layer=heatlayer,
                                                  route_width=WidthHeat)  # 创建加热电极之间的路由
         h.add_port(name="HeatIn", port=heatL_comp1.ports["o2"])  # 添加加热输入端口
         h.add_port(name="HeatOut", port=heatR_comp1.ports["o2"])  # 添加加热输出端口
@@ -803,33 +836,38 @@ def DifferentHeater_local(
         heat_path_int2 = gf.path.arc(radius=RadiusRing - DeltaHeat, angle=60)  # 创建加热电极路径
         heat_path_ext2 = gf.path.arc(radius=RadiusRing + DeltaHeat, angle=60)  # 创建加热电极路径
         heatout_path1 = euler_Bend_Half(radius=RadiusRing / 5, angle=-60)  # 创建欧拉弯曲路径
-        heatLint_comp1 = h << gf.path.extrude(heat_path_int2+heatout_path1, width=WidthHeat, layer=heatlayer)  # 创建左侧加热电极
-        heatLint_comp1.connect("o1", c.ports["RingL"], allow_layer_mismatch=True,allow_width_mismatch=True)  # 连接并镜像
+        heatLint_comp1 = h << gf.path.extrude(heat_path_int2 + heatout_path1, width=WidthHeat,
+                                              layer=heatlayer)  # 创建左侧加热电极
+        heatLint_comp1.connect("o1", c.ports["RingL"], allow_layer_mismatch=True, allow_width_mismatch=True)  # 连接并镜像
         heatLint_comp1.mirror_x(heatLint_comp1.ports["o1"].center[0])
         heatLint_comp1.movex(DeltaHeat)
         heatLint_comp2 = h << gf.path.extrude(heat_path_int1, width=WidthHeat, layer=heatlayer)  # 创建左侧加热电极
-        heatLint_comp2.connect("o1", c.ports["RingL"], allow_layer_mismatch=True,allow_width_mismatch=True)
+        heatLint_comp2.connect("o1", c.ports["RingL"], allow_layer_mismatch=True, allow_width_mismatch=True)
         heatLint_comp2.rotate(180, heatLint_comp2.ports["o1"].center)  # 连接并旋转
         heatLint_comp2.movex(DeltaHeat)
-        heatLext_comp1 = h << gf.path.extrude(heat_path_ext2+heatout_path1, width=WidthHeat, layer=heatlayer)  # 创建左侧加热电极
-        heatLext_comp1.connect("o1", c.ports["RingL"], allow_layer_mismatch=True,mirror=True,allow_width_mismatch=True) # 连接并镜像
+        heatLext_comp1 = h << gf.path.extrude(heat_path_ext2 + heatout_path1, width=WidthHeat,
+                                              layer=heatlayer)  # 创建左侧加热电极
+        heatLext_comp1.connect("o1", c.ports["RingL"], allow_layer_mismatch=True, mirror=True,
+                               allow_width_mismatch=True)  # 连接并镜像
         heatLext_comp1.movex(-DeltaHeat)
         heatLext_comp2 = h << gf.path.extrude(heat_path_ext1, width=WidthHeat, layer=heatlayer)  # 创建左侧加热电极
-        heatLext_comp2.connect("o1", c.ports["RingL"], allow_layer_mismatch=True,allow_width_mismatch=True)
+        heatLext_comp2.connect("o1", c.ports["RingL"], allow_layer_mismatch=True, allow_width_mismatch=True)
         heatLext_comp2.rotate(180, heatLext_comp2.ports["o1"].center)  # 连接并旋转
         heatLext_comp2.movex(-DeltaHeat)
-        heatRint_comp1 = h << gf.path.extrude(heat_path_int2+heatout_path1, width=WidthHeat, layer=heatlayer)  # 创建右侧加热电极
-        heatRint_comp1.connect("o1", c.ports["RingR"], allow_layer_mismatch=True,allow_width_mismatch=True)  # 连接
+        heatRint_comp1 = h << gf.path.extrude(heat_path_int2 + heatout_path1, width=WidthHeat,
+                                              layer=heatlayer)  # 创建右侧加热电极
+        heatRint_comp1.connect("o1", c.ports["RingR"], allow_layer_mismatch=True, allow_width_mismatch=True)  # 连接
         heatRint_comp1.movex(-DeltaHeat)
         heatRint_comp2 = h << gf.path.extrude(heat_path_int1, width=WidthHeat, layer=heatlayer)  # 创建右侧加热电极
-        heatRint_comp2.connect("o1", c.ports["RingR"], allow_layer_mismatch=True,allow_width_mismatch=True)
-        heatRint_comp2.mirror_y(heatRint_comp2.ports["o1"].center[1]) # 连接并镜像
+        heatRint_comp2.connect("o1", c.ports["RingR"], allow_layer_mismatch=True, allow_width_mismatch=True)
+        heatRint_comp2.mirror_y(heatRint_comp2.ports["o1"].center[1])  # 连接并镜像
         heatRint_comp2.movex(-DeltaHeat)
-        heatRext_comp1 = h << gf.path.extrude(heat_path_ext2+heatout_path1, width=WidthHeat, layer=heatlayer)  # 创建右侧加热电极
-        heatRext_comp1.connect("o1", c.ports["RingR"], allow_layer_mismatch=True,allow_width_mismatch=True)  # 连接
+        heatRext_comp1 = h << gf.path.extrude(heat_path_ext2 + heatout_path1, width=WidthHeat,
+                                              layer=heatlayer)  # 创建右侧加热电极
+        heatRext_comp1.connect("o1", c.ports["RingR"], allow_layer_mismatch=True, allow_width_mismatch=True)  # 连接
         heatRext_comp1.movex(DeltaHeat)
         heatRext_comp2 = h << gf.path.extrude(heat_path_ext1, width=WidthHeat, layer=heatlayer)  # 创建右侧加热电极
-        heatRext_comp2.connect("o1", c.ports["RingR"], allow_layer_mismatch=True,allow_width_mismatch=True)
+        heatRext_comp2.connect("o1", c.ports["RingR"], allow_layer_mismatch=True, allow_width_mismatch=True)
         heatRext_comp2.mirror_y(heatRext_comp2.ports["o1"].center[1])  # 连接并镜像
         heatRext_comp2.movex(DeltaHeat)
         h.add_port(name="HeatIntIn", port=heatLint_comp1.ports["o2"])  # 添加加热输入端口
@@ -851,32 +889,33 @@ def DifferentHeater_local(
         # 默认加热电极
         heat_path = gf.path.arc(radius=RadiusRing, angle=120)  # 创建加热电极路径
         route_path = gf.path.arc(radius=RadiusRing, angle=60)
-        out_path = gf.path.arc(radius=20,angle=60)
-        out_path2 = gf.path.arc(radius=20,angle=-60)
+        out_path = gf.path.arc(radius=20, angle=60)
+        out_path2 = gf.path.arc(radius=20, angle=-60)
         heat_path.rotate(-60)
-        heatL_comp = h << DifferentHeater(heat_path, WidthHeat=WidthHeat, heatlayer=heatlayer,routelayer=routelayer,
-                                          vialayer=vialayer,TypeHeater='spilt',GapHeat=GapHeat,DeltaHeat=DeltaHeat,
-                                          WidthRoute=WidthRoute,Padding=GapHeat
+        heatL_comp = h << DifferentHeater(heat_path, WidthHeat=WidthHeat, heatlayer=heatlayer, routelayer=routelayer,
+                                          vialayer=vialayer, TypeHeater='spilt', GapHeat=GapHeat, DeltaHeat=DeltaHeat,
+                                          WidthRoute=WidthRoute, Padding=GapHeat
                                           )  # 创建左侧加热电极
-        heatL_comp.connect("HeatIn", c.ports["RingL"], allow_layer_mismatch=True,mirror=True,allow_width_mismatch=True) # 连接并镜像
-        heatL_comp.rotate(60,center=c.ports["RingC"].center)
-        heatR_comp = h << DifferentHeater(heat_path, WidthHeat=WidthHeat, heatlayer=heatlayer,routelayer=routelayer,
-                                          vialayer=vialayer,TypeHeater='spilt',GapHeat=GapHeat,DeltaHeat=DeltaHeat,
-                                          WidthRoute=WidthRoute,Padding=GapHeat
+        heatL_comp.connect("HeatIn", c.ports["RingL"], allow_layer_mismatch=True, mirror=True,
+                           allow_width_mismatch=True)  # 连接并镜像
+        heatL_comp.rotate(60, center=c.ports["RingC"].center)
+        heatR_comp = h << DifferentHeater(heat_path, WidthHeat=WidthHeat, heatlayer=heatlayer, routelayer=routelayer,
+                                          vialayer=vialayer, TypeHeater='spilt', GapHeat=GapHeat, DeltaHeat=DeltaHeat,
+                                          WidthRoute=WidthRoute, Padding=GapHeat
                                           )  # 创建左侧加热电极
-        heatR_comp.connect("HeatIn", c.ports["RingR"], allow_layer_mismatch=True,allow_width_mismatch=True)
+        heatR_comp.connect("HeatIn", c.ports["RingR"], allow_layer_mismatch=True, allow_width_mismatch=True)
         heatR_comp.rotate(-60, center=c.ports["RingC"].center)
         Hp1 = h << gf.path.extrude(route_path, cross_section=X_Heat)
-        Hp1.connect("r1o1",heatL_comp.ports["HeatLIn"])
-        r_out_output = h << gf.path.extrude(out_path,width=WidthRoute,layer=routelayer)
-        r_out_output.connect("o1",heatL_comp.ports['HeatLOut'])
+        Hp1.connect("r1o1", heatL_comp.ports["HeatLIn"])
+        r_out_output = h << gf.path.extrude(out_path, width=WidthRoute, layer=routelayer)
+        r_out_output.connect("o1", heatL_comp.ports['HeatLOut'])
         r_in_output = h << gf.path.extrude(out_path2, width=WidthRoute, layer=routelayer)
-        r_in_output.connect("o1",heatR_comp.ports['HeatROut'])
+        r_in_output.connect("o1", heatR_comp.ports['HeatROut'])
         h.add_port(name="HeatL", port=r_out_output.ports["o2"])
         h.add_port(name="HeatR", port=r_in_output.ports["o2"])
         h.add_port(name="RingC", port=c.ports["RingC"])
         add_labels_to_ports(h)
-        heater =c << h
+        heater = c << h
         if DirectionHeater == "down":
             heater.mirror_y(heater.ports['RingC'].center[1])
         c.add_port(name="HeatOut", port=heater.ports["HeatL"])  # 添加加热输入端口
@@ -884,10 +923,11 @@ def DifferentHeater_local(
     h.flatten()
     return h
 
+
 # %% 导出所有函数
 __all__ = [
     'RingPulley', 'RingPulley1DC', 'RingPulley1HS', 'RingPulley1HSn', 'RingFinger', 'RingPulley2', 'RingPulley3',
-    'RingPulley4', 'RingPulley2ES','RingPulleyT1','RingPulleyT2',
+    'RingPulley4', 'RingPulley2ES', 'RingPulleyT1', 'RingPulleyT2',
 ]
 if __name__ == '__main__':
     test = gf.Component("test")

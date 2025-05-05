@@ -1,14 +1,13 @@
-import gdsfactory as gf
-import numpy as np
-import csv
 from .BasicDefine import *
+
+
 # %% OpenPad
 def OpenPad(
-        WidthOpen:float = 90,
-        Enclosure:float = 10,
-        openlayer:LayerSpec = LAYER.OPEN,
-        elelayer:LayerSpec = LAYER.M1,
-)->Component:
+        WidthOpen: float = 90,
+        Enclosure: float = 10,
+        openlayer: LayerSpec = LAYER.OPEN,
+        elelayer: LayerSpec = LAYER.M1,
+) -> Component:
     """
     创建一个开放焊盘组件，包含一个中心焊盘和外围的电极层。
 
@@ -28,16 +27,17 @@ def OpenPad(
         up: 上侧端口。
         down: 下侧端口。
     """
-    c=gf.Component()
-    pad = c << GfCStraight(width = WidthOpen,length=WidthOpen,layer = openlayer)
-    outpad = c << gf.geometry.offset(pad,distance=Enclosure,layer=elelayer)
+    c = gf.Component()
+    pad = c << GfCStraight(width=WidthOpen, length=WidthOpen, layer=openlayer)
+    outpad = c << gf.geometry.offset(pad, distance=Enclosure, layer=elelayer)
     a_pad = WidthOpen
-    #set ports
-    c.add_port(name="left", port=pad.ports["o1"],center=[-Enclosure,0])
-    c.add_port(name="right", port=pad.ports["o2"],center=[a_pad+Enclosure,0])
-    c.add_port(name="up", port=pad.ports["o1"],orientation=90,center=[a_pad/2,a_pad/2+Enclosure])
-    c.add_port(name="down", port=pad.ports["o1"], orientation=-90, center=[a_pad/2, -a_pad/2-Enclosure])
+    # set ports
+    c.add_port(name="left", port=pad.ports["o1"], center=[-Enclosure, 0])
+    c.add_port(name="right", port=pad.ports["o2"], center=[a_pad + Enclosure, 0])
+    c.add_port(name="up", port=pad.ports["o1"], orientation=90, center=[a_pad / 2, a_pad / 2 + Enclosure])
+    c.add_port(name="down", port=pad.ports["o1"], orientation=-90, center=[a_pad / 2, -a_pad / 2 - Enclosure])
     return c
+
 
 # %% OffsetRamp
 @gf.cell
@@ -48,7 +48,7 @@ def OffsetRamp(
         offset: float = 0,
         layer: LayerSpec = LAYER.WG,
         Name="OffsetRamp"
-)-> Component:
+) -> Component:
     """
     创建一个偏移斜坡组件，用于连接不同宽度的波导。
 
@@ -70,7 +70,7 @@ def OffsetRamp(
     if width2 is None:
         width2 = width1
     xpts = [0, length, length, 0]
-    ypts = [width1, width2/2+width1/2+offset, -width2/2+width1/2+offset, 0]
+    ypts = [width1, width2 / 2 + width1 / 2 + offset, -width2 / 2 + width1 / 2 + offset, 0]
     c = Component(Name)
     c.add_polygon([xpts, ypts], layer=layer)
     c.add_port(
@@ -78,7 +78,7 @@ def OffsetRamp(
     )
     c.add_port(
         name="o2",
-        center=[length, width1 / 2+offset],
+        center=[length, width1 / 2 + offset],
         width=width2,
         orientation=0,
         layer=layer,
@@ -89,18 +89,18 @@ def OffsetRamp(
 # %% GSGELE
 @gf.cell
 def GSGELE(
-        WidthG:float = 80,
-        WidthS:float = 25,
-        GapGS:float = 6,
-        LengthEle:float = 10000,
-        IsPad:bool = False,
-        Is2Pad:bool =False,
-        PitchPad:float = 100,
-        WidthOpen:float = 40,
-        Enclosure:float = 10,
-        openlayer:LayerSpec = LAYER.OPEN,
-        elelayer:LayerSpec = LAYER.M1,
-)->Component:
+        WidthG: float = 80,
+        WidthS: float = 25,
+        GapGS: float = 6,
+        LengthEle: float = 10000,
+        IsPad: bool = False,
+        Is2Pad: bool = False,
+        PitchPad: float = 100,
+        WidthOpen: float = 40,
+        Enclosure: float = 10,
+        openlayer: LayerSpec = LAYER.OPEN,
+        elelayer: LayerSpec = LAYER.M1,
+) -> Component:
     """
     创建一个GSG电极组件，支持焊盘和双焊盘配置。
 
@@ -133,10 +133,10 @@ def GSGELE(
         Gin2: 第二个G电极输入端口。
         Gout2: 第二个G电极输出端口。
     """
-    c=gf.Component()
-    deltags = GapGS+WidthS/2+WidthG/2
-    Greff = GfCStraight(width = WidthG,length = LengthEle,layer = elelayer)
-    Sreff = GfCStraight(width = WidthS,length = LengthEle,layer = elelayer)
+    c = gf.Component()
+    deltags = GapGS + WidthS / 2 + WidthG / 2
+    Greff = GfCStraight(width=WidthG, length=LengthEle, layer=elelayer)
+    Sreff = GfCStraight(width=WidthS, length=LengthEle, layer=elelayer)
     S1 = c << Sreff
     G1 = c << Greff
     G2 = c << Greff
@@ -168,42 +168,45 @@ def GSGELE(
     GSGPadarray.add_port("Pr3", port=GSGPad3.ports["right"])
     GSGPadarray.add_port("Pl3", port=GSGPad3.ports["left"])
     if Is2Pad:
-        IsPad=True
+        IsPad = True
         GPa2 = c << GSGPadarray
         GPa2.connect("Pl1", other=c.ports["Gout1"])
         GPa2.move([-PitchPad / 3, PitchPad / 5])
         # Gin1
         pos_diff = GPa2.ports["Pl1"].center - c.ports["Gout1"].center
         G2Pa21 = c << OffsetRamp(length=PitchPad / 3, width1=WidthOpen + 2 * Enclosure, width2=80, offset=-pos_diff[1],
-                                layer=elelayer)
+                                 layer=elelayer)
         G2Pa21.connect("o2", other=c.ports["Gout1"])
         # Sin
         pos_diff = GPa2.ports["Pl2"].center - c.ports["Sout"].center
         G2Pa22 = c << OffsetRamp(length=PitchPad / 3, width1=WidthOpen + 2 * Enclosure, width2=25, offset=-pos_diff[1],
-                                layer=elelayer)
+                                 layer=elelayer)
         G2Pa22.connect("o2", other=c.ports["Sout"])
         # Gin2
         pos_diff = GPa2.ports["Pl3"].center - c.ports["Gout2"].center
         G2Pa23 = c << OffsetRamp(length=PitchPad / 3, width1=WidthOpen + 2 * Enclosure, width2=80, offset=-pos_diff[1],
-                                layer=elelayer)
+                                 layer=elelayer)
         G2Pa23.connect("o2", other=c.ports["Gout2"])
     if IsPad:
         GPa = c << GSGPadarray
         GPa.connect("Pr1", other=c.ports["Gin1"])
-        GPa.move([PitchPad/3, PitchPad/5])
+        GPa.move([PitchPad / 3, PitchPad / 5])
         # Gin1
         pos_diff = GPa.ports["Pr1"].center - c.ports["Gin1"].center
-        G2Pa1 = c << OffsetRamp(length=PitchPad/3, width1=WidthOpen+2*Enclosure, width2=80, offset=pos_diff[1], layer=elelayer)
+        G2Pa1 = c << OffsetRamp(length=PitchPad / 3, width1=WidthOpen + 2 * Enclosure, width2=80, offset=pos_diff[1],
+                                layer=elelayer)
         G2Pa1.connect("o2", other=c.ports["Gin1"])
         # Sin
         pos_diff = GPa.ports["Pr2"].center - c.ports["Sin"].center
-        G2Pa2 = c << OffsetRamp(length=PitchPad/3, width1=WidthOpen+2*Enclosure, width2=25, offset=pos_diff[1], layer=elelayer)
+        G2Pa2 = c << OffsetRamp(length=PitchPad / 3, width1=WidthOpen + 2 * Enclosure, width2=25, offset=pos_diff[1],
+                                layer=elelayer)
         G2Pa2.connect("o2", other=c.ports["Sin"])
         # Gin2
         pos_diff = GPa.ports["Pr3"].center - c.ports["Gin2"].center
-        G2Pa3 = c << OffsetRamp(length=PitchPad/3, width1=WidthOpen+2*Enclosure, width2=80, offset=pos_diff[1], layer=elelayer)
+        G2Pa3 = c << OffsetRamp(length=PitchPad / 3, width1=WidthOpen + 2 * Enclosure, width2=80, offset=pos_diff[1],
+                                layer=elelayer)
         G2Pa3.connect("o2", other=c.ports["Gin2"])
     return c
 
 
-__all__=['OffsetRamp','OpenPad','GSGELE']
+__all__ = ['OffsetRamp', 'OpenPad', 'GSGELE']

@@ -1,6 +1,7 @@
 from .BasicDefine import *
-from .Ring import *
 from .RaceTrack import *
+from .Ring import *
+
 
 # %% DoubleRingPulley
 @gf.cell
@@ -17,10 +18,10 @@ def DoubleRingPulley(
         DeltaHeat: float = 0,
         AngleCouple: float = 20,
         IsHeat: bool = False,
-        TypeHeater:str = "default",
-        TypeR2R:str = "straight",
-        DirectionsHeater:[str] = ["up","up"],
-        DirectionsRing:[str] = ["up","up"],
+        TypeHeater: str = "default",
+        TypeR2R: str = "straight",
+        DirectionsHeater: [str] = ["up", "up"],
+        DirectionsRing: [str] = ["up", "up"],
         oplayer: LayerSpec = LAYER.WG,
         heatlayer: LayerSpec = LAYER.M1,
         routelayer: LayerSpec = LAYER.M2,
@@ -73,15 +74,15 @@ def DoubleRingPulley(
     c = gf.Component()
     ring1 = c << RingPulleyT1(
         WidthRing=WidthRing, WidthNear=WidthNear, WidthHeat=WidthHeat,
-        RadiusRing=RadiusRing, GapRing=GapRing, GapHeat=GapHeat,DeltaHeat=DeltaHeat,
+        RadiusRing=RadiusRing, GapRing=GapRing, GapHeat=GapHeat, DeltaHeat=DeltaHeat,
         AngleCouple=AngleCouple,
-        oplayer=oplayer, heatlayer=heatlayer,TypeHeater=TypeHeater,IsHeat=IsHeat,DirectionHeater=DirectionsHeater[0]
+        oplayer=oplayer, heatlayer=heatlayer, TypeHeater=TypeHeater, IsHeat=IsHeat, DirectionHeater=DirectionsHeater[0]
     )
     ring2 = c << RingPulleyT1(
         WidthRing=WidthRing, WidthNear=WidthNear, WidthHeat=WidthHeat,
-        RadiusRing=RadiusRing+DeltaRadius, GapRing=GapRing, GapHeat=GapHeat,DeltaHeat=DeltaHeat,
+        RadiusRing=RadiusRing + DeltaRadius, GapRing=GapRing, GapHeat=GapHeat, DeltaHeat=DeltaHeat,
         AngleCouple=AngleCouple,
-        oplayer=oplayer, heatlayer=heatlayer,TypeHeater=TypeHeater,IsHeat=IsHeat,DirectionHeater=DirectionsHeater[1]
+        oplayer=oplayer, heatlayer=heatlayer, TypeHeater=TypeHeater, IsHeat=IsHeat, DirectionHeater=DirectionsHeater[1]
     )
     if TypeR2R == "straight":
         str_R2R = c << GfCStraight(width=WidthNear, length=LengthR2R, layer=oplayer)
@@ -89,7 +90,7 @@ def DoubleRingPulley(
         ring2.connect("Drop", str_R2R.ports["o2"], allow_width_mismatch=True)
     elif TypeR2R == "bend":
         if RadiusR2R is None:
-            RadiusR2R = RadiusRing-10
+            RadiusR2R = RadiusRing - 10
         str_R2R = c << GfCStraight(width=WidthNear, length=LengthR2R, layer=oplayer)
         str_R2R.connect("o1", ring1.ports["Drop"])
         ring2.connect("Drop", str_R2R.ports["o2"], allow_width_mismatch=True)
@@ -102,7 +103,7 @@ def DoubleRingPulley(
         bendl2.connect("o1", bendl1.ports["o2"])
         bendr1.connect("o2", ring2.ports["Drop"])
         bendr2.connect("o2", bendr1.ports["o1"])
-        route = gf.routing.route_single(c,bendl2.ports["o2"], bendr2.ports["o1"],route_width=WidthNear, layer=oplayer)
+        route = gf.routing.route_single(c, bendl2.ports["o2"], bendr2.ports["o1"], route_width=WidthNear, layer=oplayer)
         # c.add(route.references)
         c.remove(str_R2R)
 
@@ -125,11 +126,11 @@ def DoubleRingPulley(
     if IsHeat:
         for port in ring1.ports:
             if "Heat" in port.name:
-                c.add_port(name="R1"+port.name, port=ring1.ports[port.name])
+                c.add_port(name="R1" + port.name, port=ring1.ports[port.name])
         for port in ring2.ports:
             if "Heat" in port.name:
-                c.add_port(name="R2"+port.name, port=ring2.ports[port.name])
-    add_labels_to_ports(c,label_layer=(512,8))
+                c.add_port(name="R2" + port.name, port=ring2.ports[port.name])
+    add_labels_to_ports(c, label_layer=(512, 8))
     return c
 
 
@@ -366,7 +367,7 @@ def ADRAPRADR(
     str_r1r3 = TriRing << GfCStraight(length=LengthR2R, width=WidthNear, layer=oplayer)
     str_r2r3 = TriRing << GfCStraight(length=LengthR2R, width=WidthNear, layer=oplayer)
     str_r1r3.connect("o1", ring1.ports["Drop"])
-    ring3.connect("Input", str_r1r3.ports["o2"],mirror=True)
+    ring3.connect("Input", str_r1r3.ports["o2"], mirror=True)
     str_r2r3.connect("o1", ring3.ports["Through"])
     ring2.connect("Drop", str_r2r3.ports["o2"])
 
@@ -476,6 +477,7 @@ def DoubleRaceTrackPulley(
     c.add_port(name="R2cen2", port=ring2.ports["Rcen2"])
     return c
 
+
 # %% CoupleCavity
 
 @gf.cell
@@ -484,8 +486,8 @@ def CoupleRingDRT1(
         WidthNear1: float = 0.9,
         WidthHeat1: float = 2,
         RadiusRing1: float = 100,
-        GapRB1:float = 2,
-        GapHeat1:float = 1,
+        GapRB1: float = 2,
+        GapHeat1: float = 1,
         DeltaHeat1: float = 0,
         AngleCouple1: float = 20,
         WidthRing2: float = None,
@@ -493,17 +495,17 @@ def CoupleRingDRT1(
         WidthHeat2: float = None,
         LengthNear2: float = 110,
         RadiusRing2: float = None,
-        GapRB2:float = 3,
+        GapRB2: float = 3,
         GapHeat2: float = None,
         DeltaHeat2: float = 0,
-        AngleR12:float = 30,
+        AngleR12: float = 30,
         GapRR: float = 1,
         GapHeat: float = 10,
         IsHeat: bool = True,
-        TypeHeaterR1:str = "default",
-        TypeHeaterR2:str = "default",
-        TypeR2R:str = "strsight",
-        DirectionsHeater:[str] = ["up","down"],
+        TypeHeaterR1: str = "default",
+        TypeHeaterR2: str = "default",
+        TypeR2R: str = "strsight",
+        DirectionsHeater: [str] = ["up", "down"],
         Name: str = "Ring_Pulley",
         oplayer: LayerSpec = LAYER.WG,
         heatlayer: LayerSpec = LAYER.M1,
@@ -555,13 +557,13 @@ def CoupleRingDRT1(
         R2HeatOut: 第二个环形波导的加热输出端口（如果包含加热电极）。
     """
     if WidthRing2 is None:
-        WidthRing2=WidthRing1
+        WidthRing2 = WidthRing1
     if WidthHeat2 is None:
-        WidthHeat2=WidthHeat1
+        WidthHeat2 = WidthHeat1
     if RadiusRing2 is None:
         RadiusRing2 = RadiusRing1
     if WidthNear2 is None:
-        WidthNear2= WidthNear1
+        WidthNear2 = WidthNear1
     if GapHeat2 is None:
         GapHeat2 = GapHeat1
     if DeltaHeat2 is None:
@@ -569,28 +571,31 @@ def CoupleRingDRT1(
     c = gf.Component()
     ring1 = c << RingPulleyT1(
         WidthRing=WidthRing1, WidthNear=WidthNear1, WidthHeat=WidthHeat1,
-        RadiusRing=RadiusRing1, GapRing=GapRB1, GapHeat=GapHeat1,DeltaHeat=DeltaHeat1,
-        AngleCouple=AngleCouple1,IsAD=False,
-        oplayer=oplayer, heatlayer=heatlayer,TypeHeater=TypeHeaterR1,IsHeat=IsHeat,DirectionHeater=DirectionsHeater[0]
+        RadiusRing=RadiusRing1, GapRing=GapRB1, GapHeat=GapHeat1, DeltaHeat=DeltaHeat1,
+        AngleCouple=AngleCouple1, IsAD=False,
+        oplayer=oplayer, heatlayer=heatlayer, TypeHeater=TypeHeaterR1, IsHeat=IsHeat,
+        DirectionHeater=DirectionsHeater[0]
     )
     ring2_c = gf.Component('ring2_c')
-    ring2_c << gf.c.ring(width=WidthRing2,radius=RadiusRing2,layer=oplayer)
-    ring2_c.add_port("RingC",center=[0,0],layer=oplayer,width=1)
+    ring2_c << gf.c.ring(width=WidthRing2, radius=RadiusRing2, layer=oplayer)
+    ring2_c.add_port("RingC", center=[0, 0], layer=oplayer, width=1)
     ring2 = c << ring2_c
-    ring2.move(ring1.ports['RingC'].center+[0,-(RadiusRing1+RadiusRing2+WidthRing1/2+WidthRing2/2+GapRR)])
-    ring2.rotate(AngleR12,ring1.ports['RingC'].center)
-    str_ring2_1 = c << GfCStraight(width=WidthNear2,length=LengthNear2/2,layer=oplayer)
-    str_ring2_1.move(ring2.ports["RingC"].center+[0,-WidthRing2/2-WidthNear2/2-RadiusRing2-GapRB2])
-    str_ring2_2 = c << GfCStraight(width=WidthNear2, length=LengthNear2/2, layer=oplayer)
-    str_ring2_2.connect('o2',str_ring2_1.ports['o1'])
+    ring2.move(
+        ring1.ports['RingC'].center + [0, -(RadiusRing1 + RadiusRing2 + WidthRing1 / 2 + WidthRing2 / 2 + GapRR)])
+    ring2.rotate(AngleR12, ring1.ports['RingC'].center)
+    str_ring2_1 = c << GfCStraight(width=WidthNear2, length=LengthNear2 / 2, layer=oplayer)
+    str_ring2_1.move(ring2.ports["RingC"].center + [0, -WidthRing2 / 2 - WidthNear2 / 2 - RadiusRing2 - GapRB2])
+    str_ring2_2 = c << GfCStraight(width=WidthNear2, length=LengthNear2 / 2, layer=oplayer)
+    str_ring2_2.connect('o2', str_ring2_1.ports['o1'])
     ring2_hc = RingPulleyT1(
         WidthRing=WidthRing2, WidthNear=WidthNear2, WidthHeat=WidthHeat2,
-        RadiusRing=RadiusRing2, GapRing=GapRB2, GapHeat=GapHeat2,DeltaHeat=DeltaHeat2,
-        AngleCouple=AngleCouple1,IsAD=False,
-        oplayer=oplayer, heatlayer=heatlayer,TypeHeater=TypeHeaterR2,IsHeat=IsHeat,DirectionHeater=DirectionsHeater[1]
+        RadiusRing=RadiusRing2, GapRing=GapRB2, GapHeat=GapHeat2, DeltaHeat=DeltaHeat2,
+        AngleCouple=AngleCouple1, IsAD=False,
+        oplayer=oplayer, heatlayer=heatlayer, TypeHeater=TypeHeaterR2, IsHeat=IsHeat,
+        DirectionHeater=DirectionsHeater[1]
     )
-    ring2h = c << GetFromLayer(ring2_hc,OLayer=heatlayer)
-    ring2h.move(ring2.ports["RingC"].center-ring2h.ports["RingC"].center)
+    ring2h = c << GetFromLayer(ring2_hc, OLayer=heatlayer)
+    ring2h.move(ring2.ports["RingC"].center - ring2h.ports["RingC"].center)
 
     # c.add_port(name="R1Add", port=ring1.ports["Add"])
     # c.add_port(name="R1Drop", port=ring1.ports["Drop"])
@@ -606,16 +611,18 @@ def CoupleRingDRT1(
     if IsHeat:
         for port in ring1.ports:
             if "Heat" in port:
-                c.add_port(name="R1"+port, port=ring1.ports[port])
+                c.add_port(name="R1" + port, port=ring1.ports[port])
         for port in ring2h.ports:
             if "Heat" in port:
-                c.add_port(name="R2"+port, port=ring2h.ports[port])
+                c.add_port(name="R2" + port, port=ring2h.ports[port])
     # add_labels_to_ports(c,label_layer=(412,8))
     return c
+
 
 if __name__ == "__main__":
     test = gf.Component("test")
     test << DoubleRingPulley2_1HSn()
     test.show()
 
-__all__ = ['DoubleRingPulley', 'DoubleRaceTrackPulley', 'DoubleRingPulley2HSn', 'ADRAPRADR', 'DoubleRingPulley2_1HSn','CoupleRingDRT1']
+__all__ = ['DoubleRingPulley', 'DoubleRaceTrackPulley', 'DoubleRingPulley2HSn', 'ADRAPRADR', 'DoubleRingPulley2_1HSn',
+           'CoupleRingDRT1']

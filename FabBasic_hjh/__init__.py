@@ -1,5 +1,6 @@
 # __init__.py
 from .BasicDefine import *
+from .Boomerang import *
 from .CouplerMZI import *
 from .DBR import *
 from .ELE import *
@@ -9,9 +10,7 @@ from .Isolator import *
 from .MultiRing import *
 from .RaceTrack import *
 from .Ring import *
-from .TCRing import *
-from .TCRaceTrack import *
-from .Boomerang import *
-from .memyshev import *
 from .TCCoupledCavity import *
-
+from .TCRaceTrack import *
+from .TCRing import *
+from .memyshev import *
