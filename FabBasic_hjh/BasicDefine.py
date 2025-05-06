@@ -57,17 +57,37 @@ taper_out_te0.connect("o1", other=taper_out_tes0.ports["o2"])
 taper_out_tes1.connect("o1", taper_out_te0.ports["o2"])
 taper_out.add_port(name="o1", port=taper_out_tes0.ports["o1"])
 taper_out.add_port(name="o2", port=taper_out_tes1.ports["o2"])
+# remove layer
+def remove_layer(
+        component: Component = None,
+        layer: LayerSpec = (1, 10)
+) -> Component:
+    """
+    从组件中删除指定层的所有多边形。
+
+    参数：
+        component: 目标组件。
+        layer: 要删除的层号，例如 (1, 0)。
+    """
+    c = gf.Component()
+    layers = component.layers
+    for L in layers:
+        if L != layer:
+            polygons = component.get_polygons(by="tuple",layers=[L])
+            for polygon in polygons[L]:
+                c.add_polygon(polygon, layer=L)
+    for port in component.ports:
+        c.add_port(name=port.name, port=component.ports[port.name])
+    return c
 # %% add labels
 '''add labels to optical ports'''
-
-
 def add_labels_to_ports(
         component: Component,
         label_layer: LayerSpec = (512, 8),  # 指定文本标签的层次
         port_type: str = "optical",
         port_filter: str = None,
         **kwargs,
-) -> Component:
+):
     """Add labels to component ports.
 
     Args:
@@ -85,6 +105,7 @@ def add_labels_to_ports(
         clockwise: if True, sort ports clockwise, False: counter-clockwise.
     """
     # new_component = component.copy()  # 创建组件的副本
+    # component = remove_layer(component, layer=label_layer)
     ports = component.get_ports_list(port_type=port_type, **kwargs)
     for port in ports:
         if port_filter is None:
@@ -93,39 +114,7 @@ def add_labels_to_ports(
             portname = str(port)
             if port_filter in portname:
                 component.add_label(text=port.name, position=port.center, layer=label_layer)
-    return component
-
-
-def add_labels_decorator(func: Callable) -> Callable:
-    def wrapper(*args, **kwargs) -> Component:
-        component = func(*args, **kwargs)
-        return add_labels_to_ports(component, **kwargs)
-
-    return wrapper
-
-
-def remove_layer(
-        component: Component = None,
-        layer: LayerSpec = (1, 10)
-) -> Component:
-    """
-    从组件中删除指定层的所有多边形。
-
-    参数：
-        component: 目标组件。
-        layer: 要删除的层号，例如 (1, 0)。
-    """
-    c = gf.Component("remove" + component.name)
-    layers = component.get_layers()
-    for L in layers:
-        if L != layer:
-            polygons = component.get_polygons(by_spec=L)
-            for polygon in polygons:
-                c.add_polygon(polygon, layer=L)
-    for port in component.ports:
-        c.add_port(name=port, port=component.ports[port])
-    return c
-
+    return
 
 # %% original straight
 @gf.cell
@@ -656,22 +645,6 @@ def GetFromLayer(
         CompFinal.add_port(name=port, port=CompOriginal.ports[port])
     return CompFinal
 
-
-# %% snapping
-def snapping(
-        component: Component,
-):
-    '''
-    to avoide snap error
-    '''
-
-
 # %% TotalComponent
 r_euler_false = 500
 r_euler_true = 500 * 1.5
-
-# %% test
-if __name__ == "__main__":
-    test = gf.Component("test")
-    taper1 = test << taper_in
-    taper2 = test << taper_out

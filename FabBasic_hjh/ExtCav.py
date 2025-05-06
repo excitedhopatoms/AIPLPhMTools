@@ -339,7 +339,8 @@ def ExternalCavitySiN(
     # test2 << ec_ref
     # test2 << ec_ref
     # test2.show()
-    add_labels_to_ports(ec_ref, label_layer=(512, 8))
+    ec_ref = remove_layer(ec_ref, layer=(512, 8))
+    add_labels_to_ports(ec_ref)
     return ec_ref
 
 
@@ -623,6 +624,7 @@ def ExternalCavity2(
     ec2_ref.add_port("r3R", port=TriRing.ports["r3R"])
     ec2_ref.add_port("co2", port=TriRing.ports["co2"])
     ec2_ref.add_port("co3", port=TriRing.ports["co3"])
+    ec2_ref = remove_layer(ec2_ref, layer=(512, 8))
     add_labels_to_ports(ec2_ref)
     return ec2_ref
 
@@ -691,6 +693,7 @@ def ExternalCavity3(
     ec3_ref.add_port("r3R", port=TriRing.ports["r3R"])
     ec3_ref.add_port("co2", port=taper_cross_1.ports["o2"])
     ec3_ref.add_port("co3", port=taper_cross_2.ports["o2"])
+    ec3_ref = remove_layer(ec3_ref,layer=(512, 8))
     add_labels_to_ports(ec3_ref)
     return ec3_ref
 

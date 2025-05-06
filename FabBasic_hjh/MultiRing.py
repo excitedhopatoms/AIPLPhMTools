@@ -619,10 +619,5 @@ def CoupleRingDRT1(
     return c
 
 
-if __name__ == "__main__":
-    test = gf.Component("test")
-    test << DoubleRingPulley2_1HSn()
-    test.show()
-
 __all__ = ['DoubleRingPulley', 'DoubleRaceTrackPulley', 'DoubleRingPulley2HSn', 'ADRAPRADR', 'DoubleRingPulley2_1HSn',
            'CoupleRingDRT1']

@@ -219,6 +219,7 @@ def TCRing1AD(
     sr.add_port("add", port=toutring_ad.ports["o2"])
     sr.add_port("RingC", port=sr.ports["input"],
                 center=np.array(ring.ports["RingL"].center) / 2 + np.array(ring.ports["RingR"].center) / 2)
+    sr = remove_layer(sr, layer=(512, 8))
     add_labels_to_ports(sr)
     sr.flatten()
     return sr
@@ -419,8 +420,9 @@ def TCRing1DC(
     sr.add_port("drop", port=toutring_dr.ports["o2"])
     sr.add_port("add", port=toutring_ad.ports["o2"])
     Rcenter = [ring.ports["RingL"].center[i] / 2 + ring.ports["RingR"].center[i] / 2 for i in range(2)]
-    sr.add_port("RingC", port=sr.ports["input"], center=Rcenter)
+    sr.add_port("RingC", port=ring.ports["RingC"])
     sr.flatten()
+    sr = remove_layer(sr,layer=(512,8))
     add_labels_to_ports(sr)
     return sr
 
@@ -1146,7 +1148,8 @@ def TCRingT1(
             sr.add_port(port.name, port=Ring.ports[port.name])
         if "Drop" in port.name:
             sr.add_port(port.name, port=Ring.ports[port.name])
-    add_labels_to_ports(sr, (512, 8))
+    sr = remove_layer(sr, layer=(512, 8))
+    add_labels_to_ports(sr)
     return sr
 
 
@@ -1282,7 +1285,8 @@ def TCRingT2(
     for port in Ring.ports:
         if "Heat" in port.name:
             sr.add_port(port.name, port=Ring.ports[port.name])
-    add_labels_to_ports(sr, (512, 8))
+    sr = remove_layer(sr,layer=(512,8))
+    add_labels_to_ports(sr)
     return sr
 
 
@@ -1422,7 +1426,8 @@ def TCRingDCouple(
     for port in Ring.ports:
         if "Heat" in port.name:
             sr.add_port(port.name, port=Ring.ports[port.name])
-    add_labels_to_ports(sr, )
+    sr = remove_layer(sr, layer=(512, 8))
+    add_labels_to_ports(sr)
     return sr
 
 
