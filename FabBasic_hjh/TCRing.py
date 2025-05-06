@@ -410,11 +410,6 @@ def TCRing1DC(
                                         toutring_th.ports["o1"]],
                                        route_width=width_single, layer=oplayer, radius=150,
                                        )
-    # for route in route_drop:
-    #     sr.add(route.references)
-    # # sr_cld1 = gf.geometry.offset(sr, distance=width_cld, layer=LAYER.CLD2)
-    # # sr_cld2 = gf.geometry.offset(sr_cld1, distance=-0.8, layer=LAYER.CLD2)
-    # # sr.add_ref(sr_cld2)
     sr.add_port("input", port=tinring.ports["o1"])
     sr.add_port("through", port=toutring_th.ports["o2"])
     sr.add_port("drop", port=toutring_dr.ports["o2"])
