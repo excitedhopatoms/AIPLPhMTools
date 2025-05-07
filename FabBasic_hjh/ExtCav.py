@@ -697,7 +697,191 @@ def ExternalCavity3(
     add_labels_to_ports(ec3_ref)
     return ec3_ref
 
+def ExternalCavitryRaceTrack(
+        r_ring: float = 200,
+        r_euler_false: float = 100,
+        r_mzi: float = 100,
+        r_r2r: float = None,
+        width_ring: float = 1,
+        width_mzi_ring: float = 2,
+        width_single: float = 1,
+        width_near: float = 0.91,
+        width_mzi_near: float = 1.2,
+        width_mzi: float = 1,
+        width_heat: float = 5,
+        delta_heat: float = 1,
+        angle_rc: float = 20,
+        angle_pmzi: float = 20,
+        angle_m2r: float = 45,
+        length_bend: float = 50,
+        length_racetrack: float = 100,
+        lengthrs_delta:float = 20,
+        length_t_s2n: float = 200,
+        length_taper: float = 200,
+        length_r2r: float = 550,
+        length_bridge: float = 300,
+        length_input: float = 230,
+        length_cr2: float = 20,
+        length_cr1: float = 1,
+        length_cmzi: float = 10,
+        gap_rc: float = 0.3,
+        gap_mzi: float = 0.5,
+        gap_heat: float = 2,
+        gap_heat2: float = 75,
+        type_ringheater: str = "default",
+        type_mziheater: str = "default",
+        type_busheater: str = "default",
+        type_rscoupler: str = "s",
+        type_r2r: str = "straight",
+        type_mzi: str = "DMZI",
+        direction_io: str = "LR",
+        oplayer: LayerSpec = LAYER.WG,
+        heatlayer: LayerSpec = LAYER.M1,
+        trelayer: LayerSpec = LAYER.DT,
+) -> Component:
+    '''
+    Racetrack的腔 基于LN的外腔激光器设计，
+    diffenernt:
+        width_ring_PMZI
+        width_near_PMZI
+        width_ring
+        width_near
+
+    '''
+    ec_ref = gf.Component()
+    if type_mzi == "DMZI":
+        width_mzi_ring=width_mzi
+        width_mzi_near=width_mzi
+        bendout = 180
+    if type_rscoupler =="s" or type_rscoupler == "S":
+        width_near=width_ring
+        bendout = 90
+    # section and cross section
+    S_near = gf.Section(width=width_near, offset=0, layer=oplayer, port_names=("o1", "o2"))
+    CS_near = gf.CrossSection(sections=(S_near,))
+    S_NM = gf.Section(width=width_mzi_near, layer=oplayer, port_names=("o1", "o2"))
+    S_N = gf.Section(width=width_near, layer=oplayer, port_names=("o1", "o2"))
+    X_NM = gf.CrossSection(sections=(S_NM,))
+    X_N = gf.CrossSection(sections=(S_N,))
+    # ring ref
+    if type_mzi == "DMZI":
+        coupler2x2 = ec_ref << DMZI(WidthWG=width_mzi_ring, Radius=r_mzi,
+                                    LengthCoup=length_cmzi, LengthBend=length_bend,
+                                    LengthBridge=length_bridge,
+                                    GapCoup=gap_mzi, IsHeat=True,
+                                    oplayer=oplayer, heatlayer=heatlayer,
+                                    WidthHeat=width_heat, GapHeat=gap_heat2, TypeHeater=type_mziheater, DeltaHeat=delta_heat
+                                    )
+    else:
+        coupler2x2 = ec_ref << PMZI(WidthNear=width_mzi_near, WidthRing=width_mzi_ring, Radius=r_mzi,
+                                    AngleCouple=angle_pmzi, LengthTaper=length_taper, LengthBend=length_bend,
+                                    LengthBridge=length_bridge,
+                                    GapCoup=gap_mzi, IsHeat=True,
+                                    oplayer=oplayer, heatlayer=heatlayer,
+                                    WidthHeat=width_heat, GapHeat=gap_heat2, TypeHeater=type_mziheater,
+                                    DeltaHeat=delta_heat
+                                    )
+    coupler2x2.mirror_y()
+    bend_cr1_1 = ec_ref << GfCBendEuler(radius=r_euler_false, angle=-angle_m2r, cross_section=X_NM)
+    bend_cr1_2 = ec_ref << GfCBendEuler(radius=r_euler_false, angle=angle_m2r, cross_section=X_N)
+    str_cr1_1 = ec_ref << GfCStraight(width=width_mzi_near, length=length_cr1, layer=oplayer)
+    str_cr1_1.connect("o1", other=coupler2x2.ports["Output1"])
+    bend_cr1_1.connect("o1", other=str_cr1_1.ports["o2"])
+    tapercoupler1 = ec_ref << gf.c.taper(width1=width_mzi_near, width2=width_near,
+                                         length=min(length_t_s2n, 300 * abs(width_mzi_near - width_near) + 1),
+                                         layer=oplayer)
+    tapercoupler1.connect("o1", other=bend_cr1_1.ports["o2"])
+    tapercoupler2 = ec_ref << gf.c.taper(width1=width_mzi_ring, width2=width_near,
+                                         length=min(length_t_s2n, 300 * abs(width_mzi_ring - width_near) + 1),
+                                         layer=oplayer)
+    bend_c2r_path = euler_Bend_Half(angle=-bendout, radius=r_mzi)
+    bend_c2r = ec_ref << gf.path.extrude(bend_c2r_path, width=width_mzi_ring, layer=oplayer)
+    bend_c2r.connect("o1", coupler2x2.ports["Output2"])
+    tapercoupler2.connect("o1", bend_c2r.ports["o2"])
+    ring_ref = DoubleRaceTrack(
+        WidthRing=width_ring, WidthNear=width_near, WidthHeat=width_heat,
+        LengthR2R=length_r2r, DeltaLengthRS=-lengthrs_delta,LengthRun = length_racetrack,
+        RadiusRing=r_ring, GapRing=gap_rc, GapHeat=gap_heat, RadiusR2R=r_r2r,
+        AngleCouple=angle_rc,
+        oplayer=oplayer, heatlayer=heatlayer, IsHeat=True, TypeHeater=type_ringheater, DeltaHeat=delta_heat,
+        TypeR2R=type_r2r,TypeCouple=type_rscoupler
+    )
+    doublering = ec_ref << ring_ref
+    doublering.connect("o1", tapercoupler2.ports["o2"],allow_width_mismatch=True,mirror=True)
+    doublering.movex(-length_cr2)
+    str_cr2_1 = ec_ref << GfCStraight(width=width_near, length=length_cr2, layer=oplayer)
+    str_cr2_1.connect("o1", tapercoupler2.ports["o2"])
+    delta1 = np.array(bend_cr1_1.ports["o1"].center) - np.array(bend_cr1_1.ports["o2"].center)
+    delta2 = np.array(tapercoupler1.ports["o2"].center) - np.array(doublering.ports["o2"].center)
+    addlength = abs(delta1[1] - delta2[1]) / np.sin(angle_m2r * np.pi / 180)
+    str_tapercoupler = ec_ref << GfCStraight(width=width_near, length=addlength, layer=oplayer)
+    str_tapercoupler.connect("o1", other=tapercoupler1.ports["o2"])
+    bend_cr1_2.connect("o1", other=str_tapercoupler.ports["o2"])
+    str_cr1_2 = ec_ref << GfCStraight(width=width_near, layer=oplayer,
+                                      length=abs(-doublering.ports["o2"].center[0] + bend_cr1_2.ports["o2"].center[0]))
+    str_cr1_2.connect("o1", bend_cr1_2.ports["o2"])
+    ## left
+    str_input = list(range(30))
+    bend_input = list(range(30))
+    str_input[0] = ec_ref << gf.c.taper(width1=width_mzi_near, width2=width_single, length=length_taper, layer=oplayer)
+    str_input[0].connect("o1", coupler2x2.ports["Input2"], mirror=True)
+    ## right
+    str_output = list(range(30))
+    bend_output = list(range(30))
+
+    path_bend_output = euler_Bend_Half(angle=-bendout, radius=r_mzi)
+    bend_output[0] = ec_ref << gf.path.extrude(path_bend_output, layer=oplayer, width=width_near)
+    bend_output[0].connect("o1", coupler2x2.ports["Input1"])
+    str_output[0] = ec_ref << gf.c.taper(width1=width_near, width2=width_single, length=length_taper, layer=oplayer)
+    str_output[0].connect("o1", bend_output[0].ports["o2"])
+    # input heater
+    str_input[1] = ec_ref << GfCStraight(width=width_single, length=length_input, layer=oplayer)
+    path_input = gf.path.straight(length=length_input)
+    inputh = ec_ref << DifferentHeater(PathHeat=path_input, WidthHeat=width_heat, WidthWG=width_single,
+                                       DeltaHeat=delta_heat, GapHeat=gap_heat2 * length_input / length_bridge,
+                                       WidthRoute=20,
+                                       heatlayer=heatlayer, TypeHeater=type_busheater)
+    if direction_io == "LR":
+        str_input[1].connect("o2", str_input[0].ports["o2"])
+        ec_ref.add_port("o1", port=str_input[1].ports["o2"])
+        ec_ref.add_port("o2", port=str_output[0].ports["o2"])
+    elif direction_io == "RL":
+        str_input[1].connect("o1", str_output[0].ports["o2"])
+        ec_ref.add_port("o1", port=str_input[0].ports["o2"])
+        ec_ref.add_port("o2", port=str_input[1].ports["o2"])
+    if (type_busheater != "None") and (type_busheater != "none"):
+        inputh.connect("HeatIn", ec_ref.ports["o1"], allow_width_mismatch=True, allow_layer_mismatch=True,
+                       allow_type_mismatch=True)
+        inputh.mirror_x(inputh.ports["HeatIn"].center[0])
+    # add drop
+    ## optics
+
+    ec_ref.add_port("Ro1", port=doublering.ports["R1Through"])
+    ec_ref.add_port("Ro2", port=doublering.ports["R1Add"])
+    ec_ref.add_port("Ro3", port=doublering.ports["R2Through"])
+    ec_ref.add_port("Ro4", port=doublering.ports["R2Add"])
+    ## heat and optics
+    for port in doublering.ports:
+        if "Heat" in port.name:
+            ec_ref.add_port("Ring" + port.name, port=doublering.ports[port.name])
+    for port in coupler2x2.ports:
+        if "Heat" in port.name:
+            ec_ref.add_port("PMZI" + port.name, port=coupler2x2.ports[port.name])
+    for port in inputh.ports:
+        if "Heat" in port.name:
+            ec_ref.add_port("Bus" + port.name, port=inputh.ports[port.name])
+    # print(ec_ref.ports)
+    ## heat
+    # test2 = gf.Component()
+    # test2 << ec_ref
+    # test2 << ec_ref
+    # test2.show()
+    ec_ref = remove_layer(ec_ref, layer=(512, 8))
+    add_labels_to_ports(ec_ref)
+    return ec_ref
+
+
 
 # %% function export
 __all__ = ['ExternalCavity2', 'ExternalCavitySOI', 'ExternalCavity3', 'ExternalCavitySiNH2', 'ExternalCavitySiNH2_1',
-           'ExternalCavitySiN']
+           'ExternalCavitySiN','ExternalCavitryRaceTrack']

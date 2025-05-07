@@ -71,12 +71,22 @@ def PulleyCoupler2X2(
 # %% DMZI
 @gf.cell
 def DMZI(
-        WidthSingle: float = 0.8,
+        WidthWG: float = 0.8,
+        WidthHeat: float = 8,
         LengthCoup: float = 100,
-        LengthBridge=300,
-        Radius=200,
-        GapCoup=1,
-        layer: LayerSpec = LAYER.WG,
+        LengthBridge:float =300,
+        LengthBend:float =300,
+        Radius:float =200,
+        GapCoup:float =1,
+        GapHeat=1,
+        DeltaHeat=0,
+        DeltaOut = -40,
+        IsHeat: bool = True,
+        TypeHeater: str = "default",
+        oplayer: LayerSpec = LAYER.WG,
+        heatlayer: LayerSpec = LAYER.M1,
+        routelayer: LayerSpec = LAYER.M2,
+        vialayer: LayerSpec = LAYER.VIA,
 ) -> Component:
     """
     创建一个 2x2 的直波导耦合器（Direct Coupler）的MZI。
@@ -94,38 +104,60 @@ def DMZI(
         包含 in1, in2, out1, out2 端口的 Component
     """
     c = gf.Component()
-    DeltaC = GapCoup + WidthSingle
+    DeltaC = GapCoup + WidthWG
     # path
-    coups = gf.Section(width=WidthSingle, offset=0, layer=layer, port_names=("in", "out"))
+    coups = gf.Section(width=WidthWG, offset=0, layer=oplayer, port_names=("in", "out"))
     coupcs = gf.CrossSection(sections=[coups])
     couppath = gf.path.straight(length=LengthCoup)
     coupbridge = gf.path.straight(length=LengthBridge)
+    coupbend = gf.path.straight(length=LengthBend)
     cbpath1 = gf.path.euler(radius=Radius, angle=30, use_eff=True)
     cbpath2 = gf.path.euler(radius=Radius, angle=-30, use_eff=True)
-    coup1 = couppath + cbpath1 + cbpath2 + coupbridge
-    coupb1 = cbpath2 + cbpath1
+    coup1 = couppath + cbpath1 +coupbend+ cbpath2 + coupbridge
+    coupb1 = cbpath2 + coupbend +cbpath1
+    coupbridge2 = gf.path.straight(length=LengthBridge/2)
+    coupheat = coupbend+cbpath2+coupbridge2
     # coupler waveguide
     CW1 = c << gf.path.extrude(coup1, cross_section=coupcs)
     CW2 = c << gf.path.extrude(coup1, cross_section=coupcs)
     CW2.connect("out", other=CW1.ports["in"])
     CW2.movey(-DeltaC)
-    CW2.rotate(180, center=CW2.ports["out"])
+    CW2.rotate(180, center=CW2.ports["out"].center)
     CB1 = c << gf.path.extrude(coupb1, cross_section=coupcs)
-    Deltacb = CB1.get_ports_xsize()
-    CBs1 = c << GfCStraight(width=WidthSingle, length=Deltacb, layer=layer)
     CB2 = c << gf.path.extrude(coupb1, cross_section=coupcs)
-    CBs2 = c << GfCStraight(width=WidthSingle, length=Deltacb, layer=layer)
     CB1.connect("out", other=CW1.ports["in"])
-    CBs1.connect("o2", other=CW2.ports["out"])
     CB2.connect("in", other=CW2.ports["in"])
+    CBs1 = c << GfCStraight(width=WidthWG, length=CW2.ports["out"].center[0]-CB1.ports["in"].center[0]+DeltaOut, layer=oplayer)
+    CBs2 = c << GfCStraight(width=WidthWG, length=CW2.ports["out"].center[0]-CB1.ports["in"].center[0]+DeltaOut, layer=oplayer)
+    CBs1.connect("o2", other=CW2.ports["out"])
     CBs2.connect("o1", other=CW1.ports["out"])
     # set port
-    c.add_port(name="Input1", port=CB1.ports["in"])
-    c.add_port(name="Input2", port=CBs1.ports["o1"])
-    c.add_port(name="Output2", port=CB2.ports["out"])
-    c.add_port(name="Output1", port=CBs2.ports["o2"])
+    c.add_port(name="Input2", port=CB1.ports["in"])
+    c.add_port(name="Input1", port=CBs1.ports["o1"])
+    c.add_port(name="Output1", port=CB2.ports["out"])
+    c.add_port(name="Output2", port=CBs2.ports["o2"])
     c.add_port(name="Bridge1", port=CW1.ports["out"])
     c.add_port(name="Bridge2", port=CW2.ports["out"])
+    # if heater
+    if IsHeat:
+        heater = DifferentHeater(PathHeat=coupheat, WidthHeat=WidthHeat, DeltaHeat=DeltaHeat, GapHeat=GapHeat,
+                                 WidthWG=WidthWG, WidthRoute=20,
+                                 heatlayer=heatlayer, TypeHeater=TypeHeater, vialayer=vialayer, routelayer=routelayer)
+        heaterL = c << heater
+        heaterR = c << heater
+        heaterL.connect("HeatOut", other=CBs1.ports["o2"], allow_width_mismatch=True, allow_layer_mismatch=True,
+                        allow_type_mismatch=True)
+        heaterL.movex(LengthBridge/2)
+        heaterR.connect("HeatOut", other=CBs2.ports["o1"], allow_width_mismatch=True, allow_layer_mismatch=True,
+                        allow_type_mismatch=True)
+        heaterR.movex(-LengthBridge/2)
+        for port in heaterL.ports:
+            if "Heat" in port.name:
+                c.add_port("L" + port.name, port=heaterL.ports[port.name])
+        for port in heaterR.ports:
+            if "Heat" in port.name:
+                c.add_port("R" + port.name, port=heaterR.ports[port.name])
+    c.flatten()
     return c
 
 

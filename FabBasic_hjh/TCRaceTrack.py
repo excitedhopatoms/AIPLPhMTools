@@ -78,7 +78,7 @@ def TCRaceTrack2_1(
 ) -> Component:
     sr = gf.Component("RaceTrack")
     width_near = width_ring
-    ring = sr << RaceTrackPulley2(
+    ring = sr << RaceTrackStr(
         WidthRing=width_ring, LengthRun=length_run, GapRun=gap_rc, oplayer=oplayer, RadiusRing=r_ring,
         LengthCouple=length_rc, IsAD=False
     )
@@ -138,7 +138,7 @@ def TCRaceTrack2_2(
 ) -> Component:
     sr = gf.Component("RaceTrack")
     width_near = width_ring
-    ring = sr << RaceTrackPulley2(
+    ring = sr << RaceTrackStr(
         WidthRing=width_ring, LengthRun=length_run, GapRun=gap_rc, oplayer=oplayer, RadiusRing=r_ring,
         LengthCouple=length_rc, IsAD=False
     )
@@ -178,7 +178,7 @@ def TCRaceTrack2_2(
     return sr
 
 
-# %% TCRaceTrack2_3: racetrack ring,straigh couple straight in & out
+# %% TCRaceTrack2_3: racetrack ring,straight couple straight in & out
 @gf.cell
 def TCRaceTrack2_3(
         r_ring: float = 2000,
@@ -195,13 +195,13 @@ def TCRaceTrack2_3(
         tin: Component = None,
         oplayer: LayerSpec = LAYER.WG,
 ) -> Component:
-    sr = gf.Component("RaceTrack")
+    sr = gf.Component()
     width_near = width_ring
-    Cring = RaceTrackPulley2HS(
+    Cring = RaceTrackStr(
         WidthRing=width_ring, LengthRun=length_run, GapRun=gap_rc, oplayer=oplayer, RadiusRing=r_ring,
         LengthCouple=length_rc, IsAD=False, IsLabels=False,
     )
-    ring = sr << Cring[0]
+    ring = sr << Cring
     taper_s2n_1 = sr << gf.c.taper(width1=width_single, width2=width_near, length=length_taper, layer=oplayer)
     taper_s2n_2 = sr << gf.c.taper(width2=width_single, width1=width_near, length=length_taper, layer=oplayer)
     ring.rotate(90).mirror_x(ring.ports["Input"].center[0]).movex(pos_ring)
@@ -251,17 +251,16 @@ def TCRaceTrack2_3h(
     sr = gf.Component("RaceTrack")
     sh = gf.Component("RaceTrackHeat")
     width_near = width_ring
-    Cring = RaceTrackPulley2HS(
+    Cring = RaceTrackStr(
         WidthRing=width_ring, LengthRun=length_run, GapRun=gap_rc, oplayer=oplayer, RadiusRing=r_ring,
         GapRoute=gap_route,
         LengthCouple=length_rc, IsAD=False, IsLabels=False, DeltaHeat=delta_heat, heatlayer=heatlayer
     )
-    heat = sh << Cring[1]
-    ring = sr << Cring[0]
+    ring = sr << Cring
     taper_s2n_1 = sr << gf.c.taper(width1=width_single, width2=width_near, length=length_taper, layer=oplayer)
     taper_s2n_2 = sr << gf.c.taper(width2=width_single, width1=width_near, length=length_taper, layer=oplayer)
     ring.rotate(90).mirror_x(ring.ports["Input"].center[0]).movex(pos_ring)
-    heat.connect("HeatIn", other=ring.ports["HeatIn"])
+    # heat.connect("HeatIn", other=ring.ports["HeatIn"])
     taper_s2n_1.connect("o2", other=ring.ports["Input"])
     taper_s2n_2.connect("o1", other=ring.ports["Through"])
     # input
@@ -282,11 +281,9 @@ def TCRaceTrack2_3h(
         sr.add_port("output", port=ctout.ports["o1"])
     sr.add_port("RingC", port=ring.ports["Input"],
                 center=ring.ports["Rcen1"].center / 2 + ring.ports["Rcen2"].center / 2)
-    if IsLabels:
-        add_labels_to_ports(sr)
+    add_labels_to_ports(sr)
     sr.add_port("HeatIn", port=ring.ports["HeatIn"])
-    sh.add_port("HeatIn", port=heat.ports["HeatIn"])
-    return [sr, sh]
+    return sr
 
 
 # %% TCTaperRaceTrack1: racetrack ring pulley coupling ring coupler + ring + bend
