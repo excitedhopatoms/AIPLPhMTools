@@ -712,7 +712,7 @@ def ExternalCavitryRaceTrack(
         delta_heat: float = 1,
         angle_rc: float = 20,
         angle_pmzi: float = 20,
-        angle_m2r: float = 45,
+        angle_m2r: float = 90,
         length_bend: float = 50,
         length_racetrack: float = 100,
         lengthrs_delta:float = 20,
@@ -749,13 +749,13 @@ def ExternalCavitryRaceTrack(
 
     '''
     ec_ref = gf.Component()
+    bendout = 90
     if type_mzi == "DMZI":
         width_mzi_ring=width_mzi
         width_mzi_near=width_mzi
         bendout = 180
     if type_rscoupler =="s" or type_rscoupler == "S":
         width_near=width_ring
-        bendout = 90
     # section and cross section
     S_near = gf.Section(width=width_near, offset=0, layer=oplayer, port_names=("o1", "o2"))
     CS_near = gf.CrossSection(sections=(S_near,))
@@ -824,14 +824,14 @@ def ExternalCavitryRaceTrack(
     str_input = list(range(30))
     bend_input = list(range(30))
     str_input[0] = ec_ref << gf.c.taper(width1=width_mzi_near, width2=width_single, length=length_taper, layer=oplayer)
-    str_input[0].connect("o1", coupler2x2.ports["Input2"], mirror=True)
+    str_input[0].connect("o1", coupler2x2.ports["Input1"], mirror=True)
     ## right
     str_output = list(range(30))
     bend_output = list(range(30))
 
-    path_bend_output = euler_Bend_Half(angle=-bendout, radius=r_mzi)
+    path_bend_output = euler_Bend_Half(angle=90, radius=r_mzi)
     bend_output[0] = ec_ref << gf.path.extrude(path_bend_output, layer=oplayer, width=width_near)
-    bend_output[0].connect("o1", coupler2x2.ports["Input1"])
+    bend_output[0].connect("o1", coupler2x2.ports["Input2"])
     str_output[0] = ec_ref << gf.c.taper(width1=width_near, width2=width_single, length=length_taper, layer=oplayer)
     str_output[0].connect("o1", bend_output[0].ports["o2"])
     # input heater
