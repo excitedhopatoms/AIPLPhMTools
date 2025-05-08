@@ -607,7 +607,7 @@ def DoubleRaceTrack(
         WidthNear=WidthRing
     if TypeR2R == "straight":
         str_R2R = c << GfCStraight(width=WidthNear, length=LengthR2R, layer=oplayer)
-        str_R2R.connect("o1", ring1.ports["Drop"])
+        ring1.connect("Drop", str_R2R.ports["o1"])
         ring2.connect("Drop", str_R2R.ports["o2"], allow_width_mismatch=True)
     elif TypeR2R == "bend":
         if RadiusR2R is None:
@@ -631,7 +631,7 @@ def DoubleRaceTrack(
     if DirectionsRing[0] == "down":
         ring1.mirror_y(ring1.ports["Drop"].center[1])
     if DirectionsRing[1] == "up":
-        ring2.mirror_x(ring2.ports["Drop"].center[0])
+        ring2.mirror_y(ring2.ports["Drop"].center[1])
     c.add_port(name="o1", port=ring1.ports["Input"])
     c.add_port(name="o2", port=ring2.ports["Input"])
     c.add_port(name="R2Ro1", port=ring1.ports["Drop"])

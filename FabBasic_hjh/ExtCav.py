@@ -749,13 +749,19 @@ def ExternalCavitryRaceTrack(
 
     '''
     ec_ref = gf.Component()
-    bendout = 90
-    if type_mzi == "DMZI":
-        width_mzi_ring=width_mzi
-        width_mzi_near=width_mzi
-        bendout = 180
     if type_rscoupler =="s" or type_rscoupler == "S":
         width_near=width_ring
+        bendout = 90
+        if type_mzi == "DMZI":
+            width_mzi_ring = width_mzi
+            width_mzi_near = width_mzi
+            bendout = 180
+    elif type_rscoupler =="p" or type_rscoupler == "P":
+        bendout = 0
+        if type_mzi == "DMZI":
+            width_mzi_ring = width_mzi
+            width_mzi_near = width_mzi
+            bendout = 90
     # section and cross section
     S_near = gf.Section(width=width_near, offset=0, layer=oplayer, port_names=("o1", "o2"))
     CS_near = gf.CrossSection(sections=(S_near,))
@@ -782,15 +788,12 @@ def ExternalCavitryRaceTrack(
                                     DeltaHeat=delta_heat
                                     )
     coupler2x2.mirror_y()
-    bend_cr1_1 = ec_ref << GfCBendEuler(radius=r_euler_false, angle=-angle_m2r, cross_section=X_NM)
-    bend_cr1_2 = ec_ref << GfCBendEuler(radius=r_euler_false, angle=angle_m2r, cross_section=X_N)
+
     str_cr1_1 = ec_ref << GfCStraight(width=width_mzi_near, length=length_cr1, layer=oplayer)
     str_cr1_1.connect("o1", other=coupler2x2.ports["Output1"])
-    bend_cr1_1.connect("o1", other=str_cr1_1.ports["o2"])
     tapercoupler1 = ec_ref << gf.c.taper(width1=width_mzi_near, width2=width_near,
                                          length=min(length_t_s2n, 300 * abs(width_mzi_near - width_near) + 1),
                                          layer=oplayer)
-    tapercoupler1.connect("o1", other=bend_cr1_1.ports["o2"])
     tapercoupler2 = ec_ref << gf.c.taper(width1=width_mzi_ring, width2=width_near,
                                          length=min(length_t_s2n, 300 * abs(width_mzi_ring - width_near) + 1),
                                          layer=oplayer)
@@ -807,19 +810,34 @@ def ExternalCavitryRaceTrack(
         TypeR2R=type_r2r,TypeCouple=type_rscoupler
     )
     doublering = ec_ref << ring_ref
-    doublering.connect("o1", tapercoupler2.ports["o2"],allow_width_mismatch=True,mirror=True)
-    doublering.movex(-length_cr2)
+    doublering.connect("o1", tapercoupler2.ports["o2"],allow_width_mismatch=True)
+    if tapercoupler2.ports["o2"].orientation == 180:
+        doublering.movex(-length_cr2)
+    else:
+        doublering.movey(-length_cr2)
     str_cr2_1 = ec_ref << GfCStraight(width=width_near, length=length_cr2, layer=oplayer)
     str_cr2_1.connect("o1", tapercoupler2.ports["o2"])
-    delta1 = np.array(bend_cr1_1.ports["o1"].center) - np.array(bend_cr1_1.ports["o2"].center)
-    delta2 = np.array(tapercoupler1.ports["o2"].center) - np.array(doublering.ports["o2"].center)
-    addlength = abs(delta1[1] - delta2[1]) / np.sin(angle_m2r * np.pi / 180)
-    str_tapercoupler = ec_ref << GfCStraight(width=width_near, length=addlength, layer=oplayer)
-    str_tapercoupler.connect("o1", other=tapercoupler1.ports["o2"])
-    bend_cr1_2.connect("o1", other=str_tapercoupler.ports["o2"])
-    str_cr1_2 = ec_ref << GfCStraight(width=width_near, layer=oplayer,
-                                      length=abs(-doublering.ports["o2"].center[0] + bend_cr1_2.ports["o2"].center[0]))
-    str_cr1_2.connect("o1", bend_cr1_2.ports["o2"])
+    if type_rscoupler == 's' or type_rscoupler == 'S':
+        bend_cr1_1 = ec_ref << GfCBendEuler(radius=r_euler_false, angle=-angle_m2r, cross_section=X_NM)
+        bend_cr1_1.connect("o1", other=str_cr1_1.ports["o2"])
+        tapercoupler1.connect("o1", other=bend_cr1_1.ports["o2"])
+        bend_cr1_2 = ec_ref << GfCBendEuler(radius=r_euler_false, angle=angle_m2r, cross_section=X_N)
+        delta1 = np.array(bend_cr1_1.ports["o1"].center) - np.array(bend_cr1_1.ports["o2"].center)
+        delta2 = np.array(tapercoupler1.ports["o2"].center) - np.array(doublering.ports["o2"].center)
+        addlength = abs(delta1[1] - delta2[1]) / np.sin(angle_m2r * np.pi / 180)
+        str_tapercoupler = ec_ref << GfCStraight(width=width_near, length=addlength, layer=oplayer)
+        str_tapercoupler.connect("o1", other=tapercoupler1.ports["o2"])
+        bend_cr1_2.connect("o1", other=str_tapercoupler.ports["o2"])
+        str_cr1_2 = ec_ref << GfCStraight(width=width_near, layer=oplayer,
+                                          length=abs(-doublering.ports["o2"].center[0] + bend_cr1_2.ports["o2"].center[0]))
+        str_cr1_2.connect("o1", bend_cr1_2.ports["o2"])
+    else:
+        bend_cr1_1 = ec_ref << GfCBendEuler(radius=r_euler_false, angle=-angle_m2r, cross_section=X_NM)
+        bend_cr1_1.connect("o1", other=str_cr1_1.ports["o2"],mirror=True)
+        tapercoupler1.connect("o1", other=bend_cr1_1.ports["o2"])
+        size = np.array(doublering.ports["o2"].center)-np.array(tapercoupler1.ports["o2"].center)
+        bend_cr1_2 = ec_ref << gf.c.bend_s(size=(-size[1],size[0]), cross_section=X_N)
+        bend_cr1_2.connect("o1", other=tapercoupler1.ports["o2"])
     ## left
     str_input = list(range(30))
     bend_input = list(range(30))
@@ -828,11 +846,10 @@ def ExternalCavitryRaceTrack(
     ## right
     str_output = list(range(30))
     bend_output = list(range(30))
-
     path_bend_output = euler_Bend_Half(angle=90, radius=r_mzi)
-    bend_output[0] = ec_ref << gf.path.extrude(path_bend_output, layer=oplayer, width=width_near)
+    bend_output[0] = ec_ref << gf.path.extrude(path_bend_output, layer=oplayer, width=width_mzi_ring)
     bend_output[0].connect("o1", coupler2x2.ports["Input2"])
-    str_output[0] = ec_ref << gf.c.taper(width1=width_near, width2=width_single, length=length_taper, layer=oplayer)
+    str_output[0] = ec_ref << gf.c.taper(width1=width_mzi_ring, width2=width_single, length=length_taper, layer=oplayer)
     str_output[0].connect("o1", bend_output[0].ports["o2"])
     # input heater
     str_input[1] = ec_ref << GfCStraight(width=width_single, length=length_input, layer=oplayer)

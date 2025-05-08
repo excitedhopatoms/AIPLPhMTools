@@ -14,6 +14,7 @@ def RaceTrackPulley(
         GapHeat: float = 10,
         DeltaHeat: float = 0,
         IsAD: bool = True,
+        IsHeat: bool = True,
         oplayer: LayerSpec = LAYER.WG,
         Name: str = "RaceTrack_Pulley"
 ) -> Component:
