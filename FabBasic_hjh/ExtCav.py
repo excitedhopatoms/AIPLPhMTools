@@ -778,6 +778,7 @@ def ExternalCavitryRaceTrack(
                                     oplayer=oplayer, heatlayer=heatlayer,
                                     WidthHeat=width_heat, GapHeat=gap_heat2, TypeHeater=type_mziheater, DeltaHeat=delta_heat
                                     )
+        bend_c2r_path = gf.path.euler(angle=-bendout, radius=r_mzi)
     else:
         coupler2x2 = ec_ref << PMZI(WidthNear=width_mzi_near, WidthRing=width_mzi_ring, Radius=r_mzi,
                                     AngleCouple=angle_pmzi, LengthTaper=length_taper, LengthBend=length_bend,
@@ -787,6 +788,7 @@ def ExternalCavitryRaceTrack(
                                     WidthHeat=width_heat, GapHeat=gap_heat2, TypeHeater=type_mziheater,
                                     DeltaHeat=delta_heat
                                     )
+        bend_c2r_path = euler_Bend_Half(angle=-bendout, radius=r_mzi)
     coupler2x2.mirror_y()
 
     str_cr1_1 = ec_ref << GfCStraight(width=width_mzi_near, length=length_cr1, layer=oplayer)
@@ -797,7 +799,6 @@ def ExternalCavitryRaceTrack(
     tapercoupler2 = ec_ref << gf.c.taper(width1=width_mzi_ring, width2=width_near,
                                          length=min(length_t_s2n, 300 * abs(width_mzi_ring - width_near) + 1),
                                          layer=oplayer)
-    bend_c2r_path = euler_Bend_Half(angle=-bendout, radius=r_mzi)
     bend_c2r = ec_ref << gf.path.extrude(bend_c2r_path, width=width_mzi_ring, layer=oplayer)
     bend_c2r.connect("o1", coupler2x2.ports["Output2"])
     tapercoupler2.connect("o1", bend_c2r.ports["o2"])
@@ -810,7 +811,10 @@ def ExternalCavitryRaceTrack(
         TypeR2R=type_r2r,TypeCouple=type_rscoupler
     )
     doublering = ec_ref << ring_ref
-    doublering.connect("o1", tapercoupler2.ports["o2"],allow_width_mismatch=True)
+    if type_rscoupler=="s" or type_rscoupler=="S":
+        doublering.connect("o1", tapercoupler2.ports["o2"], allow_width_mismatch=True,mirror=True)
+    else:
+        doublering.connect("o1", tapercoupler2.ports["o2"],allow_width_mismatch=True)
     if tapercoupler2.ports["o2"].orientation == 180:
         doublering.movex(-length_cr2)
     else:
