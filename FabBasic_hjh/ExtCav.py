@@ -864,7 +864,7 @@ def ExternalCavitryRaceTrack(
                                        heatlayer=heatlayer, TypeHeater=type_busheater)
     if direction_io == "LR":
         str_input[1].connect("o2", str_input[0].ports["o2"])
-        ec_ref.add_port("o1", port=str_input[1].ports["o2"])
+        ec_ref.add_port("o1", port=str_input[1].ports["o1"])
         ec_ref.add_port("o2", port=str_output[0].ports["o2"])
     elif direction_io == "RL":
         str_input[1].connect("o1", str_output[0].ports["o2"])
