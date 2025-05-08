@@ -1,9 +1,9 @@
 # PKU-AIPL 光子器件设计代码库
 
-- *version:* **Gdsfactory-v9,Tools-v1m**
+- *version:* **Gdsfactory-v9,Tools-v1n**
 
 ## 概述
-本代码库包含了一系列用于光子器件设计的Python代码，主要集中在三个文件中：`BasicDefine.py`、`CouplerMZI.py` 和 `Boomerang.py`。这些代码利用了 `gdsfactory` 库，用于创建、操作和优化光子集成电路（PIC）中的各种组件。
+本代码库包含了一系列用于光子器件设计的Python代码。这些代码利用了 `gdsfactory` 库，用于创建、操作和优化光子集成电路（PIC）中的各种组件。
 
 ## 文件结构与功能
 
