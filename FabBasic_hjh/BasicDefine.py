@@ -120,12 +120,12 @@ def add_labels_to_ports(
 @gf.cell
 def GfCStraight(length=10, width=1, layer=(1, 0)):
     c = gf.Component()
-    c.add_polygon([(0, 0), (length, 0), (length, width), (0, width)], layer=layer)
+    c.add_polygon([(0, -width/2), (length, -width/2), (length, width/2), (0, width/2)], layer=layer)
     c.add_port(
-        name="o1", center=[0, width / 2], width=width, orientation=180, layer=layer
+        name="o1", center=[0, 0], width=width, orientation=180, layer=layer
     )
     c.add_port(
-        name="o2", center=[length, width / 2], width=width, orientation=0, layer=layer
+        name="o2", center=[length, 0], width=width, orientation=0, layer=layer
     )
     return c
 
@@ -288,10 +288,9 @@ def OffsetRamp(
     """
     if width2 is None:
         width2 = width1
-    xpts = [0, length, length, 0]
-    ypts = [width1, width2 / 2 + width1 / 2 + offset, -width2 / 2 + width1 / 2 + offset, 0]
+    xpts = [(0,width1/2), (length,width2/2+offset), (length,-width2 / 2 + offset),(0,-width1/2)]
     c = Component()
-    c.add_polygon([xpts, ypts], layer=layer)
+    c.add_polygon(xpts, layer=layer)
     c.add_port(
         name="o1", center=[0, width1 / 2], width=width1, orientation=180, layer=layer
     )

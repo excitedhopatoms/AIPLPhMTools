@@ -29,13 +29,16 @@ def OpenPad(
     """
     c = gf.Component()
     pad = c << GfCStraight(width=WidthOpen, length=WidthOpen, layer=openlayer)
-    outpad = c << gf.geometry.offset(pad, distance=Enclosure, layer=elelayer)
+    outpad = c << GfCStraight(width=WidthOpen+2*Enclosure, length=WidthOpen+2*Enclosure, layer=elelayer)
     a_pad = WidthOpen
+    outpad.movex(-Enclosure)
+    # outpad.movey(-Enclosure)
     # set ports
-    c.add_port(name="left", port=pad.ports["o1"], center=[-Enclosure, 0])
-    c.add_port(name="right", port=pad.ports["o2"], center=[a_pad + Enclosure, 0])
-    c.add_port(name="up", port=pad.ports["o1"], orientation=90, center=[a_pad / 2, a_pad / 2 + Enclosure])
-    c.add_port(name="down", port=pad.ports["o1"], orientation=-90, center=[a_pad / 2, -a_pad / 2 - Enclosure])
+    c.add_port(name="left", port=outpad.ports["o1"])
+    c.add_port(name="right", port=outpad.ports["o2"])
+    c.add_port(name="up", width=WidthOpen+2*Enclosure, orientation=90,layer=elelayer, center=[WidthOpen/2, WidthOpen+Enclosure])
+    c.add_port(name="down", width=WidthOpen+2*Enclosure, orientation=-90, center=[WidthOpen/2,- Enclosure],layer=elelayer)
+    add_labels_to_ports(c)
     return c
 
 
@@ -69,16 +72,15 @@ def OffsetRamp(
     """
     if width2 is None:
         width2 = width1
-    xpts = [0, length, length, 0]
-    ypts = [width1, width2 / 2 + width1 / 2 + offset, -width2 / 2 + width1 / 2 + offset, 0]
-    c = Component(Name)
-    c.add_polygon([xpts, ypts], layer=layer)
+    xpts = [(0,width1/2), (length,width2/2+offset), (length,-width2 / 2 + offset),(0,-width1/2)]
+    c = Component()
+    c.add_polygon(xpts, layer=layer)
     c.add_port(
-        name="o1", center=[0, width1 / 2], width=width1, orientation=180, layer=layer
+        name="o1", center=[0, 0], width=width1, orientation=180, layer=layer
     )
     c.add_port(
         name="o2",
-        center=[length, width1 / 2 + offset],
+        center=[length, offset],
         width=width2,
         orientation=0,
         layer=layer,
@@ -95,8 +97,8 @@ def GSGELE(
         LengthEle: float = 10000,
         IsPad: bool = False,
         Is2Pad: bool = False,
-        PitchPad: float = 100,
-        WidthOpen: float = 40,
+        PitchPad: float = 150,
+        WidthOpen: float = 45,
         Enclosure: float = 10,
         openlayer: LayerSpec = LAYER.OPEN,
         elelayer: LayerSpec = LAYER.M1,
@@ -142,10 +144,10 @@ def GSGELE(
     G2 = c << Greff
     G1.movey(deltags)
     G2.movey(-deltags)
-    c.add_port(name="Oin1", port=S1.ports["o1"], center=[0, GapGS / 2 + WidthS / 2])
-    c.add_port(name="Oout1", port=S1.ports["o2"], center=[0, GapGS / 2 + WidthS / 2])
-    c.add_port(name="Oin2", port=S1.ports["o1"], center=[0, -GapGS / 2 - WidthS / 2])
-    c.add_port(name="Oout2", port=S1.ports["o2"], center=[0, -GapGS / 2 - WidthS / 2])
+    c.add_port(name="Oin1", width=1, orientation=180,layer=elelayer, center=[0, GapGS / 2 + WidthS / 2])
+    c.add_port(name="Oout1", width=1, orientation=180,layer=elelayer, center=[0, GapGS / 2 + WidthS / 2])
+    c.add_port(name="Oin2", width=1, orientation=0,layer=elelayer,center=[0, -GapGS / 2 - WidthS / 2])
+    c.add_port(name="Oout2",width=1, orientation=0,layer=elelayer,center=[0, -GapGS / 2 - WidthS / 2])
     c.add_port(name="Gin1", port=G1.ports["o2"])
     c.add_port(name="Gout1", port=G1.ports["o1"])
     c.add_port(name="Sin", port=S1.ports["o2"])
@@ -170,42 +172,46 @@ def GSGELE(
     if Is2Pad:
         IsPad = True
         GPa2 = c << GSGPadarray
-        GPa2.connect("Pl1", other=c.ports["Gout1"])
-        GPa2.move([-PitchPad / 3, PitchPad / 5])
+        GPa2.connect("Pl2", other=c.ports["Sout"],allow_width_mismatch=True,allow_layer_mismatch=True)
+        GPa2.move([-PitchPad*1.5 ,0])
         # Gin1
-        pos_diff = GPa2.ports["Pl1"].center - c.ports["Gout1"].center
-        G2Pa21 = c << OffsetRamp(length=PitchPad / 3, width1=WidthOpen + 2 * Enclosure, width2=80, offset=-pos_diff[1],
+        pos_diff = GPa2.ports["Pl1"].center[1] - c.ports["Gout1"].center[1]
+        G2Pa21 = c << OffsetRamp(length=PitchPad*2, width1=WidthOpen + 2 * Enclosure, width2=WidthG, offset=-pos_diff,
                                  layer=elelayer)
         G2Pa21.connect("o2", other=c.ports["Gout1"])
         # Sin
-        pos_diff = GPa2.ports["Pl2"].center - c.ports["Sout"].center
-        G2Pa22 = c << OffsetRamp(length=PitchPad / 3, width1=WidthOpen + 2 * Enclosure, width2=25, offset=-pos_diff[1],
+        pos_diff = GPa2.ports["Pl2"].center[1] - c.ports["Sout"].center[1]
+        G2Pa22 = c << OffsetRamp(length=PitchPad*2, width1=WidthOpen + 2 * Enclosure, width2=WidthS, offset=-pos_diff,
                                  layer=elelayer)
-        G2Pa22.connect("o2", other=c.ports["Sout"])
+        G2Pa22.connect("o2", other=c.ports["Sout"],allow_width_mismatch=True,allow_layer_mismatch=True)
         # Gin2
-        pos_diff = GPa2.ports["Pl3"].center - c.ports["Gout2"].center
-        G2Pa23 = c << OffsetRamp(length=PitchPad / 3, width1=WidthOpen + 2 * Enclosure, width2=80, offset=-pos_diff[1],
+        pos_diff = GPa2.ports["Pl3"].center[1] - c.ports["Gout2"].center[1]
+        G2Pa23 = c << OffsetRamp(length=PitchPad*2, width1=WidthOpen + 2 * Enclosure, width2=WidthG, offset=-pos_diff,
                                  layer=elelayer)
-        G2Pa23.connect("o2", other=c.ports["Gout2"])
+        G2Pa23.connect("o2", other=c.ports["Gout2"],allow_width_mismatch=True,allow_layer_mismatch=True)
     if IsPad:
         GPa = c << GSGPadarray
-        GPa.connect("Pr1", other=c.ports["Gin1"])
-        GPa.move([PitchPad / 3, PitchPad / 5])
+        GPa.connect("Pr2", other=c.ports["Sin"],allow_width_mismatch=True,allow_layer_mismatch=True)
+        GPa.move([PitchPad*1.5, 0])
         # Gin1
-        pos_diff = GPa.ports["Pr1"].center - c.ports["Gin1"].center
-        G2Pa1 = c << OffsetRamp(length=PitchPad / 3, width1=WidthOpen + 2 * Enclosure, width2=80, offset=pos_diff[1],
+        pos_diff = GPa.ports["Pr1"].center[1] - c.ports["Gin1"].center[1]
+        G2Pa1 = c << OffsetRamp(length=PitchPad*1.5, width1=WidthOpen + 2 * Enclosure, width2=WidthG, offset=pos_diff,
                                 layer=elelayer)
-        G2Pa1.connect("o2", other=c.ports["Gin1"])
+        G2Pa1.connect("o2", other=c.ports["Gin1"],allow_width_mismatch=True,allow_layer_mismatch=True)
         # Sin
-        pos_diff = GPa.ports["Pr2"].center - c.ports["Sin"].center
-        G2Pa2 = c << OffsetRamp(length=PitchPad / 3, width1=WidthOpen + 2 * Enclosure, width2=25, offset=pos_diff[1],
+        pos_diff = GPa.ports["Pr2"].center[1] - c.ports["Sin"].center[1]
+        G2Pa2 = c << OffsetRamp(length=PitchPad*1, width1=WidthS, width2=WidthS, offset=pos_diff,
                                 layer=elelayer)
-        G2Pa2.connect("o2", other=c.ports["Sin"])
+        G2Pa2.connect("o2", other=c.ports["Sin"],allow_width_mismatch=True,allow_layer_mismatch=True)
+        G2Pa2_2 = c << OffsetRamp(length=PitchPad*0.5, width1=WidthOpen + 2 * Enclosure, width2=WidthS, offset=pos_diff,
+                                layer=elelayer)
+        G2Pa2_2.connect("o2", other=G2Pa2.ports["o1"],allow_width_mismatch=True,allow_layer_mismatch=True)
         # Gin2
-        pos_diff = GPa.ports["Pr3"].center - c.ports["Gin2"].center
-        G2Pa3 = c << OffsetRamp(length=PitchPad / 3, width1=WidthOpen + 2 * Enclosure, width2=80, offset=pos_diff[1],
+        pos_diff = GPa.ports["Pr3"].center[1] - c.ports["Gin2"].center[1]
+        G2Pa3 = c << OffsetRamp(length=PitchPad*1.5, width1=WidthOpen + 2 * Enclosure, width2=WidthG, offset=pos_diff,
                                 layer=elelayer)
-        G2Pa3.connect("o2", other=c.ports["Gin2"])
+        G2Pa3.connect("o2", other=c.ports["Gin2"],allow_width_mismatch=True,allow_layer_mismatch=True)
+    c.flatten()
     return c
 
 
