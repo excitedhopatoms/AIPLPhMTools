@@ -70,10 +70,11 @@ def TCRaceTrackP(
         route_out = gf.routing.route_single(sr,ctout.ports["o1"], bend_single_2.ports["o2"], layer=oplayer,
                                          route_width=width_single)
         # sr.add(route_out.references)
-    sr.add_port("input", port=tin.ports["o1"])
-    sr.add_port("output", port=tout.ports["o1"])
+    sr.add_port("input", port=ctin.ports["o1"])
+    sr.add_port("output", port=ctout.ports["o1"])
     sr.add_port("RingC", port=ring.ports["Input"],
                 center = (np.array(ring.ports["Rcen1"].center) + np.array(ring.ports["Rcen2"].center)) / 2)
+    add_labels_to_ports(sr)
     return sr
 
 
@@ -90,6 +91,7 @@ def TCRaceTrackS(
         length_updown: float = 1500,
         length_horizon: float = 1500,
         length_total: float = 10000,
+        length_ele:float = None,
         pos_ring: float = 5000,
         gap_rc: float = 1,
         type_heat:str = 'none',
