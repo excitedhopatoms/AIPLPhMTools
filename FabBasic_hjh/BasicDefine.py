@@ -16,17 +16,37 @@ PDK.activate()
 
 # layer define
 class LayerMapUserDef(LayerMap):
-    DT: Layer = (157, 0)
-    M2: Layer = (18, 0)
-    VIA: Layer = (19, 0)
-    OPEN: Layer = (9, 0)
-    test: Layer = (1, 20)
-    WG: Layer = (1, 0)
-    CLD: Layer = (1, 1)
-    M1: Layer = (10, 0)
-    LABEL: Layer = (10, 0)
-    WAFER: Layer = (20, 0)
-    WRITEFIELD: Layer = (30, 0)
+    WG:Layer = (1,1)
+    E1:Layer = (10,0)
+    E1Pad:Layer = (10,1)
+    E2:Layer = (4,1)
+    M1:Layer = (4,1)# 热电极层
+    M2: Layer = (2, 1)# 电调层
+    WG2: Layer = (2,0)
+    BG:Layer = (100,0)
+    AG:Layer = (100,1)
+    TN:Layer = (24 , 0)
+    TP:Layer = (15 , 0)
+    NLH:Layer = (36 , 0)
+    PLH:Layer = (37 , 0)
+    NLL:Layer = (35 , 0)
+    PLL:Layer = (38 , 0)
+    SN:Layer = (40 , 0)
+    SP:Layer = (43 , 0)
+    P1:Layer = (32 , 0)
+    SAB:Layer = (48 , 0)
+    NONSAB:Layer = (48 , 100)
+    V0:Layer = (219 , 0)
+    DT:Layer = (50 , 0)
+    LM1:Layer = (125 , 0)
+    SINEC:Layer = (89 , 100)
+    V1:Layer = (70 , 0)
+    VIA:Layer=(70,0)
+
+    TSW:Layer = (159 , 100)
+    V2:Layer = (71 , 0)
+    M6:Layer = (66 , 0)
+    OPEN: Layer = (66,0)
 
 
 LAYER = LayerMapUserDef

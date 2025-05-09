@@ -116,7 +116,7 @@ def RaceTrackStr(
         heatlayer: LayerSpec = LAYER.M1,
         routelayer: LayerSpec = LAYER.M2,
         vialayer: LayerSpec = LAYER.VIA,
-        Name: str = "RaceTrack_Pulley"
+        Name: str = "RaceTrack_Pulley",
 ) -> Component:
     """
     创建一个环形跑道波导组件，支持输入、输出、添加和丢弃端口，并可选添加标签。
@@ -215,7 +215,7 @@ def RaceTrackStr(
     # heat part
     if TypeHeater == "ELE" or TypeHeater == "ele":
         ele = c << GSGELE(
-            WidthS=15,WidthG=80,GapGS=5,LengthEle=LengthRun-70,IsPad=True,
+            WidthS=20,WidthG=80,GapGS=5,LengthEle=LengthRun+60,IsPad=True,
             elelayer=elelayer,
         )
         ele.connect("Oin1", other=RP1.ports["o2"],allow_width_mismatch=True,allow_layer_mismatch=True)
