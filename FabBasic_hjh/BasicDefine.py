@@ -140,13 +140,9 @@ def add_labels_to_ports(
 @gf.cell
 def GfCStraight(length=10, width=1, layer=(1, 0)):
     c = gf.Component()
-    c.add_polygon([(0, -width/2), (length, -width/2), (length, width/2), (0, width/2)], layer=layer)
-    c.add_port(
-        name="o1", center=[0, 0], width=width, orientation=180, layer=layer
-    )
-    c.add_port(
-        name="o2", center=[length, 0], width=width, orientation=0, layer=layer
-    )
+    S = gf.Section(width = width,layer=layer,port_names=("o1","o2"))
+    X = gf.CrossSection(sections=(S,))
+    c=gf.c.straight(length=length, cross_section=X)
     return c
 
 

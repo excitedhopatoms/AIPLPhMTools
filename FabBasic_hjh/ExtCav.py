@@ -724,6 +724,7 @@ def ExternalCavitryRaceTrack(
         length_cr2: float = 20,
         length_cr1: float = 1,
         length_cmzi: float = 10,
+        length_cring:float = 10,
         gap_rc: float = 0.3,
         gap_mzi: float = 0.5,
         gap_heat: float = 2,
@@ -806,7 +807,7 @@ def ExternalCavitryRaceTrack(
         WidthRing=width_ring, WidthNear=width_near, WidthHeat=width_heat,
         LengthR2R=length_r2r, DeltaLengthRS=-lengthrs_delta,LengthRun = length_racetrack,
         RadiusRing=r_ring, GapRing=gap_rc, GapHeat=gap_heat, RadiusR2R=r_r2r,
-        AngleCouple=angle_rc,
+        AngleCouple=angle_rc,LengthCouple = length_cring,
         oplayer=oplayer, heatlayer=heatlayer, IsHeat=True, TypeHeater=type_ringheater, DeltaHeat=delta_heat,
         TypeR2R=type_r2r,TypeCouple=type_rscoupler
     )
