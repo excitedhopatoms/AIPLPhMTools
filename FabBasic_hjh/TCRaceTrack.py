@@ -71,7 +71,9 @@ def TCRaceTrackP(
                                          route_width=width_single)
         # sr.add(route_out.references)
     sr.add_port("input", port=ctin.ports["o1"])
-    sr.add_port("output", port=ctout.ports["o1"])
+    sr.add_port("output", port=ctout.ports["o2"])
+    sr.add_port("inputo2", port=ctin.ports["o2"])
+    sr.add_port("outputo1", port=ctout.ports["o1"])
     sr.add_port("RingC", port=ring.ports["Input"],
                 center = (np.array(ring.ports["Rcen1"].center) + np.array(ring.ports["Rcen2"].center)) / 2)
     add_labels_to_ports(sr)

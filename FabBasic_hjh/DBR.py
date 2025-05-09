@@ -141,6 +141,8 @@ def DBRFromCsv(
             width0 = width0 * 1e6
         if width1 < 1e-5:
             width1 = width1 * 1e6
+        width0 = round(width0*1000 / 2)/500  # 结果: 2.0
+        width1 = round(width1*1000 / 2)/500  # 结果: 2.0
         r1.append(c << GfCStraight(length=length0, width=width0, layer=oplayer))
         r2.append(c << GfCStraight(length=length1, width=width1, layer=oplayer))
         if width0 < width_min:
