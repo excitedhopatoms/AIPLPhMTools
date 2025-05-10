@@ -106,7 +106,7 @@ def TCRaceTrackS(
     width_near = width_ring
     ring = sr << RaceTrackStr(
         WidthRing=width_ring, LengthRun=length_run, GapRun=gap_rc, oplayer=oplayer, RadiusRing=r_ring,
-        LengthCouple=length_rc, IsAD=False,TypeHeater=type_heat,
+        LengthCouple=length_rc, IsAD=False,TypeHeater=type_heat
     )
     taper_s2n_1 = sr << gf.c.taper(width1=width_single, width2=width_near, length=length_taper, layer=oplayer)
     taper_s2n_2 = sr << gf.c.taper(width2=width_single, width1=width_near, length=length_taper, layer=oplayer)

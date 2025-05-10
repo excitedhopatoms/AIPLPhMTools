@@ -215,7 +215,7 @@ def RaceTrackStr(
     # heat part
     if TypeHeater == "ELE" or TypeHeater == "ele":
         ele = c << GSGELE(
-            WidthS=20,WidthG=80,GapGS=5,LengthEle=LengthRun+60,IsPad=True,
+            WidthS=20,WidthG=80,GapGS=5,LengthEle=LengthRun+60,IsPad=True,LengthToPad=90,
             elelayer=elelayer,
         )
         ele.connect("Oin1", other=RP1.ports["o2"],allow_width_mismatch=True,allow_layer_mismatch=True)
