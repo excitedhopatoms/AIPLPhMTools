@@ -11,8 +11,6 @@ def RaceTrackPulley(
         RadiusRing: float = 100,
         GapRing: float = 1,
         AngleCouple: float = 20,
-        GapHeat: float = 10,
-        DeltaHeat: float = 0,
         IsAD: bool = True,
         IsHeat: bool = True,
         oplayer: LayerSpec = LAYER.WG,

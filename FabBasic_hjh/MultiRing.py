@@ -500,7 +500,6 @@ def DoubleRaceTrack(
         LengthR2R: float = 300,
         RadiusR2R: float = None,
         RadiusRing: float = 100,
-        GapRing: float = 1,
         GapHeat: float = 10,
         GapCouple: float = 1,
         AngleCouple: float = 20,
