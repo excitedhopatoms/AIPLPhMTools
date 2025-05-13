@@ -16,15 +16,17 @@ PDK.activate()
 
 # layer define
 class LayerMapUserDef(LayerMap):
-    WG:Layer = (1,1)
-    E1:Layer = (10,0)
-    E1Pad:Layer = (10,1)
-    E2:Layer = (4,1)
-    M1:Layer = (4,1)# 热电极层
-    M2: Layer = (2, 1)# 电调层
-    WG2: Layer = (2,0)
-    BG:Layer = (100,0)
-    AG:Layer = (100,1)
+    SR1:Layer = (216 , 0)
+    NONSR1:Layer = (216 , 100)
+    SR2:Layer = (217 , 0)
+    NONSR2:Layer = (217 , 100)
+    AA:Layer = (10 , 0)
+    KV:Layer = (9 , 0)
+    P2:Layer = (31 , 0)
+    NONP2:Layer = (31 , 100)
+    CPF:Layer = (130 , 0)# 氮化硅波导层
+    WG:Layer = (130,0)
+    CAA:Layer = (196 , 0)# 离子注入保护层
     TN:Layer = (24 , 0)
     TP:Layer = (15 , 0)
     NLH:Layer = (36 , 0)
@@ -37,16 +39,28 @@ class LayerMapUserDef(LayerMap):
     SAB:Layer = (48 , 0)
     NONSAB:Layer = (48 , 100)
     V0:Layer = (219 , 0)
-    DT:Layer = (50 , 0)
+    CT:Layer = (50 , 0)
+    M1:Layer = (61 , 0)
     LM1:Layer = (125 , 0)
     SINEC:Layer = (89 , 100)
     V1:Layer = (70 , 0)
     VIA:Layer=(70,0)
-
+    M2:Layer = (62 , 0)
     TSW:Layer = (159 , 100)
     V2:Layer = (71 , 0)
     M6:Layer = (66 , 0)
-    OPEN: Layer = (66,0)
+    MIM:Layer = (58 , 0)
+    TSW2:Layer = (160 , 100)
+    TV:Layer = (78 , 0)
+    TM:Layer = (69 , 0)
+    PA:Layer = (80 , 0)
+    DO1:Layer = (55 , 100)
+    HVO:Layer = (111 , 0)
+    DUMBA:Layer = (120,0)
+    DUMBN:Layer = (130,2)
+    DUMBM:Layer = (121,0)
+    OPEN: Layer = (80,0)
+    DT:Layer =(111 , 0)
 
 
 LAYER = LayerMapUserDef

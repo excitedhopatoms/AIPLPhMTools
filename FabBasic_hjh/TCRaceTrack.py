@@ -35,8 +35,8 @@ def TCRaceTrackP(
         length_run: float = 1000,
         pos_ring: float = 5000,
         gap_rc: float = 1,
-        tout: Component =taper_in_DFB_reverse,
-        tin: Component = taper_in_DFB,
+        tout: Component =None,
+        tin: Component = None,
         oplayer: LayerSpec = LAYER.WG,
 ) -> Component:
     sr = gf.Component("RaceTrack")
@@ -60,20 +60,21 @@ def TCRaceTrackP(
         ctin.movex(-pos_ring)
         route_in = gf.routing.route_single(sr,ctin.ports["o2"], bend_single_1.ports["o1"], layer=oplayer, route_width=width_single)
         # sr.add(route_in.references)
+        sr.add_port("input", port=ctin.ports["o1"])
+        sr.add_port("inputo2", port=ctin.ports["o2"])
     # output
     if tout != None:
         ctout = sr << tout
-        ctout.connect("o2", other=ctin.ports["o1"],allow_width_mismatch=True)
+        ctout.connect("o2", other=bend_single_1.ports["o1"],allow_width_mismatch=True)
         ctout.movex(length_total)
         delta = ctout.ports["o1"].center[1] - bend_single_2.ports["o2"].center[1]
         ctout.movey(-delta)
         route_out = gf.routing.route_single(sr,ctout.ports["o1"], bend_single_2.ports["o2"], layer=oplayer,
                                          route_width=width_single)
         # sr.add(route_out.references)
-    sr.add_port("input", port=ctin.ports["o1"])
-    sr.add_port("output", port=ctout.ports["o2"])
-    sr.add_port("inputo2", port=ctin.ports["o2"])
-    sr.add_port("outputo1", port=ctout.ports["o1"])
+        sr.add_port("output", port=ctout.ports["o2"])
+        sr.add_port("outputo1", port=ctout.ports["o1"])
+
     sr.add_port("RingC", port=ring.ports["Input"],
                 center = (np.array(ring.ports["Rcen1"].center) + np.array(ring.ports["Rcen2"].center)) / 2)
     add_labels_to_ports(sr)
@@ -97,8 +98,8 @@ def TCRaceTrackS(
         pos_ring: float = 5000,
         gap_rc: float = 1,
         type_heat:str = 'none',
-        tout: Component =taper_in_DFB_reverse,
-        tin: Component = taper_in_DFB,
+        tout: Component =None,
+        tin: Component = None,
         oplayer: LayerSpec = LAYER.WG,
         **kwargs,
 ) -> Component:
@@ -128,6 +129,7 @@ def TCRaceTrackS(
         ctin.movex(-pos_ring)
         route_in = gf.routing.route_single(sr,ctin.ports["o2"], taper_s2n_1.ports["o1"], layer=oplayer, route_width=width_single)
         # sr.add(route_in.references)
+        sr.add_port("input", port=ctin.ports["o1"])
     # output
     if tout != None:
         ctout = sr << tout
@@ -137,9 +139,10 @@ def TCRaceTrackS(
         ctout.movey(-delta)
         route_out = gf.routing.route_single(sr,ctout.ports["o1"], bend_outsingle_2.ports["o2"], layer=oplayer,
                                          route_width=width_single)
+        sr.add_port("output", port=ctout.ports["o1"])
         # sr.add(route_out.references)
-    sr.add_port("input", port=ctin.ports["o1"])
-    sr.add_port("output", port=ctout.ports["o1"])
+
+
     sr.add_port("RingC", port=ring.ports["Input"],
                 center = (np.array(ring.ports["Rcen1"].center) + np.array(ring.ports["Rcen2"].center)) / 2
                 )
@@ -162,8 +165,8 @@ def TCRaceTrackS2(
         length_total: float = 10000,
         pos_ring: float = 5000,
         gap_rc: float = 1,
-        tout: Component =taper_in_DFB_reverse,
-        tin: Component = taper_in_DFB,
+        tout: Component =None,
+        tin: Component = None,
         oplayer: LayerSpec = LAYER.WG,
 ) -> Component:
     sr = gf.Component("RaceTrack")
@@ -193,6 +196,7 @@ def TCRaceTrackS2(
         route_in = gf.routing.route_single(sr,ctin.ports["o2"], bend_insingle_2.ports["o1"], layer=oplayer,
                                         route_width=width_single)
         # sr.add(route_in.references)
+        sr.add_port("input", port=ctin.ports["o1"])
     # output
     if tout != None:
         ctout = sr << tout
@@ -202,8 +206,7 @@ def TCRaceTrackS2(
         ctout.movey(-delta)
         route_out = gf.routing.route_single(sr,ctout.ports["o1"], taper_s2n_2.ports["o2"], layer=oplayer, route_width=width_single)
         # sr.add(route_out.references)
-    sr.add_port("input", port=ctin.ports["o1"])
-    sr.add_port("output", port=ctout.ports["o1"])
+        sr.add_port("output", port=ctout.ports["o1"])
     sr.add_port("RingC", port=ring.ports["Input"],
                 center = (np.array(ring.ports["Rcen1"].center) + np.array(ring.ports["Rcen2"].center)) / 2)
     add_labels_to_ports(sr)
@@ -223,8 +226,8 @@ def TCRaceTrackS3(
         pos_ring: float = 5000,
         gap_rc: float = 1,
         IsLabels: float = True,
-        tout: Component =taper_in_DFB_reverse,
-        tin: Component = taper_in_DFB,
+        tout: Component =None,
+        tin: Component = None,
         oplayer: LayerSpec = LAYER.WG,
 ) -> Component:
     sr = gf.Component()
@@ -275,11 +278,11 @@ def TCRaceTrackS3h(
         gap_rc: float = 1,
         gap_route: float = 100,
         IsLabels: float = True,
-        tout: Component =taper_in_DFB_reverse,
-        tin: Component = taper_in_DFB,
+        tout: Component =None,
+        tin: Component = None,
         oplayer: LayerSpec = LAYER.WG,
         heatlayer: LayerSpec = LAYER.M1,
-) -> [Component]:
+) -> Component:
     sr = gf.Component("RaceTrack")
     sh = gf.Component("RaceTrackHeat")
     width_near = width_ring
@@ -335,8 +338,8 @@ def TCTaperRaceTrackP(
         length_total: float = 10000,
         pos_ring: float = 5000,
         gap_rc: float = 1,
-        tout: Component =taper_in_DFB_reverse,
-        tin: Component = taper_in_DFB,
+        tout: Component =None,
+        tin: Component = None,
         oplayer: LayerSpec = LAYER.WG,
 ) -> Component:
     sr = gf.Component("RaceTrack")
@@ -377,7 +380,7 @@ def TCTaperRaceTrackP(
                                          route_width=width_single, radius=r_bend)
         # sr.add(route_out.references)
         sr.add_port("output", port=ctout.ports["o1"])
-    sr.add_port("RingC", port=ring.ports["Input"], 
+    sr.add_port("RingC", port=ring.ports["Input"],
                 center = (np.array(ring.ports["Rcen1"].center) + np.array(ring.ports["Rcen2"].center)) / 2)
     return sr
 
@@ -399,8 +402,8 @@ def TCTaperRaceTrackS(
         length_total: float = 10000,
         pos_ring: float = 5000,
         gap_rc: float = 1,
-        tout: Component =taper_in_DFB_reverse,
-        tin: Component = taper_in_DFB,
+        tout: Component =None,
+        tin: Component = None,
         oplayer: LayerSpec = LAYER.WG,
 ) -> Component:
     sr = gf.Component("RaceTrack")

@@ -110,14 +110,14 @@ def DifferentHeater(
         CAP_R0.rotate(90, CAP_R0.ports["o1"].center)
         CAP_Rout = gf.cross_section.ComponentAlongPath(component=CAP_Rin_comp, spacing=2 * (WidthRoute + GapHeat),
                                                        padding=WidthRoute + GapHeat,
-                                                       offset=(WidthRoute / 2 + WidthHeat / 2 - 0.3))
+                                                       offset=(- 0.3))
         CAP_Rout_comp = gf.Component()
         CAP_H1 = CAP_Rout_comp << GfCStraight(width=WidthRoute, length=DeltaHeat, layer=heatlayer)
         CAP_R1 = CAP_Rout_comp << GfCStraight(width=WidthRoute, length=DeltaHeat, layer=routelayer)
         CAP_R1.rotate(-90, CAP_R1.ports["o1"].center)
         CAP_H1.rotate(-90, CAP_H1.ports["o1"].center)
         CAP_Rin = gf.cross_section.ComponentAlongPath(component=CAP_Rout_comp, spacing=2 * (WidthRoute + GapHeat),
-                                                      padding=0, offset=(WidthRoute / 2 - WidthHeat / 2 + 0.3))
+                                                      padding=0, offset=(+ 0.3))
 
         ## Cross-Section
         X_RnoH = gf.CrossSection(components_along_path=[CAP_Rout, CAP_Rin], sections=(S_hmid,))
@@ -166,7 +166,7 @@ def ViaArray(
     Br = B0.get_region(layer=arraylayer)
     Br.size(-Enclosure * 1000)
     B.add_polygon(Br, layer=arraylayer)
-    B.show()
+    # B.show()
     # B.offset(layer=arraylayer,distance=-Enclosure)
     b_polys = B.get_polygons_points(merge=True)
     for poly in b_polys[arraylayer]:
