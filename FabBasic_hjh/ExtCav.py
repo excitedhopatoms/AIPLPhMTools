@@ -217,6 +217,7 @@ def ExternalCavitySiN(
         type_busheater: str = "default",
         type_r2r: str = "straight",
         direction_io: str = "LR",
+        direction_rh: str = "down",
         oplayer: LayerSpec = LAYER.WG,
         heatlayer: LayerSpec = LAYER.M1,
         trelayer: LayerSpec = LAYER.DT,
@@ -268,7 +269,7 @@ def ExternalCavitySiN(
         RadiusRing=r_ring + radius_delta, GapRing=gap_rc, GapHeat=gap_heat, RadiusR2R=r_r2r,
         AngleCouple=angle_rc,
         oplayer=oplayer, heatlayer=heatlayer, IsHeat=True, TypeHeater=type_ringheater, DeltaHeat=delta_heat,
-        TypeR2R=type_r2r,
+        TypeR2R=type_r2r,DirectionsHeater=[direction_rh,direction_rh]
     )
     doublering = ec_ref << ring_ref
     doublering.connect("o1", tapercoupler2.ports["o2"])
@@ -305,7 +306,7 @@ def ExternalCavitySiN(
                                        WidthRoute=20,
                                        heatlayer=heatlayer, TypeHeater=type_busheater)
     if direction_io == "LR":
-        str_input[1].connect("o2", str_input[0].ports["o2"])
+        str_input[1].connect("o1", str_input[0].ports["o2"])
         ec_ref.add_port("o1", port=str_input[1].ports["o2"])
         ec_ref.add_port("o2", port=str_output[0].ports["o2"])
     elif direction_io == "RL":
