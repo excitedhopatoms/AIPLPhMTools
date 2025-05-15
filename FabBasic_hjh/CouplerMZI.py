@@ -262,8 +262,8 @@ def PMZI(
         heater = DifferentHeater(PathHeat=path_heat, WidthHeat=WidthHeat, DeltaHeat=DeltaHeat, GapHeat=GapHeat,
                                  WidthWG=WidthNear, WidthRoute=20,
                                  heatlayer=heatlayer, TypeHeater=TypeHeater, vialayer=vialayer, routelayer=routelayer)
-        heaterL = c << heater
-        heaterR = c << heater
+        heaterL = c.add_ref(heater)
+        heaterR = c.add_ref(heater)
         heaterL.connect("HeatOut", other=taper_2.ports["o2"], allow_width_mismatch=True, allow_layer_mismatch=True,
                         allow_type_mismatch=True)
         heaterR.connect("HeatOut", other=taper_1.ports["o2"], allow_width_mismatch=True, allow_layer_mismatch=True,

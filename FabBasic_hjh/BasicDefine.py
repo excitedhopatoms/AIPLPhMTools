@@ -2,7 +2,7 @@ from collections.abc import Callable
 
 import gdsfactory as gf
 import numpy as np
-from gdsfactory.component import Component
+from gdsfactory.component import Component,ComponentAllAngle
 from gdsfactory.component_layout import rotate_points
 from gdsfactory.generic_tech import get_generic_pdk
 from gdsfactory.path import Path, _fresnel
@@ -171,7 +171,7 @@ def GfCBendEuler(
         width: float | None = None,
         cross_section: CrossSectionSpec = "strip",
         allow_min_radius_violation: bool = False,
-) -> Component:
+) -> ComponentAllAngle:
     """Euler bend with changing bend radius.
 
     By default, `radius` corresponds to the minimum radius of curvature of the bend.

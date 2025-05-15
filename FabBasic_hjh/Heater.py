@@ -1,8 +1,7 @@
 from shapely.geometry import Polygon, box
 from shapely.ops import unary_union
-
 from .BasicDefine import *
-
+from .SnapMerge import *
 
 def SnakeHeater(
         WidthHeat: float = 8,
@@ -139,7 +138,7 @@ def DifferentHeater(
         raise ValueError(
             "no Heater Type"
         )
-    h.flatten()
+    h = snap_all_polygons_iteratively(h)
     return h
 
 

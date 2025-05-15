@@ -889,8 +889,8 @@ def DifferentHeater_local(
         # 默认加热电极
         heat_path = gf.path.arc(radius=RadiusRing, angle=120)  # 创建加热电极路径
         route_path = gf.path.arc(radius=RadiusRing, angle=60)
-        out_path = gf.path.arc(radius=20, angle=60)
-        out_path2 = gf.path.arc(radius=20, angle=-60)
+        out_path = gf.path.euler(radius=20, angle=60)
+        out_path2 = gf.path.euler(radius=20, angle=-60)
         heat_path.rotate(-60)
         heatL_comp = h << DifferentHeater(heat_path, WidthHeat=WidthHeat, heatlayer=heatlayer, routelayer=routelayer,
                                           vialayer=vialayer, TypeHeater='spilt', GapHeat=GapHeat, DeltaHeat=DeltaHeat,
