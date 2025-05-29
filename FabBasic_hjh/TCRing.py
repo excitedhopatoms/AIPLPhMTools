@@ -217,7 +217,7 @@ def TCRing1AD(
     sr.add_port("through", port=toutring_th.ports["o2"])
     sr.add_port("drop", port=toutring_dr.ports["o2"])
     sr.add_port("add", port=toutring_ad.ports["o2"])
-    sr.add_port("RingC", port=sr.ports["input"],
+    sr.add_port("RingC", width=width_single,layer=oplayer,
                 center=np.array(ring.ports["RingL"].center) / 2 + np.array(ring.ports["RingR"].center) / 2)
     sr = remove_layer(sr, layer=(512, 8))
     add_labels_to_ports(sr)
@@ -1043,7 +1043,7 @@ def TCRingT1(
         RingR: 环形波导的右侧端口。
     """
     sr = gf.Component()
-    ring = gf.Component("Ring")
+    ring = gf.Component()
     ring0 = ring << RingPulleyT1(
         WidthRing=width_ring, WidthNear=width_near, WidthHeat=width_heat, GapRing=gap_rc, GapHeat=gap_heat,
         RadiusRing=r_ring, AngleCouple=angle_rc, DeltaHeat=delta_heat, DirectionHeater=direction_heater,
@@ -1131,10 +1131,11 @@ def TCRingT1(
     sr.add_port("output", port=toutring.ports["o2"])
 
     # route
-    str_tout2r = gf.routing.route_bundle(sr, [toutring.ports["o1"], Ring.ports["o1"]],
-                                         [Ring.ports["o2"], tinring.ports["o2"]],
+    gf.routing.route_single(sr, toutring.ports["o1"],Ring.ports["o2"],
                                          layer=oplayer, route_width=width_single, radius=r_euler_min)
-    sr.add_port("RingC", port=toutring.ports["o1"],
+    gf.routing.route_single(sr, Ring.ports["o1"],tinring.ports["o2"],
+                                         layer=oplayer, route_width=width_single, radius=r_euler_min)
+    sr.add_port("RingC", width=width_single, layer=oplayer,
                 center=np.array(Ring.ports["RingL"].center) / 2 + np.array(Ring.ports["RingR"].center) / 2)
     for port in Ring.ports:
         if "Heat" in port.name:
@@ -1416,8 +1417,8 @@ def TCRingDCouple(
                                        layer=oplayer, width=width_single, radius=r_euler_min)
     for route in str_tout2r:
         sr.add(route.references)
-    sr.add_port("RingC", port=toutring.ports["o1"],
-                center=Ring.ports["RingL"].center / 2 + ring.ports["RingR"].center / 2)
+    sr.add_port("RingC", width=width_single, layer=oplayer,
+                center=np.array(Ring.ports["RingL"].center) / 2 + np.array(Ring.ports["RingR"].center) / 2)
     for port in Ring.ports:
         if "Heat" in port.name:
             sr.add_port(port.name, port=Ring.ports[port.name])

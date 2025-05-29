@@ -1,7 +1,7 @@
 import csv
 
 from .BasicDefine import *
-
+from .SnapMerge import *
 
 # %% DBR: 分布式布拉格反射器
 @gf.cell
@@ -157,7 +157,7 @@ def DBRFromCsv(
                           allow_type_mismatch=True)
             r2[i].connect(port="o1", other=r1[i].ports["o2"], allow_width_mismatch=True, allow_layer_mismatch=True,
                           allow_type_mismatch=True)
-    c << GfCStraight(length=-r1[0].ports["o1"].center[0] + r2[-1].ports["o2"].center[0], width=width_min, layer=oplayer)
+    # c << GfCStraight(length=-r1[0].ports["o1"].center[0] + r2[-1].ports["o2"].center[0], width=width_min, layer=oplayer)
     c.add_port("o1", port=r1[0].ports["o1"])
     c.add_port("o2", port=r2[-1].ports["o2"])
 
@@ -174,7 +174,7 @@ def DBRFromCsv(
         heattaper2.connect("o1", other=heater.ports["o2"])
         c.add_port(name="h1", port=heattaper1.ports["o2"])
         c.add_port(name="h2", port=heattaper2.ports["o2"])
-
+    c = snap_all_polygons_iteratively(c)
     return c
 
 
@@ -233,6 +233,8 @@ def DBRFromCsvOffset(
             width0 = width0 + Offset
         else:
             width1 = width1 + Offset
+        width0 = round(width0 * 1000 / 2) / 500  # 结果: 2.0
+        width1 = round(width1 * 1000 / 2) / 500  # 结果: 2.0
         r1.append(c << GfCStraight(length=length0, width=width0, layer=oplayer))
         r2.append(c << GfCStraight(length=length1, width=width1, layer=oplayer))
         if width0 < width_min:
@@ -240,11 +242,11 @@ def DBRFromCsvOffset(
         elif width1 < width_min:
             width_min = width1
         if i == 0:
-            r2[0].connect(port="o1", other=r1[0].ports["o2"])
+            r2[0].connect(port="o1", other=r1[0].ports["o2"],allow_width_mismatch=True)
         else:
-            r1[i].connect(port="o1", other=r2[i - 1].ports["o2"])
-            r2[i].connect(port="o1", other=r1[i].ports["o2"])
-    c << GfCStraight(length=-r1[0].ports["o1"].center[0] + r2[-1].ports["o2"].center[0], width=width_min, layer=oplayer)
+            r1[i].connect(port="o1", other=r2[i - 1].ports["o2"],allow_width_mismatch=True)
+            r2[i].connect(port="o1", other=r1[i].ports["o2"],allow_width_mismatch=True)
+    # c << GfCStraight(length=-r1[0].ports["o1"].center[0] + r2[-1].ports["o2"].center[0], width=width_min, layer=oplayer)
     c.add_port("o1", port=r1[0].ports["o1"])
     c.add_port("o2", port=r2[-1].ports["o2"])
 
@@ -261,7 +263,7 @@ def DBRFromCsvOffset(
         heattaper2.connect("o1", other=heater.ports["o2"])
         c.add_port(name="h1", port=heattaper1.ports["o2"])
         c.add_port(name="h2", port=heattaper2.ports["o2"])
-
+    c = snap_all_polygons_iteratively(c)
     return c
 
 
