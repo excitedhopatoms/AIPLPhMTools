@@ -40,8 +40,8 @@ def TCRaceTrackP(
         oplayer: LayerSpec = LAYER.WG,
 ) -> Component:
     sr = gf.Component("RaceTrack")
-    ring = sr << RaceTrackPulley(
-        WidthRing=width_ring, WidthNear=width_near, GapRing=gap_rc, oplayer=oplayer, RadiusRing=r_ring,
+    ring = sr << RaceTrackP(
+        WidthRing=width_ring, WidthNear=width_near, GapCouple=gap_rc, oplayer=oplayer, RadiusRing=r_ring,
         AngleCouple=angle_rc, IsAD=False,LengthRun=length_run,
     )
     taper_s2n_1 = sr << gf.c.taper(width1=width_single, width2=width_near, length=length_taper, layer=oplayer)
@@ -105,8 +105,8 @@ def TCRaceTrackS(
 ) -> Component:
     sr = gf.Component("RaceTrack")
     width_near = width_ring
-    ring = sr << RaceTrackStr(
-        WidthRing=width_ring, LengthRun=length_run, GapRun=gap_rc, oplayer=oplayer, RadiusRing=r_ring,
+    ring = sr << RaceTrackS(
+        WidthRing=width_ring, LengthRun=length_run, GapCouple=gap_rc, oplayer=oplayer, RadiusRing=r_ring,
         LengthCouple=length_rc, IsAD=False,TypeHeater=type_heat
     )
     taper_s2n_1 = sr << gf.c.taper(width1=width_single, width2=width_near, length=length_taper, layer=oplayer)
@@ -171,8 +171,8 @@ def TCRaceTrackS2(
 ) -> Component:
     sr = gf.Component("RaceTrack")
     width_near = width_ring
-    ring = sr << RaceTrackStr(
-        WidthRing=width_ring, LengthRun=length_run, GapRun=gap_rc, oplayer=oplayer, RadiusRing=r_ring,
+    ring = sr << RaceTrackS(
+        WidthRing=width_ring, LengthRun=length_run, GapCouple=gap_rc, oplayer=oplayer, RadiusRing=r_ring,
         LengthCouple=length_rc, IsAD=False
     )
     taper_s2n_1 = sr << gf.c.taper(width1=width_single, width2=width_near, length=length_taper, layer=oplayer)
@@ -232,8 +232,8 @@ def TCRaceTrackS3(
 ) -> Component:
     sr = gf.Component()
     width_near = width_ring
-    Cring = RaceTrackStr(
-        WidthRing=width_ring, LengthRun=length_run, GapRun=gap_rc, oplayer=oplayer, RadiusRing=r_ring,
+    Cring = RaceTrackS(
+        WidthRing=width_ring, LengthRun=length_run, GapCouple=gap_rc, oplayer=oplayer, RadiusRing=r_ring,
         LengthCouple=length_rc, IsAD=False, IsLabels=False,
     )
     ring = sr << Cring
@@ -286,8 +286,8 @@ def TCRaceTrackS3h(
     sr = gf.Component("RaceTrack")
     sh = gf.Component("RaceTrackHeat")
     width_near = width_ring
-    Cring = RaceTrackStr(
-        WidthRing=width_ring, LengthRun=length_run, GapRun=gap_rc, oplayer=oplayer, RadiusRing=r_ring,
+    Cring = RaceTrackS(
+        WidthRing=width_ring, LengthRun=length_run, GapCouple=gap_rc, oplayer=oplayer, RadiusRing=r_ring,
         GapRoute=gap_route,
         LengthCouple=length_rc, IsAD=False, IsLabels=False, DeltaHeat=delta_heat, heatlayer=heatlayer
     )
@@ -348,7 +348,7 @@ def TCTaperRaceTrackP(
     ring = sr << TaperRaceTrackPulley(
         WidthRing=width_ring, WidthNear=width_near, WidthRun=width_run,
         LengthRun=length_run, LengthTaper=length_racetaper,
-        GapRing=gap_rc, oplayer=oplayer, RadiusRing=r_ring,
+        GapCouple=gap_rc, oplayer=oplayer, RadiusRing=r_ring,
         AngleCouple=angle_rc, IsAD=False
     )
     taper_s2n_1 = sr << gf.c.taper(width1=width_single, width2=width_near, length=length_taper, layer=oplayer)
@@ -412,7 +412,7 @@ def TCTaperRaceTrackS(
     ring = sr << TaperRaceTrackPulley(
         WidthRing=width_ring, WidthNear=width_near, WidthRun=width_run,
         LengthRun=length_run, LengthTaper=length_racetaper,
-        GapRing=gap_rc, oplayer=oplayer, RadiusRing=r_ring,
+        GapCouple=gap_rc, oplayer=oplayer, RadiusRing=r_ring,
         AngleCouple=angle_rc, IsAD=False
     )
     taper_s2n_1 = sr << gf.c.taper(width1=width_single, width2=width_near, length=length_taper, layer=oplayer)

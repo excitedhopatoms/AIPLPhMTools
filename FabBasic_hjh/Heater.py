@@ -60,6 +60,76 @@ def DifferentHeater(
         TypeHeater: str = "default",
         **kwargs
 ) -> Component:
+    """
+     根据指定的类型和其他参数，生成不同类型的加热器组件。
+
+     Args:
+         PathHeat: gdsfactory.path.Path 对象，定义了加热器的中心路径。
+         WidthHeat: float, 主加热条的宽度 (单位: µm)。
+         WidthWG: float, 波导宽度，主要用于 'snake' 类型加热器中计算间距 (单位: µm)。
+         WidthRoute: float, 金属布线层的宽度，主要用于 'spilt' 类型加热器 (单位: µm)。
+         WidthVia: float, 过孔的尺寸 (宽度和高度)，主要用于 'spilt' 类型加热器 (单位: µm)。
+         Spacing: float, 元素间距，主要用于 'spilt' 类型加热器中过孔的间距 (单位: µm)。
+         DeltaHeat: float, 偏移量或长度 (单位: µm)。
+             - 对于 'side' 和 'bothside' 类型: 加热条相对于中心路径的横向偏移量。
+             - 对于 'spilt' 类型: 连接段的长度。
+         GapHeat: float, 间隙尺寸 (单位: µm)。
+             - 对于 'snake' 类型: 蛇形弯曲部分的间隙。
+             - 对于 'spilt' 类型: 沿路径的布线段之间的间隙。
+         heatlayer: LayerSpec, 定义加热器主要部分所在的GDS图层。
+         routelayer: LayerSpec, 定义金属布线层所在的GDS图层 (用于 'spilt' 类型)。
+         vialayer: LayerSpec, 定义过孔所在的GDS图层 (用于 'spilt' 类型)。
+         TypeHeater: str, 指定加热器的类型。可选值包括:
+             - "default": 默认的直线型加热器，沿着 PathHeat 拉伸。
+             - "snake": 蛇形加热器 (需要 SnakeHeater 组件)。
+             - "side": 单侧加热器，加热条位于 PathHeat 的一侧。
+             - "bothside": 双侧对称加热器，加热条位于 PathHeat 的两侧。
+             - "spilt": 分裂型加热器，包含主加热区和独立的布线臂，通过过孔连接。
+             - "None" 或 "none": 不生成加热器，返回空组件。
+         **kwargs: 传递给底层 gdsfactory 组件或函数的额外参数。
+
+     Returns:
+         gf.Component: 生成的加热器组件。
+
+     Raises:
+         ValueError: 如果提供了无效的 TypeHeater 类型。
+
+     Notes:
+         - 此函数依赖于外部定义的组件如 `SnakeHeater`, `GfCStraight`, `ViaArray` 和
+           后处理函数 `snap_all_polygons_iteratively`。
+         - 'snake' 类型的端口 'HeatOut' 当前被设置为与 'HeatIn' 相同的原始端口 'o2'，
+           可能需要根据 `SnakeHeater` 的实际端口定义进行调整。
+         - 'bothside' 类型的 'HeatIn' 和 'HeatOut' 复合端口的中心位置计算方式较为特殊，
+           依赖于 `HPart.ports["o1"]` 和 `HPart.ports["o2"]` 以及左右两侧加热器的输入/输出端口。
+           这些 'o1' 和 'o2' 端口通常是原始路径的起点和终点端口。
+         - 'spilt' 类型中的 `GapHeat` 会根据路径长度和布线宽度重新计算。
+         - 组件最终会通过 `snap_all_polygons_iteratively` 函数进行多边形顶点对齐。
+
+     Ports for different heater types:
+         - "default":
+             - "HeatIn": 加热器输入端。
+             - "HeatOut": 加热器输出端。
+         - "snake":
+             - "HeatIn": 加热器输入端。
+             - "HeatOut": 加热器输出端 (注意上述 Note)。
+         - "side":
+             - "HeatIn": 加热器输入端 ("Uo1")。
+             - "HeatOut": 加热器输出端 ("Uo2")。
+         - "bothside":
+             - "HeatLIn": 左侧加热器输入端 ("Uo1")。
+             - "HeatLOut": 左侧加热器输出端 ("Uo2")。
+             - "HeatRIn": 右侧加热器输入端 ("Do1")。
+             - "HeatROut": 右侧加热器输出端 ("Do2")。
+             - "HeatIn": 复合输入端口。
+             - "HeatOut": 复合输出端口。
+         - "spilt":
+             - "HeatLIn": 左侧布线臂输入端 ("r1o1")。
+             - "HeatLOut": 左侧布线臂输出端 ("r1o2")。
+             - "HeatRIn": 右侧布线臂输入端 ("r2o1")。
+             - "HeatROut": 右侧布线臂输出端 ("r2o2")。
+             - "HeatIn": 主加热区输入端 ("o1")。
+             - "HeatOut": 主加热区输出端 ("o2")。
+     """
     h = gf.Component()
     if TypeHeater == "default":
         # 默认加热电极
@@ -73,8 +143,8 @@ def DifferentHeater(
         h.add_port(name="HeatOut", port=HPart.ports["o2"])  # 添加加热输出端口
     elif TypeHeater == "side":
         # 侧边加热电极
-        section1 = h << gf.Section(width=WidthHeat, offset=DeltaHeat, layer=heatlayer, port_names=("Uo1", "Uo2"))
-        section2 = h << gf.Section(width=WidthHeat, offset=-DeltaHeat, layer=heatlayer, port_names=("Do1", "Do2"))
+        section1 = gf.Section(width=WidthHeat, offset=DeltaHeat, layer=heatlayer, port_names=("Uo1", "Uo2"))
+        section2 = gf.Section(width=WidthHeat, offset=-DeltaHeat, layer=heatlayer, port_names=("Do1", "Do2"))
         CrossSection = gf.CrossSection(sections=[section1])
         HPart = h << gf.path.extrude(PathHeat, cross_section=CrossSection)  # 创建左侧加热电极
         h.add_port(name="HeatIn", port=HPart.ports["Uo1"])  # 添加加热输入端口
@@ -82,8 +152,8 @@ def DifferentHeater(
     elif TypeHeater == "bothside":
         DeltaHeat = abs(DeltaHeat)
         # 两侧边加热电极
-        section1 = h << gf.Section(width=WidthHeat, offset=DeltaHeat, layer=heatlayer, port_names=("Uo1", "Uo2"))
-        section2 = h << gf.Section(width=WidthHeat, offset=-DeltaHeat, layer=heatlayer, port_names=("Do1", "Do2"))
+        section1 = gf.Section(width=WidthHeat, offset=DeltaHeat, layer=heatlayer, port_names=("Uo1", "Uo2"))
+        section2 = gf.Section(width=WidthHeat, offset=-DeltaHeat, layer=heatlayer, port_names=("Do1", "Do2"))
         CrossSection = gf.CrossSection(sections=[section1, section2])
         HPart = h << gf.path.extrude(PathHeat, cross_section=CrossSection)  # 创建左侧加热电极
         h.add_port(name="HeatLIn", port=HPart.ports["Uo1"])  # 添加加热输入端口
@@ -91,9 +161,9 @@ def DifferentHeater(
         h.add_port(name="HeatRIn", port=HPart.ports["Do1"])  # 添加加热输入端口
         h.add_port(name="HeatROut", port=HPart.ports["Do2"])  # 添加加热输出端口
         h.add_port(name="HeatIn", port=HPart.ports["o1"],
-                   center=h.ports["HeatLIn"].center / 2 + h.ports["HeatRIn"].center / 2)  # 添加加热输入端口
+                   center=np.array(h.ports["HeatLIn"].center) / 2 + np.array(h.ports["HeatRIn"].center / 2))  # 添加加热输入端口
         h.add_port(name="HeatOut", port=HPart.ports["o2"],
-                   center=h.ports["HeatLOut"].center / 2 + h.ports["HeatROut"].center / 2)  # 添加加热输出端口
+                   center=np.array(h.ports["HeatLOut"].center) / 2 + np.array(h.ports["HeatROut"].center / 2))  # 添加加热输出端口
     elif TypeHeater == "spilt":
         # section and crosssection
         n_pieces = np.floor((PathHeat.length()) / (WidthRoute + GapHeat))

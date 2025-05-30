@@ -15,3 +15,4 @@ from .FabBasic_hjh.TCRaceTrack import *
 from .FabBasic_hjh.TCRing import *
 from .FabBasic_hjh.memyshev import *
 from .FabBasic_hjh.SnapMerge import *
+from .FabBasic_hjh.MultiRaceTrack import *
