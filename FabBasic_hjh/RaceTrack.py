@@ -105,9 +105,9 @@ def RaceTrackP(
     print("length="+str(RingPath1.length()*4))
     if IsHeat:
         rrun1 = gf.path.straight(length=LengthRun / 2)
-        rring1 = gf.path.arc(radius=RadiusRing, angle=70)
+        rring1 = gf.path.arc(radius=RadiusRing, angle=45)
         rring2 = gf.path.arc(radius=RadiusRing, angle=-70)
-        rb1 = euler_Bend_Half(radius=RadiusRing, angle=20, p=0.5)
+        rb1 = euler_Bend_Half(radius=RadiusRing/2, angle=45, p=0.5)
         rb2 = euler_Bend_Half(radius=RadiusRing, angle=-20, p=0.5)
         HeatPath1 = rring1 + rb1
         HeatPath2 = rring2 + rb2+ rrun1
