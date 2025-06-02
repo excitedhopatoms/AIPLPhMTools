@@ -183,7 +183,7 @@ def CoupleDouRaceTrack(
         DeltaRun: float = 20,
         IsHeat: bool = True,
         TypeHeater: str = "default",
-        DirectionsHeater: str = ['down', 'down'],
+        DirectionsHeater = ['down', 'down'],
         TypeCouple: str = "S",
         oplayer: LayerSpec = LAYER.WG,
         elelayer: LayerSpec = LAYER.M2,
@@ -207,18 +207,27 @@ def CoupleDouRaceTrack(
             GapHeat= GapHeat,DeltaHeat= DeltaHeat,IsHeat= IsHeat,elelayer= elelayer,heatlayer= heatlayer,TypeHeater= TypeHeater,
             IsAD= False,
             oplayer= oplayer,routelayer= routelayer,vialayer= vialayer)
+        racetrack1.connect("RingSmid1", other=racetrack2.ports["RingSmid1"])
+        racetrack1.movex(+WidthRing + GapCoupleIn)
+        racetrack1.movey(-DeltaRun / 2 + LengthCoupleIn - LengthRun)
     elif TypeCouple == "p" or TypeCouple == "P":
         racetrack1 = c << RaceTrackP(
-            WidthRing=WidthRing, WidthNear=WidthNear, GapCouple=GapCoupleOut,IsHeat=IsHeat,
-            LengthRun=LengthRun, RadiusRing=RadiusRing, AngleCouple=AngleCouple, oplayer=oplayer
+            WidthRing=WidthRing, WidthNear=WidthNear, GapCouple=GapCoupleOut,WidthHeat=WidthHeat,WidthRoute=WidthRoute,
+            LengthRun=LengthRun, RadiusRing=RadiusRing, AngleCouple=AngleCouple, oplayer=oplayer,IsAD=False,
+        GapHeat = GapHeat, DeltaHeat = DeltaHeat, IsHeat = IsHeat,  heatlayer = heatlayer, TypeHeater = TypeHeater,
         )
         racetrack2 = c << RaceTrackP(
-            WidthRing=WidthRing, WidthNear=WidthNear, GapCouple=GapCoupleOut,IsHeat=IsHeat,
-            LengthRun=LengthRun + DeltaRun, RadiusRing=RadiusRing, AngleCouple=AngleCouple, oplayer=oplayer
+            WidthRing=WidthRing, WidthNear=WidthNear, GapCouple=GapCoupleOut,WidthHeat=WidthHeat,WidthRoute=WidthRoute,
+            LengthRun=LengthRun + DeltaRun, RadiusRing=RadiusRing, AngleCouple=AngleCouple, oplayer=oplayer,IsAD=False,
+            GapHeat=GapHeat, DeltaHeat=DeltaHeat, IsHeat=IsHeat,  heatlayer=heatlayer,
+            TypeHeater=TypeHeater,
         )
-    racetrack1.connect("RingSmid1",other=racetrack2.ports["RingSmid1"])
-    racetrack1.movex(+WidthRing+GapCoupleIn)
-    racetrack1.movey(DeltaRun/2-LengthCoupleIn+LengthRun)
+        racetrack1.connect("RingSmid1", other=racetrack2.ports["RingSmid1"])
+        racetrack1.movex(+WidthRing + GapCoupleIn)
+        racetrack1.movey(-DeltaRun / 2 + LengthCoupleIn - LengthRun)
+        racetrack2.mirror_y(racetrack2.ports["Input"].center[1])
+        racetrack1.mirror_y(racetrack2.ports["Input"].center[1])
+
     c.add_port("R1Input",port=racetrack1.ports["Input"])
     c.add_port("R1Through", port=racetrack1.ports["Through"])
     c.add_port("R2Input", port=racetrack2.ports["Input"])

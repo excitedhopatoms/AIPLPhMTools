@@ -1,6 +1,8 @@
 from .BasicDefine import *
 from .Boomerang import *
 from .MultiRing import *
+from .MultiRaceTrack import *
+from .SnapMerge import snap_all_polygons_iteratively
 
 
 # %% defult in out taper
@@ -771,29 +773,19 @@ def TCCoupleDouRingT1(
             sr.add_port(port, port=CCRing.ports[port])
     # add_labels_to_ports(ring, (612, 8))
     return sr
-# TCRingT1: TCRing use RingPulleyT1
+# TCCoupleDouRaceTrackST1: Total component Coupled racetrack cavity use Coupled RaceTrack
 @gf.cell
-def TCCoupleDouRaceTrackT1(
-        r_ring1: float = 120,
-        width_ring1: float = 1,
-        width_near1: float = 2,
-        width_heat1: float = 5,
-        gap_rc1: float = 1,
-        angle_rc1: float = 20,
-        type_heater1: str = "default",  # 控制加热器类型
-        gap_heat1: float = 1,
-        delta_heat1: float = 1,
-        r_ring2: float = None,
-        width_ring2: float = None,
-        width_near2: float = None,
-        width_heat2: float = None,
-        length_near2: float = 130,
-        gap_rc2: float = 1,
-        type_heater2: str = "default",  # 控制加热器类型
-        gap_heat2: float = 0,
-        delta_heat2: float = 0,
+def TCCoupleDouRaceTrackST1(
+        r_ring: float = 120,
+        width_ring: float = 1,
+        width_heat: float = 5,
+        gap_rc: float = 1,
+        angle_rc: float = 20,
+        type_heater: str = "default",  # 控制加热器类型
+        gap_heat: float = 1,
+        delta_heat: float = 1,
         gap_rr: float = 1,
-        angle_rr: float = 30,
+        length_rr: float = 30,
         width_single: float = 1,
         r_euler_min: float = 100,
         length_taper: float = 150,
@@ -809,8 +801,8 @@ def TCCoupleDouRaceTrackT1(
         is_ad: bool = False,
         oplayer: LayerSpec = LAYER.WG,
         heatlayer: LayerSpec = LAYER.M1,
-        position_taper: str = "before_bend",  # 控制锥形波导的位置
-
+        position_taper: str = ["before_bend","before_bend"],  # 控制锥形波导的位置
+        direction_io: str = [""]
 ) -> Component:
     """
     创建一个环形波导组件，支持通过 position_taper 参数控制锥形波导的位置，并通过 type_heater 参数控制加热器类型。
@@ -853,54 +845,44 @@ def TCCoupleDouRaceTrackT1(
     """
     sr = gf.Component()
     ring = gf.Component("Ring")
-    if width_ring2 is None:
-        width_ring2 = width_ring1
-    if width_heat2 is None:
-        width_heat2 = width_heat1
-    if r_ring2 is None:
-        r_ring2 = r_ring1
-    if width_near2 is None:
-        width_near2 = width_near1
     S_single = gf.Section(width=width_single, layer=oplayer, port_names=['o1', 'o2'])
     X_single = gf.CrossSection(sections=[S_single])
-    ring0 = ring << CoupleRingDRT1(
-        RadiusRing1=r_ring1, WidthRing1=width_ring1, WidthNear1=width_near1, WidthHeat1=width_heat1, GapRB1=gap_rc1,
-        DeltaHeat1=delta_heat1,
-        AngleCouple1=angle_rc1,
-        RadiusRing2=r_ring2, WidthRing2=width_ring2, WidthNear2=width_near2, WidthHeat2=width_heat2, GapRB2=gap_rc2,
-        DeltaHeat2=delta_heat2, LengthNear2=length_near2,
-        GapRR=gap_rr, AngleR12=angle_rr,
-        TypeHeaterR1=type_heater1, TypeHeaterR2=type_heater2, GapHeat1=gap_heat1,
+    ring0 = ring << CoupleDouRaceTrack(
+        RadiusRing=r_ring, WidthRing=width_ring,
+        GapCoupleOut=gap_rc,GapCoupleIn=gap_rr,
+        DeltaHeat=delta_heat,WidthHeat=width_heat, GapHeat=gap_heat,
+        TypeHeater=type_heater,
         IsHeat=is_heat, oplayer=oplayer, heatlayer=heatlayer, DirectionsHeater=['down', 'down']
     )
+    ring0.mirror_y(ring0.ports["R1Input"].center[1])
     # input through
-    taper_s2n1 = ring << gf.c.taper(width1=width_single, width2=width_near1, length=length_taper, layer=oplayer)
-    taper_s2n1.connect("o2", ring0.ports["Input"])
-    taper_s2n2 = ring << gf.c.taper(width1=width_near1, width2=width_single, length=length_taper, layer=oplayer)
+    taper_s2n1 = ring << gf.c.taper(width1=width_single, width2=width_ring, length=length_taper, layer=oplayer)
+    taper_s2n1.connect("o2", ring0.ports["R1Input"])
+    taper_s2n2 = ring << gf.c.taper(width1=width_ring, width2=width_single, length=length_taper, layer=oplayer)
     ## 根据 position_taper 参数调整锥形波导的位置（input through）
-    if position_taper == "before_bend":
+    if position_taper[0] == "before_bend":
         bend_thr1 = ring << gf.c.bend_euler(width=width_single, radius=r_euler_min, layer=oplayer, angle=90,
                                             with_arc_floorplan=False)
         bend_thr2 = ring << gf.c.bend_euler(width=width_single, radius=r_euler_min, layer=oplayer, angle=-90,
                                             with_arc_floorplan=False)
         str_th_horizontal = ring << GfCStraight(width=width_single, length=length_th_horizontal, layer=oplayer)
         str_th_vertical = ring << GfCStraight(width=width_single, length=length_th_vertical, layer=oplayer)
-        taper_s2n2.connect("o1", ring0.ports["Through"])
+        taper_s2n2.connect("o1", ring0.ports["R1Through"])
         str_th_horizontal.connect("o1", other=taper_s2n2.ports["o2"])
         bend_thr1.connect("o1", other=str_th_horizontal.ports["o2"])
         str_th_vertical.connect("o1", other=bend_thr1.ports["o2"])
         bend_thr2.connect("o1", other=str_th_vertical.ports["o2"])
         ring.add_port("o1", port=taper_s2n1.ports["o1"])
         ring.add_port("o2", port=bend_thr2.ports["o2"])
-    elif position_taper == "after_bend":
-        bend_thr1 = ring << gf.c.bend_euler(width=width_near1, radius=r_euler_min, layer=oplayer, angle=90,
+    elif position_taper[0] == "after_bend":
+        bend_thr1 = ring << gf.c.bend_euler(width=width_ring, radius=r_euler_min, layer=oplayer, angle=90,
                                             with_arc_floorplan=False)
-        bend_thr2 = ring << gf.c.bend_euler(width=width_near1, radius=r_euler_min, layer=oplayer, angle=-90,
+        bend_thr2 = ring << gf.c.bend_euler(width=width_ring, radius=r_euler_min, layer=oplayer, angle=-90,
                                             with_arc_floorplan=False)
-        str_th_horizontal = ring << GfCStraight(width=width_near1, length=length_th_horizontal, layer=oplayer)
-        str_th_vertical = ring << GfCStraight(width=width_near1, length=length_th_vertical, layer=oplayer)
+        str_th_horizontal = ring << GfCStraight(width=width_ring, length=length_th_horizontal, layer=oplayer)
+        str_th_vertical = ring << GfCStraight(width=width_ring, length=length_th_vertical, layer=oplayer)
 
-        str_th_horizontal.connect("o1", ring0.ports["Through"])
+        str_th_horizontal.connect("o1", ring0.ports["R1Through"])
         bend_thr1.connect("o1", other=str_th_horizontal.ports["o2"])
         str_th_vertical.connect("o1", other=bend_thr1.ports["o2"])
         bend_thr2.connect("o1", other=str_th_vertical.ports["o2"])
@@ -908,54 +890,55 @@ def TCCoupleDouRaceTrackT1(
 
         ring.add_port("o1", port=taper_s2n1.ports["o1"])
         ring.add_port("o2", port=taper_s2n2.ports["o2"])
-    elif position_taper == "between_bend":
-        bend_thr1 = ring << gf.c.bend_euler(width=width_near1, radius=r_euler_min, layer=oplayer, angle=90,
+    elif position_taper[0] == "between_bend":
+        bend_thr1 = ring << gf.c.bend_euler(width=width_ring, radius=r_euler_min, layer=oplayer, angle=90,
                                             with_arc_floorplan=False)
         bend_thr2 = ring << gf.c.bend_euler(width=width_single, radius=r_euler_min, layer=oplayer, angle=-90,
                                             with_arc_floorplan=False)
-        str_th_horizontal = ring << GfCStraight(width=width_near1, length=length_th_horizontal, layer=oplayer)
+        str_th_horizontal = ring << GfCStraight(width=width_ring, length=length_th_horizontal, layer=oplayer)
         str_th_vertical = ring << GfCStraight(width=width_single, length=length_th_vertical, layer=oplayer)
-        str_th_horizontal.connect("o1", ring0.ports["Through"])
+        str_th_horizontal.connect("o1", ring0.ports["R1Through"])
         bend_thr1.connect("o1", other=str_th_horizontal.ports["o2"])
         taper_s2n2.connect("o1", other=bend_thr1.ports["o2"])
         str_th_vertical.connect("o1", other=taper_s2n2.ports["o2"])
         bend_thr2.connect("o1", other=str_th_vertical.ports["o2"])
         ring.add_port("o1", port=taper_s2n1.ports["o1"])
         ring.add_port("o2", port=bend_thr2.ports["o2"])
-    elif position_taper == "no_bend":
-        taper_s2n2.connect("o1", other=ring0.ports["Through"])
+    elif position_taper[0] == "no_bend":
+        taper_s2n2.connect("o1", other=ring0.ports["R1Through"])
         ring.add_port("o1", port=taper_s2n1.ports["o1"])
         ring.add_port("o2", port=taper_s2n2.ports["o2"])
     else:
         raise ValueError("position_taper 必须是 'before_bend' 或 'after_bend' 或 'between_bend' 或 'no_bend'")
     # add drop
-    taper_s2n3 = ring << gf.c.taper(width1=width_single, width2=width_near2, length=length_taper, layer=oplayer)
-    taper_s2n4 = ring << gf.c.taper(width1=width_near2, width2=width_single, length=length_taper, layer=oplayer)
-    taper_s2n4.connect("o1", ring0.ports["Add"])
+    taper_s2n3 = ring << gf.c.taper(width1=width_single, width2=width_ring, length=length_taper, layer=oplayer)
+    taper_s2n4 = ring << gf.c.taper(width1=width_ring, width2=width_single, length=length_taper, layer=oplayer)
+    taper_s2n4.connect("o1", ring0.ports["R2Input"])
     ## add drop bend out
-    bend_ad1 = ring << gf.c.bend_euler(width=width_near2, radius=r_euler_min, layer=oplayer, angle=-90,
+    bend_ad1 = ring << gf.c.bend_euler(width=width_ring, radius=r_euler_min, layer=oplayer, angle=-90,
                                        with_arc_floorplan=False)
     bend_ad2 = ring << gf.c.bend_euler(width=width_single, radius=r_euler_min, layer=oplayer, angle=90,
                                        with_arc_floorplan=False)
     str_ad = ring << GfCStraight(width=width_single, length=length_ad_vertical, layer=oplayer)
-    str_ad0 = ring << GfCStraight(width=width_near2, length=length_ad_horizontal, layer=oplayer)
-    str_ad0.connect("o2", other=ring0.ports["Drop"])
+    str_ad0 = ring << GfCStraight(width=width_ring, length=length_ad_horizontal, layer=oplayer)
+
+    str_ad0.connect("o2", other=ring0.ports["R2Through"])
     bend_ad1.connect("o2", other=str_ad0.ports["o1"])
     taper_s2n3.connect("o2", other=bend_ad1.ports["o1"])
     str_ad.connect("o2", other=taper_s2n3.ports["o1"])
     bend_ad2.connect("o2", other=str_ad.ports["o1"])
     ring.add_port("o3", port=taper_s2n4.ports["o2"])
     ring.add_port("o4", port=bend_ad2.ports["o1"])
-    ring.add_port("RingInput", port=ring0.ports["Input"])
-    ring.add_port("Ring1C", port=ring0.ports["Ring1C"])
-    ring.add_port("Ring2C", port=ring0.ports["Ring2C"])
+    ring.add_port("RingInput", port=ring0.ports["R1Input"])
+    # ring.add_port("Ring1C", port=ring0.ports["Ring1C"])
+    # ring.add_port("Ring2C", port=ring0.ports["Ring2C"])
     for port in ring0.ports:
-        if "Heat" in port:
-            ring.add_port(port, port=ring0.ports[port])
-        if "Add" in port:
-            ring.add_port(port, port=ring0.ports[port])
-        if "Drop" in port:
-            ring.add_port(port, port=ring0.ports[port])
+        if "Heat" in port.name:
+            ring.add_port(port.name, port=port)
+        if "R1" in port.name:
+            ring.add_port(port.name, port=port)
+        if "R2" in port.name:
+            ring.add_port(port.name, port=port)
     # add_labels_to_ports(ring,(412,8))
     CCRing = sr << ring
 
@@ -982,24 +965,175 @@ def TCCoupleDouRaceTrackT1(
     bend_s_dp.connect("o1", other=CCRing.ports["o3"])
     sr.add_port("drop", port=tdpring.ports["o2"])
     ## route
-    str_tout2r = gf.routing.get_bundle(
+    gf.routing.route_bundle(sr,
         [toutring.ports["o1"], CCRing.ports["o1"], tdpring.ports['o1'], CCRing.ports["o4"]],
         [CCRing.ports["o2"], tinring.ports["o2"], bend_s_dp.ports["o2"], tadring.ports['o2']],
-        layer=oplayer, width=width_single, radius=r_euler_min)
-    for route in str_tout2r:
-        sr.add(route.references)
-    sr.add_port("Ring1C", port=CCRing.ports["Ring1C"])
-    sr.add_port("Ring2C", port=CCRing.ports["Ring2C"])
+        layer=oplayer, route_width=width_single, radius=r_euler_min)
 
     for port in CCRing.ports:
-        if "Heat" in port:
-            sr.add_port(port, port=CCRing.ports[port])
-        if "Add" in port:
-            sr.add_port(port, port=CCRing.ports[port])
-        if "Drop" in port:
-            sr.add_port(port, port=CCRing.ports[port])
-    # add_labels_to_ports(ring, (612, 8))
+        sr.add_port(port.name, port=port)
+    snap_all_polygons_iteratively(sr)
+    add_labels_to_ports(sr, (512, 8))
     return sr
+# TCCoupleDouRaceTrackST2: Total component Coupled racetrack cavity use CoupledRaceTrack
+@gf.cell
+def TCCoupleDouRaceTrackST2(
+        r_ring: float = 120,
+        r_euler_min: float = 100,
+        width_ring: float = 1,
+        width_near: float = 2,
+        width_heat: float = 5,
+        width_single: float = 1,
+        width_total: float = 5000,
+        gap_rc: float = 1,
+        angle_rc: float = 20,
+        gap_rr: float = 1,
+        gap_heat: float = 1,
+        delta_heat: float = 1,
+        delta_run: float = 1,
+        length_rr: float = 30,
+        length_rc: float = 10,
+        length_taper: float = 150,
+        length_total: float = 10000,
+        length_run: float = 400,
+        length_taper2ring: float = 600,
+        pos_ring= [500,2000],
+        tin: Component = taper_in,
+        tout: Component = taper_out,
+        is_heat: bool = True,
+        type_heater: str = "default",  # 控制加热器类型
+        type_couple: str = "P",
+        oplayer: LayerSpec = LAYER.WG,
+        heatlayer: LayerSpec = LAYER.M1,
+        position_taper: str = ["before_bend","before_bend"],  # 控制锥形波导的位置
+) -> Component:
+    """
+    创建一个环形波导组件，支持通过 position_taper 参数控制锥形波导的位置，并通过 type_heater 参数控制加热器类型。
+    为了方便放置中间耦合腔的结构，
+    参数：
+        r_ring: 环形波导的半径（单位：um）。
+        r_euler_min: 欧拉弯曲的半径（单位：um）。
+        width_ring: 环形波导的宽度（单位：um）。
+        width_near: 耦合波导的宽度（单位：um）。
+        width_heat: 加热器的宽度（单位：um）。
+        width_single: 输入输出波导的宽度（单位：um）。
+        angle_rc: 耦合角度（单位：度）。
+        length_taper: 锥形波导的长度（单位：um）。
+        length_total: 总长度（单位：um）。
+        length_th_horizontal: 水平直波导的长度（单位：um）。
+        length_th_vertical: 垂直直波导的长度（单位：um）。
+        pos_ring: 环形波导的位置（单位：um）。
+        gap_rc: 耦合波导与环形波导的间距（单位：um）。
+        gap_heat: 加热器与波导的间距（单位：um）。
+        tin: 输入锥形波导组件。
+        tout: 输出锥形波导组件。
+        is_heat: 是否添加加热器。
+        is_ad: 是否添加 Add/Drop 端口。
+        oplayer: 光学层定义。
+        heatlayer: 加热层定义。
+        position_taper: 锥形波导的位置，支持 "before_bend"（默认）、"after_bend"、"between_bend"、"no_bend"。
+        type_heater: 加热器类型，支持 "default"（默认）、"side"（侧边加热）、"bothside"（两侧加热）。
 
+    返回：
+        Component: 生成的环形波导组件。
+
+    端口：
+        input: 输入端口。
+        output: 输出端口。
+        RingC: 环形波导的中心端口。
+        RingInput: 环形波导的输入端口。
+        RingL: 环形波导的左侧端口。
+        RingR: 环形波导的右侧端口。
+    """
+    sr = gf.Component()
+    ring = gf.Component()
+    if type_couple == "s" or type_couple == "S":
+        width_near = width_ring
+    S_single = gf.Section(width=width_single, layer=oplayer, port_names=('o1', 'o2'))
+    X_single = gf.CrossSection(sections=(S_single,),radius_min=r_euler_min,radius=r_ring)
+    S_ring = gf.Section(width=width_near, layer=oplayer, port_names=('o1', 'o2'))
+    X_ring = gf.CrossSection(sections=(S_ring,),radius_min=r_euler_min,radius=r_ring-10)
+    ring0 = ring << CoupleDouRaceTrack(
+        RadiusRing=r_ring, WidthRing=width_ring,WidthNear=width_near,AngleCouple=angle_rc,
+        GapCoupleOut=gap_rc,GapCoupleIn=gap_rr,
+        LengthRun=length_run,LengthCoupleIn=length_rr,LengthCoupleOut=length_rc,DeltaRun=delta_run,
+        DeltaHeat=delta_heat,WidthHeat=width_heat, GapHeat=gap_heat,
+        TypeHeater=type_heater,TypeCouple=type_couple,
+        IsHeat=is_heat, oplayer=oplayer, heatlayer=heatlayer, DirectionsHeater=['down', 'down']
+    )
+
+    # ring0.mirror_y(ring0.ports["R1Input"].center[1])
+    # R1 input R2 through
+    taper_s2n1 = ring << gf.c.taper(width1=width_single, width2=width_near, length=length_taper, layer=oplayer)
+    ring0.connect("R1Input", taper_s2n1.ports["o2"])
+    ring0.movex(length_taper2ring)
+    taper_s2n2 = ring << gf.c.taper(width1=width_single, width2=width_near, length=length_taper, layer=oplayer)
+    taper_s2n2.movey(-20)
+    # R2 input R1 through
+    taper_s2n3 = ring << gf.c.taper(width1=width_near, width2=width_single, length=length_taper, layer=oplayer)
+    taper_s2n4 = ring << gf.c.taper(width1=width_near, width2=width_single, length=length_taper, layer=oplayer)
+    taper_s2n3.connect("o1", ring0.ports["R2Input"])
+    taper_s2n3.movex(length_taper2ring)
+    taper_s2n4.move(taper_s2n3.ports["o1"].center).movey(20)
+    # route: R1 R2 to raper
+    gf.routing.route_single(ring,taper_s2n1.ports["o2"],ring0.ports["R1Input"],cross_section=X_ring)
+    gf.routing.route_single(ring, taper_s2n2.ports["o2"], ring0.ports["R2Through"], cross_section=X_ring)
+    gf.routing.route_single(ring, taper_s2n3.ports["o1"], ring0.ports["R2Input"], cross_section=X_ring)
+    gf.routing.route_single(ring, taper_s2n4.ports["o1"], ring0.ports["R1Through"], cross_section=X_ring)
+    # ## add drop bend out
+    ring.add_port("o1", port=taper_s2n1.ports["o1"])
+    ring.add_port("o2", port=taper_s2n2.ports["o1"])
+    ring.add_port("o3", port=taper_s2n3.ports["o2"])
+    ring.add_port("o4", port=taper_s2n4.ports["o2"])
+    ring.add_port("RingInput", port=ring0.ports["R1Input"])
+    # # ring.add_port("Ring1C", port=ring0.ports["Ring1C"])
+    # # ring.add_port("Ring2C", port=ring0.ports["Ring2C"])
+    for port in ring0.ports:
+        if "R1" in port.name:
+            ring.add_port("R1"+port.name, port=port)
+        if "R2" in port.name:
+            ring.add_port("R2"+port.name, port=port)
+    # # add_labels_to_ports(ring,(412,8))
+    CCRing = sr << ring
+    CCRing.move((pos_ring[0],-pos_ring[1]))
+    ## input
+    tinring = sr << tin
+    tinring.rotate(-90)
+    # tinring.movey(tinring.ports["o2"].center[1]-tinring.ports["o1"].center[1])
+    sr.add_port("input", port=tinring.ports["o1"])
+    ## add
+    tadring = sr << tin
+    tadring.connect("o1",tinring.ports["o1"])
+    tadring.rotate(180,tadring.ports["o1"].center).movex(-20)
+    # tadring.connect('o2', CCRing.ports['o4'])
+    # tadring.movex(tinring.ports['o1'].center[0] - tadring.ports['o1'].center[0])
+    sr.add_port("add", port=tadring.ports["o1"])
+    ## output
+    toutring = sr << tout
+    toutring.connect("o1",tinring.ports["o2"])
+    toutring.movex(width_total - toutring.ports["o2"].center[0])
+    toutring.movey(-length_total -toutring.ports["o2"].center[1])
+    sr.add_port("output", port=toutring.ports["o2"])
+    ## drop
+    tdpring = sr << tout
+    tdpring.connect("o2",toutring.ports["o2"])
+    tdpring.rotate(180,tdpring.ports["o2"].center).movex(-20)
+    # bend_s_dp = sr << gf.c.bend_s(cross_section=X_single, size=[10, 0])
+    # bend_s_dp.connect("o1", other=CCRing.ports["o3"])
+    sr.add_port("drop", port=tdpring.ports["o2"])
+    ## route
+    gf.routing.route_bundle(sr,
+        [ CCRing.ports["o1"], CCRing.ports["o2"]],
+        [ tinring.ports["o2"], tadring.ports['o2']],
+        layer=oplayer, route_width=width_single, radius=r_euler_min)
+    gf.routing.route_bundle(sr,
+        [ CCRing.ports["o4"], CCRing.ports["o3"]],
+        [ toutring.ports["o1"], tdpring.ports['o1']],
+        layer=oplayer, route_width=width_single, radius=r_euler_min)
+    # snap_all_polygons_iteratively(sr)
+    for port in CCRing.ports:
+        sr.add_port(port.name, port=port)
+    add_labels_to_ports(sr, (512, 8))
+    return sr
 __all__ = ['TCRingBoomerangT1', 'TCRingDouBoomerangT1', 'TCRingTriBoomerangT1', 'TCCoupleDouRingT1',
-           'TCCoupleDouRaceTrackT1']
+           'TCCoupleDouRaceTrackST1','TCCoupleDouRaceTrackST2']
