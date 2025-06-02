@@ -18,7 +18,7 @@
     - `Crossing_taper`：创建一个带有锥形过渡的交叉波导组件。
     - `OffsetRamp`：创建一个具有偏移的斜坡组件。
     - `TWQRcode`：创建一个包含二维码的组件，用于标记或识别。
-    - `cir2end`：创建一个从圆形到端部的过渡组件。
+    - `cir2end`：创建一个从圆形到端部的过渡组件，通常用于构建螺旋结构。
 
 - **组件操作函数**
     - `remove_layer`：从组件中删除指定层的所有多边形。
@@ -41,16 +41,22 @@
 
 - **MZI结构创建**
     - `PMZI`：创建一个Pulley耦合的MZI结构，包含输入、输出端口和可选的加热器。
+    - `DMZI`：创建一个基于直波导定向耦合器的MZI结构，可配置臂长、耦合长度及可选加热器。
+    - `PMZIHSn`：`PMZI` 的一个变种，特指使用蛇形加热器（snake heater）。
+    - `SagnacRing`：创建一个Sagnac环形干涉仪/反射镜结构，使用 `PulleyCoupler2X2` 作为核心耦合元件。
 
 ### 3. `Boomerang.py`
-此文件用于创建一个环形三角回旋镖（Ring Tri Boomerang）结构，该结构由多个回旋镖组件组成。
+此文件用于创建基于“回旋镖”形状的复杂谐振器组件。
 
 #### 主要功能
-- **环形三角回旋镖结构创建**
-    - `RingTriBoomerang`：创建一个环形三角回旋镖结构，包含输入、输出端口和可选的加热器。该结构由三个回旋镖组件连接而成，并添加了输入、直通、添加和下降端口。
-    - 
-### `4. DBR.py`
+- **回旋镖组件创建**
+    - `Boomerang`：定义核心的回旋镖单元，包含内外环臂、桥接波导和锥形过渡，支持内外臂独立加热。
+- **环形回旋镖结构创建**
+    - `RingBoomerang`：创建一个单回旋镖环形谐振器，具有输入、直通、添加和下降端口。
+    - `RingDouBoomerang`：创建一个由两个回旋镖组件串联或并联构成的双环谐振器结构。
+    - `RingTriBoomerang`：创建一个由三个回旋镖组件构成的环形三角回旋镖结构，并添加了相应的输入、直通、添加和下降端口。
 
+### 4. `DBR.py`
 此文件用于创建分布式布拉格反射器（DBR）结构，支持通过固定参数或从 CSV 文件读取参数来生成 DBR 组件，并且可以选择是否添加加热器。
 
 #### 主要功能
@@ -58,8 +64,8 @@
     - `DBR`：根据给定的波导宽度、长度、周期数等参数创建一个分布式布拉格反射器，支持渐变长度模式和固定长度模式，可选择是否添加加热器。
     - `DBRFromCsv`：从 CSV 文件中读取波导的宽度和长度信息，创建分布式布拉格反射器，同样可选择是否添加加热器。
     - `DBRFromCsvOffset`：在从 CSV 文件读取参数的基础上，对波导宽度进行偏移处理，再创建分布式布拉格反射器，也可选择是否添加加热器。
-### `5. ELE.py`
 
+### 5. `ELE.py`
 此文件用于创建多种电极相关的组件，包括开放焊盘、偏移斜坡和GSG电极，支持不同的参数配置以满足多样化的设计需求。
 
 #### 主要功能
@@ -72,8 +78,7 @@
 - **GSG电极创建**
     - `GSGELE`：创建一个GSG电极组件，支持焊盘和双焊盘配置。可指定G电极和S电极的宽度、G电极与S电极之间的间距、电极的长度，还能选择是否添加焊盘或双焊盘，以及设置焊盘的相关参数（如间距、宽度、外围电极层间距等）和层定义。组件具有多个端口，包括输入输出端口和G、S电极的输入输出端口。
 
-### `6. ExtCav.py`
-
+### 6. `ExtCav.py`
 此文件用于创建不同类型的外部腔（External Cavity）结构，主要应用于光学器件设计，提供了多种经过验证的设计方案，可根据不同的需求和材料（如 SOI、SiN 等）进行选择，同时支持对结构的多个参数进行灵活配置。
 
 #### 主要功能
@@ -84,15 +89,18 @@
     - `ExternalCavitySiNH2_1`：与 `ExternalCavitySiNH2` 类似，也是针对 SiN 材料加加热器的设计，但环与环之间采用弯曲连接方式，可根据实际需求调整相关参数。
     - `ExternalCavity2`：创建一个三环外部腔激光器（tri ring ecl）结构。该结构具有特定的角度和长度参数设置，可用于特定的光学应用场景。
     - `ExternalCavity3`：一种风险设计的外部腔结构，在参数设置上与其他结构有所不同，如路由层的选择等，可用于探索新的设计可能性。
+    - `ExternalCavitryRaceTrack`：创建一个基于跑道型谐振器的外部腔结构，可配置多种参数，如环半径、MZI参数、耦合器类型等，并支持加热器集成。
 
-# 代码库说明文档
+### 7. `Heater.py`
+该文件实现了不同类型的加热器组件，包括蛇形加热器、多种不同布局的加热器，以及通孔阵列的生成。
 
-## 概述
-本代码库包含多个文件，主要用于创建光子集成领域的各种组件，如单环隔离器、加热器、特定结构的反射器以及分布式布拉格反射器（DBR）等。每个文件实现了不同的功能，下面将对每个文件进行详细介绍。
+#### 主要功能
+- **加热器创建**
+    - `SnakeHeater`：创建蛇形加热器，可通过设置加热器宽度、波导宽度、间隙等参数进行定制。
+    - `DifferentHeater`：根据不同的 `TypeHeater` 参数，创建不同类型的加热器，如默认加热器、蛇形加热器、侧边加热器、两侧边加热器和分割型加热器（spilt-type）等。
+    - `ViaArray`：在给定组件内部高效生成通孔阵列，可设置通孔宽度、间距、包围距离等参数。
 
-## 文件功能介绍
-
-### `7. Isolator.py`
+### 8. `Isolator.py`
 此文件用于创建单环隔离器相关的组件，包含三种不同类型的单环隔离器和一个环与隔离器的组合结构。
 
 #### 主要功能
@@ -101,174 +109,155 @@
     - `SingleRingIsolator1`：在 `SingleRingIsolator0` 的基础上增加了监测功能，同样可以通过多个参数进行结构定制。
     - `RingAndIsolator0`：创建一个环与单环隔离器的组合结构，用于梳状滤波器和 ADD - DROP 环的组合，支持参数化定制。
 
-### `8. Heater.py`
-该文件实现了不同类型的加热器组件，包括蛇形加热器、多种不同布局的加热器，以及通孔阵列的生成。
-
-#### 主要功能
-- **加热器创建**
-    - `SnakeHeater`：创建蛇形加热器，可通过设置加热器宽度、波导宽度、间隙等参数进行定制。
-    - `DifferentHeater`：根据不同的 `TypeHeater` 参数，创建不同类型的加热器，如默认加热器、蛇形加热器、侧边加热器、两侧边加热器和分割加热器等。
-    - `ViaArray`：在给定组件内部高效生成通孔阵列，可设置通孔宽度、间距、包围距离等参数。
-
-### `9. memyshev.py`
+### 9. `memyshev.py`
 此文件实现了一种特定的反射器结构，即双环 Memyshev 反射器。
 
 #### 主要功能
 - **双环 Memyshev 反射器创建**
-    - `DoubleRingMemyshev`：创建一个双环 Memyshev 反射器，通过设置环的半径、宽度、耦合角度、加热器参数等，实现结构的定制。
+    - `DoubleRingMemyshev`：创建一个双环 Memyshev 反射器，通常用于构建 Memyshev 激光器腔。该结构包含两个环形谐振器（基于`RingPulleyT1`）和两个Sagnac环反射镜（基于`SagnacRing`），通过一个1x2 MMI或自定义耦合器连接。可通过设置环的半径、宽度、耦合角度、加热器参数等，实现结构的定制。
 
-### `10. MultiRing.py`
-
+### 10. `MultiRing.py`
 此文件用于创建多种复杂的多环形谐振器结构，支持加热电极、不同连接方式及耦合配置，适用于光子集成电路中的滤波、传感等应用。
 
----
-
 #### 主要功能
-
 ##### 10.1. **双环形谐振器结构**
-- **`DoubleRingPulley`**  
-  创建双环形谐振器组件，支持直连或弯曲连接方式，可选蛇形/侧边加热器。  
-  **关键参数**：  
+- **`DoubleRingPulley`** 创建双环形谐振器组件，由两个 `RingPulleyT1` 构成，支持直连或弯曲连接方式 (`TypeR2R`)，可选多种加热器类型及配置 (`TypeHeater`, `DirectionsHeater`)。
+  **关键参数**：
   - `WidthRing`: 环形波导宽度（μm）
   - `LengthR2R`: 环间连接长度（μm）
-  - `TypeHeater`: 加热器类型（`"default"`, `"snake"`）
-  - `IsHeat`: 是否包含加热电极  
-  **端口**：`o1`（输入）, `R1A`（Add端口）, `R1HeatIn`（加热输入）等。
+  - `DeltaRadius`: 两个环的半径差（μm）
+  - `TypeHeater`: 加热器类型（`"default"`, `"snake"`, `"side"`, `"bothside"`）
+  - `IsHeat`: 是否包含加热电极
+  **端口**：`o1`（输入）, `o2`（第二环输入）, `R1Add`（Add端口）, `R1HeatIn`（加热输入）等。
 
-- **`DoubleRingPulley2HSn`**  
-  带蛇形加热器的双环形谐振器，继承自`DoubleRingPulley`，专为高效热调谐设计。
+- **`DoubleRingPulley2HSn`** 带蛇形加热器的双环形谐振器，是 `DoubleRingPulley` 的一个特例，固定 `TypeHeater="snake"`。
 
-- **`DoubleRingPulley2_1HSn`**  
-  环形间采用圆形弯曲连接的双环形结构，集成蛇形加热器，适用于紧凑布局。
+- **`DoubleRingPulley2_1HSn`** 环形间采用圆形弯曲连接（`TypeR2R="bend"`）的双环形结构，集成蛇形加热器 (`TypeHeater="snake"`)。
 
 ##### 10.2. **三环形谐振器与交叉波导**
-- **`ADRAPRADR`**  
-  创建包含三个环形谐振器和交叉波导的复杂结构，支持方形布局和加热配置。  
-  **关键参数**：  
+- **`ADRAPRADR`** 创建包含三个环形谐振器（两个 `RingPulley` 带Add-Drop，一个 `RingPulley2` 全通）和可选交叉波导的复杂结构。
+  **关键参数**：
   - `RadiusCrossBend`: 交叉波导弯曲半径（μm）
-  - `IsSquare`: 是否使用方形布局  
-  **端口**：`r1Th`（Through端口）, `co2`（交叉输出）等。
+  - `IsSquare`: 是否使用方形布局（当提供`CrossComp`时）
+  **端口**：`r1Th`（Through端口）, `co2`（交叉输出, if `IsSquare` and `CrossComp`）等。
 
-##### 10.3. **双跑道形谐振器**
-- **`DoubleRaceTrackPulley`**  
-  创建双跑道形谐振器，支持同侧/异侧连接，适用于长距离耦合场景。  
-  **关键参数**：  
-  - `LengthRun`: 直线部分长度（μm）
-  - `IsSameSide`: 是否同侧连接  
+##### 10.3. **耦合腔结构**
+- **`CoupleRingDRT1`** 支持不同尺寸和参数的两个 `RingPulleyT1` 进行特定方式耦合（第二个环的波导部分由基本ring创建，加热器部分从`RingPulleyT1`提取并放置）。适用于高精度传感。
+  **关键参数**：
+  - `GapRR`: 环间垂直间隙（μm）
+  - `AngleR12`: 第二个环相对于第一个环的旋转角度
+  - `TypeHeaterR1/R2`: 各环加热器类型
 
-##### 10.4. **耦合腔结构**
-- **`CoupleRingDRT1`**  
-  支持不同尺寸环形谐振器的耦合，可配置独立加热电极，适用于高精度传感。  
-  **关键参数**：  
-  - `GapRR`: 环间间隙（μm）
-  - `TypeHeaterR1/R2`: 各环加热器类型  
-
----
-
-### `11. RaceTrack.py`
-
+### 11. `RaceTrack.py`
 此文件用于创建跑道形谐振器及其变体，支持锥形耦合、加热电极集成及热隔离刻蚀层。
 
----
-
 #### 主要功能
-
 ##### 11.1. **基础跑道形谐振器**
-- **`RaceTrackPulley`**  
-  标准跑道形谐振器，支持输入/输出端口和Add-Drop端口。  
-  **关键参数**：  
+- **`RaceTrackP`** (`RaceTrackPulley` in README)
+  标准跑道形谐振器，采用Pulley型耦合器，支持输入/输出端口和Add-Drop端口。
+  **关键参数**：
   - `LengthRun`: 直线部分长度（μm）
   - `AngleCouple`: 耦合角度（°）
 
+- **`RaceTrackS`** (`RaceTrackPulley2HS` in README potentially refers to this with heater)
+  跑道形谐振器，采用直线型耦合段，支持Add-Drop端口及多种加热器类型（包括通过`GSGELE`实现的电极）。
+  **关键参数**：
+  - `LengthRun`: 直线部分长度（μm）
+  - `LengthCouple`: 耦合部分长度（μm）
+  - `TypeHeater`: 加热器类型 (`"default"`, `"snake"`, `"side"`, `"bothside"`, `"center"`, `"ELE"`)
+
 ##### 11.2. **高级跑道形结构**
-- **`TaperRaceTrackPulley`**  
-  带锥形耦合的跑道形谐振器，优化模式匹配，减少插入损耗。  
-  **关键参数**：  
-  - `LengthTaper`: 锥形部分长度（μm）
+- **`TaperRaceTrackPulley`**
+  带锥形耦合的跑道形谐振器，跑道本身的直线段也是锥形的，优化模式匹配，减少插入损耗。
+  **关键参数**：
+  - `LengthTaper`: 跑道直段的锥形部分长度（μm）
+  - `WidthRun`: 跑道直段较宽处的宽度（μm）
 
-- **`RaceTrackPulley2HS`**  
-  集成加热电极的跑道形结构，支持蛇形/侧边加热器，适用于热光调制。  
-  **关键参数**：  
-  - `WidthHeat`: 加热电极宽度（μm）
-  - `DeltaHeat`: 加热电极偏移量（μm）
+- **`RaceTrackStrHC`**
+  一个内部辅助函数，被 `RaceTrackS` 调用，用于创建中心对称的复杂加热器结构，通过布尔运算实现。
 
----
-
-### `12.Ring.py`
-
+### 12. `Ring.py`
 此文件提供多种环形谐振器设计，涵盖不同耦合类型、加热配置及电子线路集成。
 
----
-
 #### 主要功能
-
-##### 12.1. **通用环形谐振器**
-- **`RingPulleyT1`**  
-  支持默认/蛇形/双侧加热器，可调耦合间隙与角度，适用于通用滤波场景。  
-  **关键参数**：  
-  - `TypeHeater`: 加热器类型（`"default"`, `"snake"`, `"bothside"`）
+##### 12.1. **核心环形谐振器单元**
+- **`RingPulleyT1`** 通用的环形谐振器单元，采用直Pulley型耦合器。支持Add-Drop端口，可配置不同类型加热器 (`TypeHeater`)，并能独立设置主耦合区和Add/Drop区的耦合参数。
+  **关键参数**：
+  - `TypeHeater`: 加热器类型（`"default"`, `"snake"`, `"side"`, `"bothside"`, `"spilt"`）
   - `GapHeat`: 加热电极间隙（μm）
+  - `WidthNear2`, `GapRing2`, `AngleCouple2`: 用于Add/Drop侧的不同耦合参数。
+  - `IsTrench`: 是否添加热隔离沟槽。
 
-##### 12.2. **特殊耦合结构**
-- **`RingPulley1DC`**  
-  上下耦合器参数独立配置的双耦合环形谐振器，支持非对称响应设计。
+- **`RingPulleyT2`**
+  通用的环形谐振器单元，采用弯曲Pulley型耦合器，导致端口呈90度出射。支持加热器配置。
 
-- **`RingFinger`**  
-  山形环形结构，结合弧形与直线波导，适用于高Q值谐振腔。
+##### 12.2. **基于核心单元的封装函数**
+- **`RingPulley`**: `RingPulleyT1` 的简化封装，默认加热类型。
+- **`RingPulley1DC`**: `RingPulleyT1` 的封装，专用于上下耦合器参数独立配置。
+- **`RingPulley1HS`**: `RingPulleyT1` 的封装，专用于侧边加热器 (`TypeHeater="side"`)。
+- **`RingPulley1HSn`**: `RingPulleyT1` 的封装，专用于蛇形加热器 (`TypeHeater="snake"`)。
+- **`RingPulley2`**: `RingPulleyT2` 的简化封装。
+- **`RingPulley2ES`**: `RingPulleyT2` 的封装，专用于双侧电极/加热器 (`TypeHeater="bothside"`)。
 
-##### 12.3. **电子集成环形器**
-- **`RingPulley2ES`**  
-  集成电子线路的环形谐振器，支持电热调谐与信号路由。  
-  **关键参数**：  
-  - `WidthEle`: 电子线路宽度（μm）
+##### 12.3. **特殊耦合与形状结构**
+- **`RingPulley3`**, **`RingPulley4`**: 具有大角度耦合器的环形谐振器，用于特定路由或高密度集成需求。
+- **`RingFinger`**: 山形或指状的环形谐振器，具有非传统的环路形状。
 
-##### 12.4. **加热器模块**
-- **`DifferentHeater_local`**  
-  为环形谐振器提供多种加热电极设计，包括蛇形、双侧和分裂式加热器。
-### `TCCoupledCavity.py`
+##### 12.4. **加热器模块 (内部辅助)**
+- **`DifferentHeater_local`** 一个内部辅助函数，用于在`RingPulleyT1`和`RingPulleyT2`等组件内部创建和放置各种类型的加热器。
 
-此文件用于创建耦合环形谐振腔结构，支持多种环形拓扑（如单环、双环、三环）和加热器配置，提供灵活的几何参数控制。
-
-#### 主要功能
-- **多环耦合腔体结构**
-  - `TCRingBoomerangT1`：创建单环形谐振腔，支持输入/输出锥形波导、加热器及多端口配置，可控制耦合间距和加热器类型。
-  - `TCRingDouBoomerangT1`：创建双环形耦合谐振腔，支持更复杂的耦合路径和垂直/水平布局参数调整。
-  - `TCRingTriBoomerangT1`：创建三环形级联谐振腔，支持多段耦合桥和分层加热器设计。
-  - `TCCoupleRingDRT1`：双环直接耦合结构，支持独立控制两个环的半径、宽度和加热器参数。
-
----
-
-### `13. TCRaceTrack.py`
-
-此文件用于设计跑道型（RaceTrack）谐振腔及其变体，支持直线耦合段、加热器集成和多种输入/输出路径配置。
+### 13. `SnapMerge.py`
+此文件提供了对 `gdsfactory` 组件进行几何体优化和修正的关键工具函数，主要用于确保设计符合制造要求（DRC clean）和提高GDS文件的健壮性。
 
 #### 主要功能
-- **跑道型谐振腔**
-  - `TCRaceTrack`：基础跑道型谐振腔，支持欧拉弯曲耦合和锥形波导过渡。
-  - `TCRaceTrack2_1`/`TCRaceTrack2_2`/`TCRaceTrack2_3`：不同耦合方向的变体（水平/垂直/混合），支持长直波导段和紧凑布局。
-  - `TCTaperRaceTrack`：带锥形耦合段的跑道型结构，优化模式匹配和插入损耗。
-  - `TCRaceTrack2_3h`：集成蛇形加热器的跑道型谐振腔，支持热调谐和层间路由。
+- **顶点对齐 (Snapping)**
+    - `snap_polygon_vertices`: 将单个多边形的顶点精确对齐到预设的制造网格上。
+    - `snap_all_polygons_iteratively`: 核心处理函数。首先扁平化输入组件以访问所有几何图形，然后对每个图层上的多边形执行“膨胀-合并-腐蚀”操作（通过先放大微小量，合并重叠区域，再缩小相同量）以修复微小的间隙或重叠，并简化复杂的图形。最后，将所有处理过的多边形顶点以及组件的端口（ports）和标签（labels）位置对齐到指定的制造网格。
 
----
+- **多边形合并 (Merging)**
+    - `merge_polygons_in_each_layer`: 在组件的每一个图层上，将所有相交或接触的多边形合并成尽可能少的、更大的多边形。这通过对同一图层上的所有形状执行布尔“OR”运算来实现，有助于简化GDSII文件并可能改善某些制造过程的性能。
 
-### `14. TCRing.py`
-
-此文件提供通用环形谐振腔组件库，涵盖多种耦合方式（角度/长度/方向）、加热器类型和端口配置。
+### 14. `TCCoupledCavity.py`
+此文件用于创建完整的、通常带有输入输出结构的耦合环形谐振腔组件，支持多种环形拓扑（如基于Boomerang的单环、双环、三环谐振器）和加热器配置，提供灵活的几何参数控制。这些组件通常代表了一个完整功能模块。
 
 #### 主要功能
-- **基础环形谐振腔**
-  - `TCRing`：标准环形谐振腔，支持欧拉弯曲耦合、加热器和Add/Drop端口。
-  - `TCRing1_2`：支持四端口配置（Input/Through/Add/Drop），适用于滤波器设计。
-  - `TCRing1_3`：简化版单输入/输出环形结构，无加热器，适合低损耗场景。
-  
-- **高级功能扩展**
-  - `TCRing1_3hs`：侧边加热器版本，支持热调谐和独立电极层。
-  - `TCRingDCouple`：直接耦合环形结构，内置耦合段加热器和路由优化。
-  - `TCRingT1`/`TCRingT2`：支持锥形波导位置动态调整（弯曲前/后/中间），适配复杂布局。
+- **完整多环耦合腔体结构**
+  - `TCRingBoomerangT1`：基于 `RingBoomerang` 创建单环形谐振腔，集成输入/输出锥形波导、加热器及多端口配置，可控制耦合间距和加热器类型。
+  - `TCRingDouBoomerangT1`：基于 `RingDouBoomerang` 创建双环形耦合谐振腔，支持更复杂的耦合路径和垂直/水平布局参数调整。
+  - `TCRingTriBoomerangT1`：基于 `RingTriBoomerang` 创建三环形级联谐振腔，支持多段耦合桥和分层加热器设计。
+  - `TCCoupleDouRingT1`：基于 `CoupleRingDRT1` 创建双环直接耦合结构，支持独立控制两个环的半径、宽度和加热器参数，并进行整体路由。
+  - `TCCoupleDouRaceTrackT1`：旨在为耦合双跑道谐振器提供完整布线（注意：其内部实现可能需要核对是否正确调用了跑道谐振器而非环形谐振器）。
 
-- **特殊拓扑结构**
-  - `TCFingerRing1`：手指型耦合环形腔，支持大角度耦合和紧凑连接。
-  - `TCRing3`/`TCRing4`：超大角度耦合结构（>90°或>180°），适用于高密度集成。
+### 15. `TCRaceTrack.py`
+此文件用于设计完整的、带有标准输入输出结构的跑道型（RaceTrack）谐振腔及其变体，支持直线耦合段、加热器集成和多种输入/输出路径配置。
+
+#### 主要功能
+- **完整跑道型谐振腔**
+  - `TCRaceTrackP`：基于 `RaceTrackP` (Pulley耦合跑道谐振器) 创建完整组件，集成输入/输出光栅或锥形波导，并完成端口路由。
+  - `TCRaceTrackS`, `TCRaceTrackS2`, `TCRaceTrackS3`：基于 `RaceTrackS` (直线耦合跑道谐振器) 创建完整组件，提供不同耦合方向和布局的变体，并完成端口路由。
+  - `TCRaceTrackS3h`：`TCRaceTrackS3` 的带加热器版本，并暴露加热器端口。
+  - `TCTaperRaceTrackP`：基于 `TaperRaceTrackPulley` (直段锥形、Pulley耦合跑道谐振器) 创建完整组件。
+  - `TCTaperRaceTrackS`：基于锥形耦合段的跑道型结构，但采用直线耦合，并完成端口路由。
+
+### 16. `TCRing.py`
+此文件提供通用的、完整的环形谐振腔组件库，涵盖多种耦合方式（角度/长度/方向）、加热器类型和端口配置，并包含标准化的输入输出结构。
+
+#### 主要功能
+- **基础完整环形谐振腔**
+  - `TCRingT1`：基于 `RingPulleyT1` 的核心函数，提供灵活的输入/输出路由选项，包括锥形波导在Through路径上的不同放置策略 (`position_taper`)。
+  - `TCRingT2`：基于 `RingPulleyT2` 的核心函数，同样提供灵活的路由选项。
+  - `TCRing`：`TCRingT1` 的简化封装。
+  - `TCRing1AD`：基于 `RingPulley` 创建带Add/Drop端口的完整环形滤波器结构。
+  - `TCRing1_3`：`TCRingT1` 的简化版本，无加热器和特定输出路由 (不推荐使用)。
+  - `TCRing1DC`：基于 `RingPulley1DC` (不同耦合参数的环) 创建完整组件。
+  - `TCRing2`: `TCRingT2` 的简化封装，无加热器 (不推荐使用)。
+  - `TCRing2ES`: 基于 `RingPulley2ES` (带双侧电极) 创建完整光电组件，分别导出光学部和电学部。
+  - `TCRing2_2`, `TCRing2_3`: `TCRingT2` 的封装，具有特定的 `position_taper` 配置。
+
+- **特殊拓扑结构的完整组件**
+  - `TCRing3`, `TCRing4`：基于 `RingPulley3` 和 `RingPulley4` (大角度耦合器环) 创建完整组件。
+  - `TCFingerRing1`：基于 `RingFinger` (山形环) 创建完整组件。
+  - `TCRingDCouple`：创建一个特殊的双耦合环结构，其中一个标准Add/Drop环的输入和Drop端口通过一个带加热器的波导段相连接，形成一个复合谐振结构。
 
 ---
 ## 使用示例
@@ -276,32 +265,9 @@
 ### 创建直线波导
 ```python
 import gdsfactory as gf
+# 假设 FabBasic_hjh 是代码库的顶层包名
 from FabBasic_hjh.BasicDefine import GfCStraight
 
 # 创建一个长度为20um，宽度为1um的直线波导
 straight_waveguide = GfCStraight(length=20, width=1)
 straight_waveguide.show()  # 显示波导
-```
-
-### 创建Pulley耦合MZI结构
-```python
-from FabBasic_hjh.CouplerMZI import PMZI
-
-# 创建一个Pulley耦合MZI结构
-mzi = PMZI()
-mzi.show()  # 显示MZI结构
-```
-
-### 创建环形三角回旋镖结构
-```python
-from FabBasic_hjh.Boomerang import RingTriBoomerang
-
-# 创建一个环形三角回旋镖结构
-ring_tri_boomerang = RingTriBoomerang()
-ring_tri_boomerang.show()  # 显示环形三角回旋镖结构
-```
-
-## 注意事项
-- 代码中使用了 `gdsfactory` 库，确保在运行代码前已正确安装该库。
-- 部分函数的参数有默认值，但在实际使用中可根据需要进行调整。
-- 代码中的层定义（如 `LAYER.WG`）是基于 `LayerMapUserDef` 类的，可根据实际需求进行修改。
