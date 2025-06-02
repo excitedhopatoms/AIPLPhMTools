@@ -27,14 +27,51 @@ def DoubleRingMemyshev(
         heatlayer: LayerSpec = LAYER.M1,
         trelayer: LayerSpec = LAYER.DT,
 ) -> Component:
-    '''
-    diffenernt:
-        width_ring_PMZI
-        width_near_PMZI
-        width_ring
-        width_near
+    """
+    创建一个双环 Memyshev 型谐振器结构。
+    该结构通常由一个初始耦合器（默认为1x2 MMI）、两个带有独立环谐振器的臂、
+    以及连接到每个环下载端口的反射器（默认为Sagnac环）组成。
+    适用于需要复杂光谱滤波或特定色散特性的应用，如模式选择或脉冲整形。
 
-    '''
+    参数:
+        r_ring (float): 环谐振器的基础半径 (µm)。
+        radius_delta (float): 第二个环相对于第一个环的半径增加值 (µm)。用于失谐。
+        width_ring (float): 环内波导的宽度 (µm)。
+        width_single (float): 连接S弯和外部组件（耦合器、反射器）的单模波导宽度 (µm)。
+        width_near (float): 环的耦合总线部分的波导宽度 (µm)。
+        width_heat (float): 加热条的宽度 (µm)。
+        delta_heat (float): 加热器的几何参数，传递给内部环加热器 (µm)。
+        delta_ring (float): 两个环臂之间的垂直间隔，通过S弯实现 (µm)。
+        angle_rc (float): 环耦合器（RingPulleyT1）的耦合角度 (度)。
+        length_taper (float): 单模波导到耦合总线宽度的锥形渐变长度 (µm)。
+        length_c2r (float): 从主耦合器输出到环谐振器输入耦合点之间的S弯的水平投影长度 (µm)。
+        gap_rc (float): 环与总线之间的耦合间隙 (µm)。
+        gap_heat (float): 波导与加热器之间的间隙 (µm)。
+        type_ringheater (str): 环加热器的类型，传递给 `RingPulleyT1`。
+        comp_coupler (ComponentSpec | None): 可选的自定义初始耦合器（如1x2分束器）。
+                                           如果为 None，则使用默认的 `gf.c.mmi1x2_with_sbend`。
+                                           应具有 "o1" (输入) 和 "o2", "o3" (两个输出) 端口。
+        comp_reflecter (ComponentSpec | None): 可选的自定义反射器组件，连接到环的Drop端口。
+                                             如果为 None，则使用默认的 `SagnacRing`。
+                                             应具有 "o1" (输入) 和 "o2" (反射输出) 端口。
+        oplayer (LayerSpec): 光学波导层。
+        heatlayer (LayerSpec): 加热器层。
+        trelayer (LayerSpec): 深槽刻蚀层 (此函数中未直接使用，但可能由子组件使用或为工艺兼容性保留)。
+
+    返回:
+        Component: 生成的双环Memyshev结构组件。
+
+    端口:
+        o1: 组件的总输入端口（来自初始耦合器的输入）。
+        R1Through: 第一个环的直通端口。
+        R2Through: 第二个环的直通端口。
+        R1Add: 第一个环的增加端口。
+        R2Add: 第二个环的增加端口。
+        Reflect1Out: 第一个反射器的输出端口。
+        Reflect2Out: 第二个反射器的输出端口。
+        R1HeatIn, R1HeatOut: 第一个环加热器的电学端口 (如果RingPulleyT1生成它们)。
+        R2HeatIn, R2HeatOut: 第二个环加热器的电学端口 (如果RingPulleyT1生成它们)。
+    """
     c = gf.Component()
     # section and cross section
     S_near = gf.Section(width=width_near, offset=0, layer=oplayer, port_names=("o1", "o2"))

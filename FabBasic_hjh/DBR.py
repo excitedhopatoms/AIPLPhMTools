@@ -23,27 +23,37 @@ def DBR(
         vialayer: LayerSpec = LAYER.VIA,
 ) -> Component:
     """
-    创建一个分布式布拉格反射器（DBR）。
+    创建一个分布式布拉格反射器（DBR）组件。
+    DBR由两段不同宽度（从而具有不同有效折射率）的波导周期性排列而成。
+    支持固定周期长度和渐变周期长度模式，并可选择添加直线型加热器。
 
-    Args:
-        Width1: 第一部分波导宽度 (µm)
-        Width2: 第二部分波导宽度 (µm)
-        WidthHeat: 加热器宽度 (µm)
-        WidthRoute: 加热器路由宽度 (µm)
-        Length1: 第一部分波导长度 (µm)
-        Length2: 第二部分波导长度 (µm)
-        Length1E: 第一部分波导结束长度 (µm)
-        Length2E: 第二部分波导结束长度 (µm)
-        Period: 周期数
-        IsSG: 是否使用渐变长度
-        IsHeat: 是否包含加热器
-        heatlayer: 加热层
-        layer: 光学层
-        layers: 多层光学层
-        Name: 组件名称
+    参数:
+        Width1 (float): DBR中第一种类型（通常较宽，高有效折射率）波导段的宽度 (单位: µm)。
+        Width2 (float): DBR中第二种类型（通常较窄，低有效折射率）波导段的宽度 (单位: µm)。
+        WidthHeat (float): 如果添加加热器，加热条的宽度 (单位: µm)。
+        WidthRoute (float): 如果添加加热器，加热器引出金属的宽度 (单位: µm)。
+        Length1 (float): 第一种类型波导段的长度 (单位: µm)。在渐变模式下，这是起始长度。
+        Length2 (float): 第二种类型波导段的长度 (单位: µm)。在渐变模式下，这是起始长度。
+        Length1E (float): 在渐变长度模式 (IsSG=True) 下，第一种类型波导段在DBR末端的长度 (单位: µm)。
+        Length2E (float): 在渐变长度模式 (IsSG=True) 下，第二种类型波导段在DBR末端的长度 (单位: µm)。
+        Period (int): DBR的周期数。一个周期包含一个Length1段和一个Length2段。
+        IsSG (bool): 是否启用渐变光栅 (Sampled Grating) 模式。
+                     如果为 True，每个周期中 Length1 和 Length2 会从初始值线性渐变到 Length1E 和 Length2E。
+                     如果为 False，所有周期的 Length1 和 Length2 都固定不变。
+        IsHeat (bool): 是否在DBR上方添加一个简单的直线型加热器。
+        oplayer (LayerSpec): 定义光学波导的GDS图层。
+        heatlayer (LayerSpec): 定义加热器的GDS图层。
+        routelayer (LayerSpec): (当前未直接使用) 定义加热器引出线的GDS图层。
+        vialayer (LayerSpec): (当前未直接使用) 定义过孔的GDS图层。
 
-    Returns:
-        包含 o1, o2 端口的 Component，如果包含加热器则还有 h1, h2 端口
+    返回:
+        Component: 生成的DBR组件。
+
+    端口:
+        o1: DBR的输入光学端口。
+        o2: DBR的输出光学端口。
+        h1: (如果 IsHeat=True) 加热器的第一个电学端口。
+        h2: (如果 IsHeat=True) 加热器的第二个电学端口。
     """
     c = gf.Component()
     if IsSG:
@@ -105,20 +115,30 @@ def DBRFromCsv(
 ) -> Component:
     """
     从 CSV 文件创建分布式布拉格反射器（DBR）。
+    CSV文件的每一行应包含一个DBR周期中两段波导的宽度和长度信息。
+    格式预期为: width0, length0, width1, length1 (其中0代表第一段，1代表第二段)
+    单位在CSV中可能是米(m)，代码中会转换为微米(µm)并进行圆整。
 
-    Args:
-        Width1: 第一部分波导宽度 (µm)
-        Width2: 第二部分波导宽度 (µm)
-        WidthHeat: 加热器宽度 (µm)
-        WidthRoute: 加热器路由宽度 (µm)
-        CSVName: CSV 文件路径
-        IsHeat: 是否包含加热器
-        heatlayer: 加热层
-        oplayer: 光学层
-        Name: 组件名称
+    参数:
+        CSVName (str): CSV文件的完整路径。
+        WidthHeat (float): 如果添加加热器，加热条的宽度 (单位: µm)。
+        WidthRoute (float): 如果添加加热器，加热器引出金属的宽度 (单位: µm)。
+        IsHeat (bool): 是否在DBR上方添加一个简单的直线型加热器。
+        oplayer (LayerSpec): 定义光学波导的GDS图层。
+        heatlayer (LayerSpec): 定义加热器的GDS图层。
 
-    Returns:
-        包含 o1, o2 端口的 Component，如果包含加热器则还有 h1, h2 端口
+    返回:
+        Component: 生成的基于CSV数据的DBR组件。
+
+    端口:
+        o1: DBR的输入光学端口。
+        o2: DBR的输出光学端口。
+        h1: (如果 IsHeat=True) 加热器的第一个电学端口。
+        h2: (如果 IsHeat=True) 加热器的第二个电学端口。
+
+    注意:
+        - CSV文件中的长度和宽度单位需要注意，代码中做了简单的单位转换和圆整处理。
+        - `snap_all_polygons_iteratively` 函数用于后处理，对齐多边形顶点。
     """
     c = gf.Component()
     lengthrows = csv.reader(open(CSVName))
@@ -192,21 +212,23 @@ def DBRFromCsvOffset(
         vialayer: LayerSpec = LAYER.VIA,
 ) -> Component:
     """
-    从 CSV 文件创建分布式布拉格反射器（DBR）。
+    从 CSV 文件创建分布式布拉格反射器（DBR），并对周期中较宽的波导段应用一个宽度偏移 (Offset)。
+    CSV文件的格式和单位转换与 `DBRFromCsv` 函数中的预期相同。
+    偏移量 `Offset` 会加到每周期两段波导中较宽的那一段上。
 
-    Args:
-        Width1: 第一部分波导宽度 (µm)
-        Width2: 第二部分波导宽度 (µm)
-        WidthHeat: 加热器宽度 (µm)
-        WidthRoute: 加热器路由宽度 (µm)
-        CSVName: CSV 文件路径
-        IsHeat: 是否包含加热器
-        heatlayer: 加热层
-        oplayer: 光学层
-        Name: 组件名称
+    参数:
+        CSVName (str): CSV文件的完整路径。
+        WidthHeat (float): 如果添加加热器，加热条的宽度 (单位: µm)。
+        WidthRoute (float): 如果添加加热器，加热器引出金属的宽度 (单位: µm)。
+        Offset (float): 应用于周期中较宽波导段的宽度增加值 (单位: µm)。默认为 0.5 µm。
+        IsHeat (bool): 是否在DBR上方添加一个简单的直线型加热器。
+        oplayer (LayerSpec): 定义光学波导的GDS图层。
+        heatlayer (LayerSpec): 定义加热器的GDS图层。
 
-    Returns:
-        包含 o1, o2 端口的 Component，如果包含加热器则还有 h1, h2 端口
+    返回:
+        Component: 生成的带宽度偏移的DBR组件。
+
+    端口及注意同 `DBRFromCsv`。
     """
     c = gf.Component()
     lengthrows = csv.reader(open(CSVName))

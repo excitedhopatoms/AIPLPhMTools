@@ -59,43 +59,34 @@ def TCRingBoomerangT1(
         vialayer: LayerSpec = LAYER.VIA,
 ) -> Component:
     """
-    创建一个环形波导组件，支持通过 position_taper 参数控制锥形波导的位置，并通过 type_heater 参数控制加热器类型。
-    使用 RingPulleyT1 型的微环结构。
+    创建一个集成了单个 `RingBoomerang` 谐振器的完整组件。
+    该组件包含标准的输入/输出锥形波导（`tin`, `tout`），并将它们连接到
+    `RingBoomerang` 单元的Input/Through及Add/Drop端口。
+    提供了复杂的路由以将所有端口引出到芯片边缘或测试焊盘。
 
-    参数：
-        r_ring: 环形波导的半径（单位：um）。
-        r_euler_min: 欧拉弯曲的半径（单位：um）。
-        width_ring: 环形波导的宽度（单位：um）。
-        width_near: 耦合波导的宽度（单位：um）。
-        width_heat: 加热器的宽度（单位：um）。
-        width_single: 输入输出波导的宽度（单位：um）。
-        angle_rc: 耦合角度（单位：度）。
-        length_taper: 锥形波导的长度（单位：um）。
-        length_total: 总长度（单位：um）。
-        length_th_horizontal: 水平直波导的长度（单位：um）。
-        length_th_vertical: 垂直直波导的长度（单位：um）。
-        pos_ring: 环形波导的位置（单位：um）。
-        gap_rc: 耦合波导与环形波导的间距（单位：um）。
-        gap_heat: 加热器与波导的间距（单位：um）。
-        tin: 输入锥形波导组件。
-        tout: 输出锥形波导组件。
-        is_heat: 是否添加加热器。
-        is_ad: 是否添加 Add/Drop 端口。
-        oplayer: 光学层定义。
-        heatlayer: 加热层定义。
-        position_taper: 锥形波导的位置，支持 "before_bend"（默认）、"after_bend"、"between_bend"、"no_bend"。
-        type_heater: 加热器类型，支持 "default"（默认）、"side"（侧边加热）、"bothside"（两侧加热）。
+    参数:
+        (大部分参数用于配置内部的 `RingBoomerang` 单元及其引出臂的几何形状)
+        r_ring, r_euler_min, r_euler_boom: 各种弯曲半径 (µm)。
+        width_ringin, width_ringout, width_straight, width_heat, width_route, width_single, width_via: 各种宽度 (µm)。
+        length_bridge1, length_bridge2, length_couple, length_taper, length_total, length_th_horizontal, length_th_vertical: 各种长度 (µm)。
+        pos_ring: 核心 `RingBoomerang` 组件的大致X轴放置位置 (µm)。
+        gap_rr, gap_rb, gap_heat: 各种间隙 (µm)。
+        delta_heat, spacing: 加热器相关几何参数 (µm)。
+        tin (ComponentSpec): 输入锥形波导的组件规格。默认为全局定义的 `taper_in`。
+        tout (ComponentSpec): 输出锥形波导的组件规格。默认为全局定义的 `taper_out`。
+        is_heat (bool): 是否为内部的 `RingBoomerang` 添加加热器。
+        oplayer, heatlayer, routelayer, vialayer (LayerSpec): GDS图层定义。
+        type_heater (str): 传递给 `RingBoomerang` 的加热器类型。
 
-    返回：
-        Component: 生成的环形波导组件。
+    返回:
+        Component: 生成的集成单Boomerang环组件。
 
-    端口：
-        input: 输入端口。
-        output: 输出端口。
-        RingC: 环形波导的中心端口。
-        RingInput: 环形波导的输入端口。
-        RingL: 环形波导的左侧端口。
-        RingR: 环形波导的右侧端口。
+    端口:
+        input: 组件的总光学输入端口。
+        through: 组件的总光学直通端口。
+        add: (如果RingBoomerang有Add口并被引出) 组件的增加端口。
+        drop: (如果RingBoomerang有Drop口并被引出) 组件的下载端口。
+        (以及从 `RingBoomerang` 继承的加热器端口和可能的其他参考端口)
     """
     sr = gf.Component()
     ring = gf.Component("Ring")
@@ -226,44 +217,25 @@ def TCRingDouBoomerangT1(
         vialayer: LayerSpec = LAYER.VIA,
 ) -> Component:
     """
-    Total Component
-    创建一个环形波导组件，支持通过 position_taper 参数控制锥形波导的位置，并通过 type_heater 参数控制加热器类型。
-    使用 RingPulleyT1 型的微环结构。
+    创建一个集成了 `RingDouBoomerang` 双回旋镖谐振器的完整组件。
+    包含标准的输入/输出锥形波导，并将它们连接到双回旋镖单元的
+    Input/Through及Add/Drop端口，具有复杂的引出臂路由。
 
-    参数：
-        r_ring: 环形波导的半径（单位：um）。
-        r_euler_min: 欧拉弯曲的半径（单位：um）。
-        width_ring: 环形波导的宽度（单位：um）。
-        width_near: 耦合波导的宽度（单位：um）。
-        width_heat: 加热器的宽度（单位：um）。
-        width_single: 输入输出波导的宽度（单位：um）。
-        angle_rc: 耦合角度（单位：度）。
-        length_taper: 锥形波导的长度（单位：um）。
-        length_total: 总长度（单位：um）。
-        length_th_horizontal: 水平直波导的长度（单位：um）。
-        length_th_vertical: 垂直直波导的长度（单位：um）。
-        pos_ring: 环形波导的位置（单位：um）。
-        gap_rc: 耦合波导与环形波导的间距（单位：um）。
-        gap_heat: 加热器与波导的间距（单位：um）。
-        tin: 输入锥形波导组件。
-        tout: 输出锥形波导组件。
-        is_heat: 是否添加加热器。
-        is_ad: 是否添加 Add/Drop 端口。
-        oplayer: 光学层定义。
-        heatlayer: 加热层定义。
-        position_taper: 锥形波导的位置，支持 "before_bend"（默认）、"after_bend"、"between_bend"、"no_bend"。
-        type_heater: 加热器类型，支持 "default"（默认）、"side"（侧边加热）、"bothside"（两侧加热）。
+    参数:
+        (大部分参数与 TCRingBoomerangT1 类似，用于配置内部的 `RingDouBoomerang` 单元
+         及其引出臂的几何形状)
+        delta_lb2 (float): `RingDouBoomerang` 内部两个Boomerang单元的 `LengthBridge2` 差异 (µm)。
+        length_th_vertical (float): Through端口引出臂的垂直段长度，默认值较大 (780 µm)。
 
-    返回：
-        Component: 生成的环形波导组件。
+    返回:
+        Component: 生成的集成双Boomerang环组件。
 
-    端口：
-        input: 输入端口。
-        output: 输出端口。
-        RingC: 环形波导的中心端口。
-        RingInput: 环形波导的输入端口。
-        RingL: 环形波导的左侧端口。
-        RingR: 环形波导的右侧端口。
+    端口: (与 TCRingBoomerangT1 类似，但基于双Boomerang核心)
+        input, through, add, drop
+        (以及从 `RingDouBoomerang` 继承的加热器和参考端口，如 R1Heat..., R2Heat...)
+
+    信息 (Info):
+        R1length, R2length: (如果RingDouBoomerang提供) 两个Boomerang单元的路径长度。
     """
     sr = gf.Component()
     ring = gf.Component("Ring")
@@ -403,44 +375,26 @@ def TCRingTriBoomerangT1(
         vialayer: LayerSpec = LAYER.VIA,
 ) -> Component:
     """
-    Total Component
-    创建一个环形波导组件，支持通过 position_taper 参数控制锥形波导的位置，并通过 type_heater 参数控制加热器类型。
-    使用 RingPulleyT1 型的微环结构。
+    创建一个集成了 `RingTriBoomerang` 三回旋镖谐振器的完整组件。
+    包含标准的输入/输出锥形波导，并将它们连接到三回旋镖单元的
+    Input/Through及Add/Drop端口，具有复杂的引出臂路由。
 
-    参数：
-        r_ring: 环形波导的半径（单位：um）。
-        r_euler_min: 欧拉弯曲的半径（单位：um）。
-        width_ring: 环形波导的宽度（单位：um）。
-        width_near: 耦合波导的宽度（单位：um）。
-        width_heat: 加热器的宽度（单位：um）。
-        width_single: 输入输出波导的宽度（单位：um）。
-        angle_rc: 耦合角度（单位：度）。
-        length_taper: 锥形波导的长度（单位：um）。
-        length_total: 总长度（单位：um）。
-        length_th_horizontal: 水平直波导的长度（单位：um）。
-        length_th_vertical: 垂直直波导的长度（单位：um）。
-        pos_ring: 环形波导的位置（单位：um）。
-        gap_rc: 耦合波导与环形波导的间距（单位：um）。
-        gap_heat: 加热器与波导的间距（单位：um）。
-        tin: 输入锥形波导组件。
-        tout: 输出锥形波导组件。
-        is_heat: 是否添加加热器。
-        is_ad: 是否添加 Add/Drop 端口。
-        oplayer: 光学层定义。
-        heatlayer: 加热层定义。
-        position_taper: 锥形波导的位置，支持 "before_bend"（默认）、"after_bend"、"between_bend"、"no_bend"。
-        type_heater: 加热器类型，支持 "default"（默认）、"side"（侧边加热）、"bothside"（两侧加热）。
+    参数:
+        (大部分参数与 TCRingDouBoomerangT1 类似，用于配置内部的 `RingTriBoomerang` 单元
+         及其引出臂的几何形状)
+        length_taper (float): 锥形波导长度，默认为200µm。
+        length_total (float): 组件目标总长度，默认为4000µm。
+        pos_ring (float): 核心 `RingTriBoomerang` 组件的大致X轴放置位置，默认为1100µm。
 
-    返回：
-        Component: 生成的环形波导组件。
+    返回:
+        Component: 生成的集成三Boomerang环组件。
 
-    端口：
-        input: 输入端口。
-        output: 输出端口。
-        RingC: 环形波导的中心端口。
-        RingInput: 环形波导的输入端口。
-        RingL: 环形波导的左侧端口。
-        RingR: 环形波导的右侧端口。
+    端口: (与 TCRingDouBoomerangT1 类似，但基于三Boomerang核心)
+        input, through, add, drop
+        (以及从 `RingTriBoomerang` 继承的加热器和参考端口，如 R1Heat..., R2Heat..., R3Heat...)
+
+    信息 (Info):
+        R1length, R2length, R3length: (如果RingTriBoomerang提供) 三个Boomerang单元的路径长度。
     """
     sr = gf.Component()
     ring = gf.Component("Ring")
@@ -586,43 +540,32 @@ def TCCoupleDouRingT1(
 
 ) -> Component:
     """
-    创建一个环形波导组件，支持通过 position_taper 参数控制锥形波导的位置，并通过 type_heater 参数控制加热器类型。
-    使用 RingPulleyT1 型的微环结构。
+    创建一个集成了 `CoupleRingDRT1`（耦合双普通环，T1型）谐振器的完整组件。
+    包含标准的输入/输出锥形波导，并将它们连接到核心双环单元的端口。
+    `position_taper` 参数允许灵活配置Through端口引出臂上锥形波导的位置。
 
-    参数：
-        r_ring: 环形波导的半径（单位：um）。
-        r_euler_min: 欧拉弯曲的半径（单位：um）。
-        width_ring: 环形波导的宽度（单位：um）。
-        width_near: 耦合波导的宽度（单位：um）。
-        width_heat: 加热器的宽度（单位：um）。
-        width_single: 输入输出波导的宽度（单位：um）。
-        angle_rc: 耦合角度（单位：度）。
-        length_taper: 锥形波导的长度（单位：um）。
-        length_total: 总长度（单位：um）。
-        length_th_horizontal: 水平直波导的长度（单位：um）。
-        length_th_vertical: 垂直直波导的长度（单位：um）。
-        pos_ring: 环形波导的位置（单位：um）。
-        gap_rc: 耦合波导与环形波导的间距（单位：um）。
-        gap_heat: 加热器与波导的间距（单位：um）。
-        tin: 输入锥形波导组件。
-        tout: 输出锥形波导组件。
-        is_heat: 是否添加加热器。
-        is_ad: 是否添加 Add/Drop 端口。
-        oplayer: 光学层定义。
-        heatlayer: 加热层定义。
-        position_taper: 锥形波导的位置，支持 "before_bend"（默认）、"after_bend"、"between_bend"、"no_bend"。
-        type_heater: 加热器类型，支持 "default"（默认）、"side"（侧边加热）、"bothside"（两侧加热）。
+    参数:
+        (大部分参数用于配置内部的 `CoupleRingDRT1` 单元及其引出臂的几何形状)
+        r_ring1, width_ring1, ... delta_heat1: 第一个环及其耦合的参数。
+        r_ring2, width_ring2, ... delta_heat2: 第二个环及其耦合的参数 (如果为None，则通常与第一个环对称或相关)。
+        gap_rr, angle_rr: 两个环之间的直接耦合参数。
+        width_single, r_euler_min, length_taper, ...: IO、路由和布局参数。
+        position_taper (str): 控制Through端口引出臂上锥形波导的位置。可选值:
+                              "before_bend" (弯曲前), "after_bend" (弯曲后),
+                              "between_bend" (两段弯曲之间), "no_bend" (无额外弯曲，直接引出)。
+        is_ad (bool): 此总组件是否将 `CoupleRingDRT1` 的Add/Drop端口作为外部端口引出。
+                      `CoupleRingDRT1` 本身可能是四端口的。
 
-    返回：
-        Component: 生成的环形波导组件。
+    返回:
+        Component: 生成的集成耦合双环组件。
 
-    端口：
-        input: 输入端口。
-        output: 输出端口。
-        RingC: 环形波导的中心端口。
-        RingInput: 环形波导的输入端口。
-        RingL: 环形波导的左侧端口。
-        RingR: 环形波导的右侧端口。
+    端口:
+        input: 组件的总光学输入。
+        output: 组件的总光学输出 (通常是Through端口)。
+        add: (如果is_ad=True) 组件的增加端口。
+        drop: (如果is_ad=True) 组件的下载端口。
+        Ring1C, Ring2C: 两个环中心的参考端口。
+        (以及从 `CoupleRingDRT1` 继承的加热器端口)
     """
     sr = gf.Component()
     ring = gf.Component("Ring")
@@ -775,7 +718,7 @@ def TCCoupleDouRingT1(
     return sr
 # TCCoupleDouRaceTrackST1: Total component Coupled racetrack cavity use Coupled RaceTrack
 @gf.cell
-def TCCoupleDouRaceTrackST1(
+def TCCoupleDouRaceTrackT1(
         r_ring: float = 120,
         width_ring: float = 1,
         width_heat: float = 5,
@@ -805,43 +748,26 @@ def TCCoupleDouRaceTrackST1(
         direction_io: str = [""]
 ) -> Component:
     """
-    创建一个环形波导组件，支持通过 position_taper 参数控制锥形波导的位置，并通过 type_heater 参数控制加热器类型。
-    使用 RingPulleyT1 型的微环结构。
+    创建一个集成了 `CoupleDouRaceTrack`（耦合双跑道环）谐振器的完整组件 (ST1型配置)。
+    包含标准的输入/输出锥形波导，并将它们连接到核心双跑道环单元的对应端口。
+    通过 `position_taper` 控制两个Through端口引出臂上锥形波导的位置。
 
-    参数：
-        r_ring: 环形波导的半径（单位：um）。
-        r_euler_min: 欧拉弯曲的半径（单位：um）。
-        width_ring: 环形波导的宽度（单位：um）。
-        width_near: 耦合波导的宽度（单位：um）。
-        width_heat: 加热器的宽度（单位：um）。
-        width_single: 输入输出波导的宽度（单位：um）。
-        angle_rc: 耦合角度（单位：度）。
-        length_taper: 锥形波导的长度（单位：um）。
-        length_total: 总长度（单位：um）。
-        length_th_horizontal: 水平直波导的长度（单位：um）。
-        length_th_vertical: 垂直直波导的长度（单位：um）。
-        pos_ring: 环形波导的位置（单位：um）。
-        gap_rc: 耦合波导与环形波导的间距（单位：um）。
-        gap_heat: 加热器与波导的间距（单位：um）。
-        tin: 输入锥形波导组件。
-        tout: 输出锥形波导组件。
-        is_heat: 是否添加加热器。
-        is_ad: 是否添加 Add/Drop 端口。
-        oplayer: 光学层定义。
-        heatlayer: 加热层定义。
-        position_taper: 锥形波导的位置，支持 "before_bend"（默认）、"after_bend"、"between_bend"、"no_bend"。
-        type_heater: 加热器类型，支持 "default"（默认）、"side"（侧边加热）、"bothside"（两侧加热）。
+    参数:
+        (大部分参数用于配置内部的 `CoupleDouRaceTrack` 单元及其引出臂)
+        r_ring, width_ring, ... delta_run, length_run: 跑道环几何参数。
+        type_couple: 跑道环与外部总线的耦合类型 ('S'或'P')。
+        position_taper (list[str]): 长度为2的列表，分别控制R1Through和R2Through引出臂上
+                                     锥形波导的位置 ("before_bend", "after_bend", etc.)。
 
-    返回：
-        Component: 生成的环形波导组件。
+    返回:
+        Component: 生成的集成耦合双跑道环组件 (ST1型)。
 
-    端口：
-        input: 输入端口。
-        output: 输出端口。
-        RingC: 环形波导的中心端口。
-        RingInput: 环形波导的输入端口。
-        RingL: 环形波导的左侧端口。
-        RingR: 环形波导的右侧端口。
+    端口:
+        input: (连接到R1Input) 总输入。
+        output: (连接到R1Through) 总直通输出。
+        add: (连接到R2Input) 第二个环的输入，作为Add。
+        drop: (连接到R2Through) 第二个环的直通，作为Drop。
+        (以及从 `CoupleDouRaceTrack` 继承的加热器端口)
     """
     sr = gf.Component()
     ring = gf.Component("Ring")
@@ -975,9 +901,9 @@ def TCCoupleDouRaceTrackST1(
     snap_all_polygons_iteratively(sr)
     add_labels_to_ports(sr, (512, 8))
     return sr
-# TCCoupleDouRaceTrackST2: Total component Coupled racetrack cavity use CoupledRaceTrack
+# TCCoupleDouRaceTrackT2: Total component Coupled racetrack cavity use CoupledRaceTrack
 @gf.cell
-def TCCoupleDouRaceTrackST2(
+def TCCoupleDouRaceTrackT2(
         r_ring: float = 120,
         r_euler_min: float = 100,
         width_ring: float = 1,
@@ -1008,42 +934,22 @@ def TCCoupleDouRaceTrackST2(
         position_taper: str = ["before_bend","before_bend"],  # 控制锥形波导的位置
 ) -> Component:
     """
-    创建一个环形波导组件，支持通过 position_taper 参数控制锥形波导的位置，并通过 type_heater 参数控制加热器类型。
-    为了方便放置中间耦合腔的结构，
-    参数：
-        r_ring: 环形波导的半径（单位：um）。
-        r_euler_min: 欧拉弯曲的半径（单位：um）。
-        width_ring: 环形波导的宽度（单位：um）。
-        width_near: 耦合波导的宽度（单位：um）。
-        width_heat: 加热器的宽度（单位：um）。
-        width_single: 输入输出波导的宽度（单位：um）。
-        angle_rc: 耦合角度（单位：度）。
-        length_taper: 锥形波导的长度（单位：um）。
-        length_total: 总长度（单位：um）。
-        length_th_horizontal: 水平直波导的长度（单位：um）。
-        length_th_vertical: 垂直直波导的长度（单位：um）。
-        pos_ring: 环形波导的位置（单位：um）。
-        gap_rc: 耦合波导与环形波导的间距（单位：um）。
-        gap_heat: 加热器与波导的间距（单位：um）。
-        tin: 输入锥形波导组件。
-        tout: 输出锥形波导组件。
-        is_heat: 是否添加加热器。
-        is_ad: 是否添加 Add/Drop 端口。
-        oplayer: 光学层定义。
-        heatlayer: 加热层定义。
-        position_taper: 锥形波导的位置，支持 "before_bend"（默认）、"after_bend"、"between_bend"、"no_bend"。
-        type_heater: 加热器类型，支持 "default"（默认）、"side"（侧边加热）、"bothside"（两侧加热）。
+    创建集成了 `CoupleDouRaceTrack` 的完整组件 (ST2型配置)。
+    此版本具有与ST1不同的输入/输出端口布局和路由策略，
+    通常IO会分布在芯片的不同侧面或位置。
 
-    返回：
-        Component: 生成的环形波导组件。
+    参数:
+        (大部分参数与 TCCoupleDouRaceTrackST1 类似)
+        width_total (float): 芯片的总宽度，用于IO组件的右侧对齐 (µm)。
+        length_taper2ring (float): 从IO taper到核心环器件的连接路径的特定长度 (µm)。
+        pos_ring (list[float]): 核心 `CoupleDouRaceTrack` 组件的中心 (或参考点) 的 [x, y] 坐标 (µm)。
 
-    端口：
-        input: 输入端口。
-        output: 输出端口。
-        RingC: 环形波导的中心端口。
-        RingInput: 环形波导的输入端口。
-        RingL: 环形波导的左侧端口。
-        RingR: 环形波导的右侧端口。
+    返回:
+        Component: 生成的集成耦合双跑道环组件 (ST2型)。
+
+    端口:
+        input, output, add, drop: 组件的四个主要光学IO端口。
+        (以及从 `CoupleDouRaceTrack` 继承的加热器和其他参考端口)
     """
     sr = gf.Component()
     ring = gf.Component()
@@ -1136,4 +1042,4 @@ def TCCoupleDouRaceTrackST2(
     add_labels_to_ports(sr, (512, 8))
     return sr
 __all__ = ['TCRingBoomerangT1', 'TCRingDouBoomerangT1', 'TCRingTriBoomerangT1', 'TCCoupleDouRingT1',
-           'TCCoupleDouRaceTrackST1','TCCoupleDouRaceTrackST2']
+           'TCCoupleDouRaceTrackT1','TCCoupleDouRaceTrackT2']

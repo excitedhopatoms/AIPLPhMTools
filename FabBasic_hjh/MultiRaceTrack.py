@@ -30,48 +30,52 @@ def DoubleRaceTrack(
         vialayer: LayerSpec = LAYER.VIA,
 ) -> Component:
     """
-    创建一个双环形跑道形谐振器组件，支持加热电极和环形波导的连接。
-    双环形谐振器由两个环形波导组成，可以通过参数调整环的尺寸、间距和加热电极的配置。
+    创建一个双跑道环谐振腔组件。
+    该组件由两个可独立调谐（如果`IsHeat`为True）的跑道环谐振器串联而成。
+    支持不同类型的环耦合方式和环间连接方式。
 
-    参数：
-        WidthRing: 环形波导的宽度（单位：um）。
-        WidthNear: 靠近环形波导的波导宽度（单位：um）。
-        WidthHeat: 加热电极的宽度（单位：um）。
-        WidthEnd: 末端波导的宽度（单位：um）。
-        Pitch: 结构的间距（单位：um）。
-        Period: 结构的周期（单位：um）。
-        LengthTaper: 锥形波导的长度（单位：um）。
-        LengthR2R: 环形波导之间的连接长度（单位：um）。
-        RadiusRing: 环形波导的半径（单位：um）。
-        RadiusBend0: 弯曲波导的半径（单位：um）。
-        DeltaRadius: 两个环形波导的半径差（单位：um）。
-        GapCouple: 环形波导之间的间隙（单位：um）。
-        EndPort: 需要连接的端口列表。
-        AngleCouple: 耦合角度（单位：度）。
-        IsHeat: 是否包含加热电极。
-        Name: 组件名称。
-        oplayer: 光学波导层的定义。
-        heatlayer: 加热层的定义。
+    参数:
+        WidthRing (float): 跑道环中波导的宽度 (µm)。
+        WidthNear (float): 当 `TypeCouple` 为 "p" (滑轮耦合) 时，耦合总线的宽度 (µm)。
+        WidthHeat (float): 加热器的宽度 (µm)。
+        LengthCouple (float): 当 `TypeCouple` 为 "s" (直线耦合) 时，直线耦合段的长度 (µm)。
+        LengthRun (float): 第一个跑道环直线部分的长度 (µm)。
+        LengthR2R (float): 两个环之间连接直波导的长度 (µm)，当 `TypeR2R` 为 "straight" 时使用。
+        RadiusR2R (float | None): 两个环之间连接弯曲的半径 (µm)，当 `TypeR2R` 为 "bend" 时使用。
+                                  如果为 None，则基于 `RadiusRing` 计算。
+        RadiusRing (float): 跑道环的弯曲半径 (µm)。
+        GapHeat (float): 波导与加热器之间的间隙 (µm)。
+        GapCouple (float): 环与耦合总线之间的间隙 (µm)。
+        AngleCouple (float): 当 `TypeCouple` 为 "p" 时，滑轮耦合器的耦合角度 (度)。
+        DeltaHeat (float): 加热器的几何调整参数 (µm)，传递给内部环组件。
+        DeltaRun (float): 第二个跑道环的直线段长度相对于第一个环的增量 (µm)。
+                          L_run_ring2 = LengthRun + DeltaRun。
+        IsHeat (bool): 是否为两个环都添加加热器。
+        TypeCouple (str): 环的耦合类型。"p" 代表滑轮耦合 (依赖 `RaceTrackP`)，
+                          "s" 代表直线耦合 (依赖 `RaceTrackS`)。
+        TypeHeater (str): 加热器的类型，传递给内部的跑道环组件。
+        TypeR2R (str): 两个环之间的连接方式。"straight" 使用直波导连接Drop端口，
+                       "bend" 尝试使用弯曲波导连接（当前实现可能不完整或需要调整）。
+        DirectionsHeater (list[str]): 长度为2的列表，分别指定第一个和第二个环加热器的方向/位置
+                                     （例如 ["up", "down"]），具体行为取决于内部环组件的实现。
+        DirectionsRing (list[str]): 长度为2的列表，分别指定第一个和第二个环的几何方向或镜像状态
+                                   （例如 ["up", "down"]），用于调整环的开口或整体朝向。
+        oplayer (LayerSpec): 光学波导层。
+        heatlayer (LayerSpec): 加热器层。
+        routelayer (LayerSpec): 加热器布线层。
+        vialayer (LayerSpec): 过孔层。
 
-    返回：
-        Component: 包含双环形谐振器的组件。
+    返回:
+        Component: 生成的双跑道环谐振腔组件。
 
-    端口：
-        o1: 第一个环形波导的输入端口。
-        o2: 第二个环形波导的输入端口。
-        r2ro1: 环形波导之间的连接端口。
-        r1A: 第一个环形波导的 Add 端口。
-        r1D: 第一个环形波导的 Drop 端口。
-        r1I: 第一个环形波导的 Input 端口。
-        r1T: 第一个环形波导的 Through 端口。
-        r2A: 第二个环形波导的 Add 端口。
-        r2D: 第二个环形波导的 Drop 端口。
-        r2I: 第二个环形波导的 Input 端口。
-        r2T: 第二个环形波导的 Through 端口。
-        R1HeatIn: 第一个环形波导的加热输入端口（如果包含加热电极）。
-        R1HeatOut: 第一个环形波导的加热输出端口（如果包含加热电极）。
-        R2HeatIn: 第二个环形波导的加热输入端口（如果包含加热电极）。
-        R2HeatOut: 第二个环形波导的加热输出端口（如果包含加热电极）。
+    端口:
+        o1: 第一个环的输入端口 (Input)。
+        o2: 第二个环的输入端口 (Input)。
+        R2Ro1: 第一个环的下载端口 (Drop)，作为环间连接的起点。
+        R1Add, R1Drop, R1Input, R1Through: 第一个环的四个标准端口。
+        R2Add, R2Drop, R2Input, R2Through: 第二个环的四个标准端口。
+        (如果 IsHeat=True，还会根据内部环组件的实现，继承并重命名加热器端口，
+         例如 R1HeatIn, R1HeatOut, R2HeatIn, R2HeatOut)
     """
     c = gf.Component()
     if TypeCouple == "p" or TypeCouple == "P":
@@ -191,6 +195,32 @@ def CoupleDouRaceTrack(
         routelayer: LayerSpec = LAYER.M2,
         vialayer: LayerSpec = LAYER.VIA,
 )->Component:
+    """
+    创建一个耦合的双跑道环谐振腔组件。
+    与 `DoubleRaceTrack` 不同，此组件中的两个跑道环是通过它们的一个侧面（例如，直线段）
+    直接耦合（通过 `GapCoupleIn`），而不是通过它们的Add/Drop端口串联。
+    每个环仍然有其自己的外部总线耦合（通过 `GapCoupleOut`）。
+
+    参数:
+        (许多参数与 DoubleRaceTrack 中的类似，用于定义单个跑道环的几何和加热)
+        WidthNear (float): 当 `TypeCouple`='p'时，外部耦合总线的宽度 (µm)。
+        GapCoupleOut (float): 跑道环与外部总线（输入/直通）之间的耦合间隙 (µm)。
+        GapCoupleIn (float): 两个跑道环之间的内部耦合间隙 (µm)。
+        LengthCoupleOut (float): 当 `TypeCouple`='s'时，跑道环与外部总线的直线耦合长度 (µm)。
+        LengthCoupleIn (float): 用于定位两个环的相对位置的参数，可能与内部耦合长度有关 (µm)。
+        AngleCouple (float): 当 `TypeCouple`='p'时，滑轮耦合的角度 (度)。
+        DeltaRun (float): 第二个跑道环直线段长度与第一个的差值 (µm)。
+        DirectionsHeater (list[str]): 两个环加热器的方向/位置。
+        TypeCouple (str): 环与外部总线的耦合类型 ('s'或'p')。环间耦合是侧面耦合。
+
+    返回:
+        Component: 生成的耦合双跑道环谐振腔组件。
+
+    端口:
+        R1Input, R1Through: 第一个环的外部输入和直通端口。
+        R2Input, R2Through: 第二个环的外部输入和直通端口。
+        (如果 IsHeat=True，还会继承并重命名两个环的加热器端口，如 R1HeatIn, R2HeatOut 等)
+    """
     c = gf.Component()
     if TypeCouple == "s" or TypeCouple == "S":
         racetrack1 = c << RaceTrackS(

@@ -14,21 +14,27 @@ def PulleyCoupler2X2(
         oplayer: LayerSpec = LAYER.WG,
 ) -> Component:
     """
-    创建一个 2x2 的pulley 定向耦合器（Direct Coupler）。
+    创建一个 2x2 的 "Pulley" 型定向耦合器。
+    "Pulley" 通常指弯曲的耦合区域，类似于滑轮的形状。
 
-    Args:
-        WidthOut: 耦合器宽度 (um)
-        WidthIn: 环形波导宽度 (um)
-        AngleCouple: 耦合角度 (度)
-        AngleIn: 环形波导角度 (度)
-        RadiusIn: 环形波导半径 (um)
-        GapCoup: 耦合间隙 (um)
-        IsParallel: 是否平行输入输出
-        oplayer: 光学层
-        Name: 组件名称
+    参数:
+        WidthOut (float): 耦合器输出臂的波导宽度 (单位: um)。默认为 1.55 um。
+        WidthIn (float): 耦合器输入臂（或弯曲部分）的波导宽度 (单位: um)。默认为 2.0 um。
+        AngleCouple (float): 定义耦合区域弯曲程度的角度。这通常是构成耦合器的一个弯曲段的角度。默认为 11.0 度。
+        AngleIn (float | None): 输入端口处弯曲波导的角度。如果为 None，则会根据 AngleCouple 计算（通常 AngleCouple*2）。默认为 None。
+        RadiusIn (float): 输入端口处弯曲波导的半径 (单位: um)。默认为 200.0 um。
+        GapCoup (float): 两个耦合波导之间的最小间隙 (单位: um)。默认为 0.3 um。
+        IsParallel (bool): 如果为 True，则调整输入弯曲使得输出端口与输入端口平行。默认为 False。
+        oplayer (LayerSpec): 光学波导层定义。默认为 LAYER.WG。
 
-    Returns:
-        包含 in1, in2, out1, out2 端口的 Component
+    返回:
+        Component: 生成的 2x2 Pulley 耦合器组件。
+
+    端口:
+        in1: 第一个输入端口。
+        in2: 第二个输入端口。
+        out1: 第一个输出端口。
+        out2: 第二个输出端口。
     """
     c = gf.Component()
     r_in = RadiusIn
@@ -89,19 +95,35 @@ def DMZI(
         vialayer: LayerSpec = LAYER.VIA,
 ) -> Component:
     """
-    创建一个 2x2 的直波导耦合器（Direct Coupler）的MZI。
+    创建一个基于直波导定向耦合器的 2x2 马赫-曾德干涉仪 (MZI) 组件。
+    MZI 的两个臂可以带有加热器用于相位调制。
 
-    Args:
-        WidthSingle: 单模波导宽度 (um)
-        LengthCoup: 耦合去长度 (um)
-        LengthBridge: 臂长 (um)
-        Radius: 绕出波导半径 (um)
-        GapCoup: 耦合间隙 (um)
-        layer: 光学层
-        Name: 组件名称
+    参数:
+        WidthWG (float): MZI 波导宽度。默认为 0.8 um。
+        WidthHeat (float): 加热器宽度。默认为 8.0 um。
+        LengthCoup (float): 定向耦合器的耦合段长度。默认为 100.0 um。
+        LengthBridge (float): MZI 臂长 (两个耦合器之间的主要直波导段)。默认为 300.0 um。
+        LengthBend (float): MZI 臂中用于展开并放置加热器的额外直波导段长度。默认为 300.0 um。
+        Radius (float): MZI 臂中S弯或欧拉弯的半径。默认为 200.0 um。
+        GapCoup (float): 定向耦合器的耦合间隙。默认为 1.0 um。
+        GapHeat (float): 波导与加热器之间的间隙。默认为 1.0 um。
+        DeltaHeat (float): 加热器的偏移或尺寸参数。默认为 0。
+        DeltaOut (float): 输出端口的额外水平偏移调整。默认为 -40.0 um。
+        IsHeat (bool): 是否在MZI臂上添加加热器。默认为 True。
+        TypeHeater (str): 加热器类型 (例如 "default", "snake")。默认为 "default"。
+        oplayer (LayerSpec): 光学波导层。
+        heatlayer (LayerSpec): 加热器层。
+        routelayer (LayerSpec): 加热器布线层。
+        vialayer (LayerSpec): 加热器过孔层。
 
-    Returns:
-        包含 in1, in2, out1, out2 端口的 Component
+    返回:
+        Component: 生成的 DMZI 组件。
+
+    端口:
+        Input1, Input2: MZI 的两个输入端口。
+        Output1, Output2: MZI 的两个输出端口。
+        Bridge1, Bridge2: MZI 两个臂上特定位置的参考端口 (可能用于监控或调试)。
+        (如果 IsHeat=True, 还会有 LHeatIn, LHeatOut, RHeatIn, RHeatOut 等加热器端口)
     """
     c = gf.Component()
     DeltaC = GapCoup + WidthWG
@@ -188,31 +210,40 @@ def PMZI(
         vialayer: LayerSpec = LAYER.VIA,
 ) -> Component:
     """
-     创建一个Pulley耦合 MZI 结构。
+     创建一个基于 Pulley 型耦合器的马赫-曾德干涉仪 (MZI) 结构。
+     MZI 的两个臂可以带有加热器用于相位调制。
 
-     Args:
-         WidthNear: 近端波导宽度 (um)
-         WidthRing: 环形波导宽度 (um)
-         WidthHeat: 加热器宽度 (um)
-         AngleCouple: 耦合角度 (度)
-         AngleIn: 输入角度 (度)
-         AngleBend: 弯曲角度 (度)
-         AngleOut1: 输出角度 1 (度)
-         AngleOut2: 输出角度 2 (度)
-         LengthBridge: 桥接长度 (um)
-         LengthBend: 弯曲长度 (um)
-         LengthTaper: 锥形波导长度 (um)
-         Radius: 弯曲半径 (um)
-         r_radius_false: 假弯曲半径 (um)
-         GapCoup: 耦合间隙 (um)
-         GapHeat: 加热器间隙 (um)
-         DeltaHeat: 加热器偏移 (um)
-         oplayer: 光学层
-         heatlayer: 加热层
-         Name: 组件名称
+     参数:
+         WidthNear (float): Pulley耦合器中总线波导的宽度。默认为 0.8 um。
+         WidthRing (float): Pulley耦合器中弯曲/环形部分的波导宽度。默认为 1.0 um。
+         WidthHeat (float): 加热器宽度。默认为 8.0 um。
+         AngleCouple (float): Pulley耦合器的耦合区域角度。默认为 20.0 度。
+         AngleIn (float): Pulley耦合器输入臂的弯曲角度。默认为 20.0 度。
+         AngleBend (float): MZI臂中主导弯曲的角度 (用于分开两臂)。默认为 90.0 度。
+         AngleOut1 (float): MZI第一个输出端口的引出弯曲角度。默认为 90.0 度。
+         AngleOut2 (float): MZI第二个输出端口的引出弯曲角度。默认为 90.0 度。
+         LengthBridge (float): MZI臂的平行直波导段长度。默认为 300.0 um。
+         LengthBend (float): MZI臂中弯曲后的直波导段长度 (常用于放置加热器)。默认为 200.0 um。
+         LengthTaper (float): MZI臂中连接耦合器和主臂的锥形波导长度。默认为 200.0 um。
+         Radius (float): MZI臂和输出引出弯的主要弯曲半径。默认为 200.0 um。
+         r_radius_false (float): MZI臂中某些辅助或过渡弯曲的半径。默认为 100.0 um。
+         GapCoup (float): Pulley耦合器的耦合间隙。默认为 1.0 um。
+         GapHeat (float): 波导与加热器之间的间隙。默认为 1.0 um。
+         DeltaHeat (float): 加热器的偏移或尺寸参数。默认为 0。
+         IsHeat (bool): 是否在MZI臂上添加加热器。默认为 True。
+         TypeHeater (str): 加热器类型。默认为 "default"。
+         oplayer (LayerSpec): 光学波导层。
+         heatlayer (LayerSpec): 加热器层。
+         routelayer (LayerSpec): 加热器布线层。
+         vialayer (LayerSpec): 加热器过孔层。
 
-     Returns:
-         包含 Input1, Input2, Output1, Output2 端口的 Component
+     返回:
+         Component: 生成的 PMZI 组件。
+
+     端口:
+         Input1, Input2: MZI 的两个输入端口。
+         Output1, Output2: MZI 的两个输出端口。
+        (如果 IsHeat=True, 还会有 LHeatIn, LHeatOut, RHeatIn, RHeatOut 等加热器端口)
      """
     c = gf.Component()
     # Section and CrossSections
@@ -305,32 +336,17 @@ def PMZIHSn(
         vialayer: LayerSpec = LAYER.VIA,
 ) -> Component:
     """
-    创建一个带有蛇形加热器的 Pulley 耦合 MZI 结构。
+    创建一个带有蛇形加热器的 Pulley 型耦合马赫-曾德干涉仪 (MZI) 组件。
+    此函数是 `PMZI` 组件的一个特例，其中加热器类型被固定为 "snake"。
 
-    Args:
-        WidthNear: 近端波导宽度 (um)
-        WidthRing: 环形波导宽度 (um)
-        WidthHeat: 加热器宽度 (um)
-        AngleCouple: 耦合角度 (度)
-        AngleIn: 输入角度 (度)
-        AngleBend: 弯曲角度 (度)
-        AngleOut1: 输出角度 1 (度)
-        AngleOut2: 输出角度 2 (度)
-        LengthBridge: 桥接长度 (um)
-        LengthBend: 弯曲长度 (um)
-        LengthTaper: 锥形波导长度 (um)
-        Radius: 弯曲半径 (um)
-        r_radius_false: 假弯曲半径 (um)
-        GapCoup: 耦合间隙 (um)
-        GapHeat: 加热器间隙 (um)
-        DeltaHeat: 加热器偏移 (um)
-        IsHeat: 是否包含加热器
-        oplayer: 光学层
-        heatlayer: 加热层
-        Name: 组件名称
+    参数:
+        (与 `PMZI` 函数的参数基本一致，但 `TypeHeater` 被内部设置为 "snake")
+        AngleBend (float): MZI臂中主导弯曲的角度。默认为 30.0 度 (与PMZI默认值90不同)。
 
-    Returns:
-        包含 Input1, Input2, Output1, Output2 端口的 Component 和加热器 Component
+    返回:
+        Component: 生成的带有蛇形加热器的 PMZI 组件。
+                   (注意：原代码中其他类似的 HSn 函数返回 (Component, HeaterComponent)，
+                    但此函数直接调用 PMZI，PMZI 返回单个 Component。行为可能需要统一。)
     """
     return PMZI(
         WidthNear=WidthNear,
@@ -376,21 +392,31 @@ def SagnacRing(
 
 ) -> Component:
     """
-    创建一个 Sagnac 环形结构。
+    创建一个 Sagnac 环形干涉仪结构。
+    该结构通常使用一个耦合器将光分束送入一个环形路径，并在同一点将两束反向传播的光重新耦合。
 
-    Args:
-        WidthOut: 输出波导宽度 (um)
-        WidthIn: 输入波导宽度 (um)
-        LengthTaper: 锥形波导长度 (um)
-        AngleCouple: 耦合角度 (度)
-        RadiusIn: 环形波导半径 (um)
-        RadiusBend: 弯曲半径 (um)
-        GapCoup: 耦合间隙 (um)
-        oplayer: 光学层
-        Name: 组件名称
+    参数:
+        WidthOut (float): Pulley耦合器中连接到Sagnac环的臂的宽度。默认为 1.55 um。
+        WidthIn (float): Pulley耦合器中另一组臂及Sagnac环主体部分的宽度。默认为 2.0 um。
+        WidthSingle (float): 组件外部输入/输出端口的单模波导宽度。默认为 1.0 um。
+        LengthTaper (float): 用于宽度过渡的锥形波导长度。默认为 200.0 um。
+        AngleCouple (float): Pulley耦合器的耦合区域角度。默认为 11.0 度。
+        AngleIn (float): Pulley耦合器内部弯曲臂的角度。默认为 60.0 度。
+        RadiusIn (float): Pulley耦合器内部弯曲臂的半径。默认为 200.0 um。
+        RadiusBend (float): Sagnac环路中主要弯曲（如引出弯）的半径。默认为 100.0 um。
+        GapCoup (float): Pulley耦合器的耦合间隙。默认为 0.3 um。
+        IsTaperIn (bool): 是否在组件的 "input" 端口处添加一个从 WidthSingle 到 WidthOut 的锥形。默认为 True。
+        oplayer (LayerSpec): 光学波导层。
+        heatlayer, routelayer, vialayer: (未在当前光学路径中使用) 可能用于未来的加热器等扩展。
 
-    Returns:
-        包含 input 和 output 端口的 Component
+    返回:
+        Component: 生成的 Sagnac 环组件。
+
+    端口:
+        input: Sagnac环的输入端口。
+        output: Sagnac环的输出端口。
+        o1: 等同于 input 端口。
+        o2: 等同于 output 端口。
     """
     c = gf.Component()
     PC = c << PulleyCoupler2X2(WidthIn=WidthIn, WidthOut=WidthOut, AngleCouple=AngleCouple, RadiusIn=RadiusIn,

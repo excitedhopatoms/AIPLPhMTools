@@ -11,6 +11,29 @@ def SnakeHeater(
         PortName: list[str] = ["o1", "o2"],
         heatlayer: LayerSpec = LAYER.M1,
 ) -> Component:
+    """
+    创建一个蛇形（或梳状）加热器。
+    该加热器通过在一个较宽的加热条上周期性地移除材料条（“切割”）来形成蛇形路径，
+    从而增加电流路径长度，提高加热效率。
+
+    参数:
+        WidthHeat (float): 主加热条的宽度 (单位: µm)。
+        WidthWG (float): 被加热波导的宽度 (单位: µm)。此参数与 `GapHeat` 一起用于定义
+                         蛇形结构中周期性移除部分的几何形状。移除部分的长度通常为
+                         `(WidthHeat - WidthWG) / 2` （每一边）。
+        GapHeat (float): 蛇形结构中“切割”部分的宽度，即周期性移除的材料条的宽度 (单位: µm)。
+        PathHeat (Path | None): 定义加热器中心线走向的 gdsfactory.path.Path 对象。
+                                如果为None，则需要在使用此函数前提供一个有效的Path对象。
+        PortName (list[str]): 包含两个字符串的列表，用于定义加热器输出端口的名称。
+                              默认为 ["o1", "o2"]。
+        heatlayer (LayerSpec): 加热器所在的GDS图层。
+
+    返回:
+        Component: 生成的蛇形加热器组件。
+
+    端口:
+        根据 `PortName` 定义的两个端口，通常是加热器的电极连接点。
+    """
     h = gf.Component()
     # section and crosssection
     S_heat = gf.Section(width=WidthHeat, offset=0, layer=heatlayer, port_names=(PortName[0], PortName[1]))
@@ -61,75 +84,52 @@ def DifferentHeater(
         **kwargs
 ) -> Component:
     """
-     根据指定的类型和其他参数，生成不同类型的加热器组件。
+    根据指定的类型和其他参数，生成不同类型的加热器组件。
 
-     Args:
-         PathHeat: gdsfactory.path.Path 对象，定义了加热器的中心路径。
-         WidthHeat: float, 主加热条的宽度 (单位: µm)。
-         WidthWG: float, 波导宽度，主要用于 'snake' 类型加热器中计算间距 (单位: µm)。
-         WidthRoute: float, 金属布线层的宽度，主要用于 'spilt' 类型加热器 (单位: µm)。
-         WidthVia: float, 过孔的尺寸 (宽度和高度)，主要用于 'spilt' 类型加热器 (单位: µm)。
-         Spacing: float, 元素间距，主要用于 'spilt' 类型加热器中过孔的间距 (单位: µm)。
-         DeltaHeat: float, 偏移量或长度 (单位: µm)。
-             - 对于 'side' 和 'bothside' 类型: 加热条相对于中心路径的横向偏移量。
-             - 对于 'spilt' 类型: 连接段的长度。
-         GapHeat: float, 间隙尺寸 (单位: µm)。
-             - 对于 'snake' 类型: 蛇形弯曲部分的间隙。
-             - 对于 'spilt' 类型: 沿路径的布线段之间的间隙。
-         heatlayer: LayerSpec, 定义加热器主要部分所在的GDS图层。
-         routelayer: LayerSpec, 定义金属布线层所在的GDS图层 (用于 'spilt' 类型)。
-         vialayer: LayerSpec, 定义过孔所在的GDS图层 (用于 'spilt' 类型)。
-         TypeHeater: str, 指定加热器的类型。可选值包括:
-             - "default": 默认的直线型加热器，沿着 PathHeat 拉伸。
-             - "snake": 蛇形加热器 (需要 SnakeHeater 组件)。
-             - "side": 单侧加热器，加热条位于 PathHeat 的一侧。
-             - "bothside": 双侧对称加热器，加热条位于 PathHeat 的两侧。
-             - "spilt": 分裂型加热器，包含主加热区和独立的布线臂，通过过孔连接。
-             - "None" 或 "none": 不生成加热器，返回空组件。
-         **kwargs: 传递给底层 gdsfactory 组件或函数的额外参数。
+    参数:
+        PathHeat (Path | None): 定义加热器中心线的 gdsfactory.path.Path 对象。
+        WidthHeat (float): 主加热条的宽度 (单位: µm)。
+        WidthWG (float): （仅用于'snake'类型）波导宽度，用于计算蛇形切割的几何形状 (单位: µm)。
+        WidthRoute (float): （仅用于'spilt'类型）金属布线臂的宽度 (单位: µm)。
+        WidthVia (float): （仅用于'spilt'类型）过孔的边长 (假设为正方形过孔) (单位: µm)。
+        Spacing (float): （仅用于'spilt'类型）过孔阵列中过孔的中心间距 (单位: µm)。
+        DeltaHeat (float): 几何偏移或长度参数 (单位: µm)。
+                           对于 "side"/"bothside": 加热条中心相对于PathHeat的横向偏移。
+                           对于 "spilt": 连接主加热条和布线臂的短臂长度。
+        GapHeat (float): 几何间隙参数 (单位: µm)。
+                         对于 "snake": 蛇形切割部分的宽度。
+                         对于 "spilt": 沿路径的布线段之间的间隙，或用于ViaArray的Enclosure。
+        heatlayer (LayerSpec): 定义加热器主要部分所在的GDS图层。
+        routelayer (LayerSpec): （仅用于'spilt'类型）定义金属布线臂所在的GDS图层。
+        vialayer (LayerSpec): （仅用于'spilt'类型）定义过孔所在的GDS图层。
+        TypeHeater (str): 指定加热器的类型。可选值包括:
+            - "default": 沿PathHeat拉伸的简单直线型加热器。
+            - "snake": 蛇形加热器 (调用 SnakeHeater 组件)。
+            - "side": 单侧加热器，加热条位于PathHeat的一侧。
+            - "bothside": 双侧对称加热器，加热条位于PathHeat的两侧。
+            - "spilt": 分裂型加热器，包含主加热区和通过过孔连接的独立布线臂。
+            - "None" 或 "none": 不生成加热器，返回空组件。
+        **kwargs: 传递给底层 gdsfactory 组件或函数的额外参数。
 
-     Returns:
-         gf.Component: 生成的加热器组件。
+    返回:
+        gf.Component: 生成的加热器组件。
 
-     Raises:
-         ValueError: 如果提供了无效的 TypeHeater 类型。
+    异常:
+        ValueError: 如果提供了无效的 TypeHeater 类型或 PathHeat 为 None。
 
-     Notes:
-         - 此函数依赖于外部定义的组件如 `SnakeHeater`, `GfCStraight`, `ViaArray` 和
-           后处理函数 `snap_all_polygons_iteratively`。
-         - 'snake' 类型的端口 'HeatOut' 当前被设置为与 'HeatIn' 相同的原始端口 'o2'，
-           可能需要根据 `SnakeHeater` 的实际端口定义进行调整。
-         - 'bothside' 类型的 'HeatIn' 和 'HeatOut' 复合端口的中心位置计算方式较为特殊，
-           依赖于 `HPart.ports["o1"]` 和 `HPart.ports["o2"]` 以及左右两侧加热器的输入/输出端口。
-           这些 'o1' 和 'o2' 端口通常是原始路径的起点和终点端口。
-         - 'spilt' 类型中的 `GapHeat` 会根据路径长度和布线宽度重新计算。
-         - 组件最终会通过 `snap_all_polygons_iteratively` 函数进行多边形顶点对齐。
-
-     Ports for different heater types:
-         - "default":
-             - "HeatIn": 加热器输入端。
-             - "HeatOut": 加热器输出端。
-         - "snake":
-             - "HeatIn": 加热器输入端。
-             - "HeatOut": 加热器输出端 (注意上述 Note)。
-         - "side":
-             - "HeatIn": 加热器输入端 ("Uo1")。
-             - "HeatOut": 加热器输出端 ("Uo2")。
-         - "bothside":
-             - "HeatLIn": 左侧加热器输入端 ("Uo1")。
-             - "HeatLOut": 左侧加热器输出端 ("Uo2")。
-             - "HeatRIn": 右侧加热器输入端 ("Do1")。
-             - "HeatROut": 右侧加热器输出端 ("Do2")。
-             - "HeatIn": 复合输入端口。
-             - "HeatOut": 复合输出端口。
-         - "spilt":
-             - "HeatLIn": 左侧布线臂输入端 ("r1o1")。
-             - "HeatLOut": 左侧布线臂输出端 ("r1o2")。
-             - "HeatRIn": 右侧布线臂输入端 ("r2o1")。
-             - "HeatROut": 右侧布线臂输出端 ("r2o2")。
-             - "HeatIn": 主加热区输入端 ("o1")。
-             - "HeatOut": 主加热区输出端 ("o2")。
-     """
+    端口 (不同类型加热器的主要端口):
+        - "default", "snake", "side":
+            - "HeatIn": 加热器电学输入端。
+            - "HeatOut": 加热器电学输出端。
+        - "bothside":
+            - "HeatLIn", "HeatLOut": 左侧加热条的电学输入/输出。
+            - "HeatRIn", "HeatROut": 右侧加热条的电学输入/输出。
+            - "HeatIn", "HeatOut": (复合端口) 代表整体的输入/输出。
+        - "spilt":
+            - "HeatLIn", "HeatLOut": 左侧布线臂的电学输入/输出。
+            - "HeatRIn", "HeatROut": 右侧布线臂的电学输入/输出。
+            - "HeatIn", "HeatOut": 主加热区域（中心条）的（概念性）输入/输出。
+    """
     h = gf.Component()
     if TypeHeater == "default":
         # 默认加热电极
@@ -222,9 +222,30 @@ def ViaArray(
         arraylayer: LayerSpec = None,
         vialayer: gf.typings.LayerSpec = LAYER.VIA,
 ) -> Component:
-    '''
-    高效实现CompEn内部覆盖通孔阵列
-    '''
+    """
+    在给定组件 (`CompEn`) 的指定图层 (`arraylayer`) 形成的区域内，
+    根据内缩值 (`Enclosure`)，高效地生成一个过孔阵列。
+    过孔将填充处理后的区域。
+
+    参数:
+        CompEn (Component): 源组件，其在 `arraylayer` 上的几何形状定义了过孔阵列的外部边界。
+        WidthVia (float): 单个过孔的边长（假设为正方形过孔）(单位: µm)。
+        Spacing (float): 过孔之间的中心到中心间距 (单位: µm)。
+        Enclosure (float): 从 `CompEn` 在 `arraylayer` 上的几何边界向内缩进的距离 (单位: µm)。
+                           过孔将被放置在这个缩进后的区域内。
+        arraylayer (LayerSpec | None): `CompEn` 组件中用于定义边界的图层。
+                                     如果为 None，则函数会尝试使用 `CompEn` 的整体轮廓或其包含的第一个图层。
+                                     推荐明确指定此图层。
+        vialayer (LayerSpec): 生成的过孔所在的GDS图层。默认为 `LAYER.VIA`。
+
+    返回:
+        Component: 包含生成的过孔阵列的新组件。
+
+    注意:
+        - 此函数使用 `shapely` 库进行几何运算。
+        - "关键优化" 注释表明此实现旨在提高效率。
+        - 如果 `arraylayer` 未指定或 `CompEn` 在该层上没有几何图形，可能不会生成过孔。
+    """
     via_array = gf.Component()
     B = gf.Component()
     via = GfCStraight(width=WidthVia, length=WidthVia, layer=vialayer)

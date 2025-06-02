@@ -22,33 +22,37 @@ def RingPulley(
         vialayer: LayerSpec = LAYER.VIA,
 ) -> Component:
     """
-    创建一个通用环形耦合器，支持加热电极和 Add-Drop 端口。
+    创建一个通用的滑轮耦合（Pulley Coupler）环形谐振器组件。
+    此函数是 `RingPulleyT1` 的一个简化接口，默认使用 "default" 类型的加热器。
+    支持添加Add-Drop端口和加热器。
 
-    参数：
-        WidthRing: 环形波导的宽度。
-        WidthNear: 耦合波导的宽度。
-        WidthHeat: 加热电极的宽度。
-        RadiusRing: 环形波导的半径。
-        GapRing: 环形波导与耦合波导之间的间距。
-        AngleCouple: 耦合角度。
-        IsHeat: 是否添加加热电极。
-        IsAD: 是否添加 Add-Drop 端口。
-        Name: 组件的名称。
-        oplayer: 光学层的定义。
-        heatlayer: 加热层的定义。
+    参数:
+        WidthRing (float): 环形波导的宽度 (µm)。
+        WidthNear (float): 耦合总线波导的宽度 (µm)。
+        WidthHeat (float): 加热器的宽度 (µm)。
+        RadiusRing (float): 环的半径 (µm)。
+        GapRing (float): 环与耦合总线之间的间隙 (µm)。
+        AngleCouple (float): 滑轮耦合器的耦合角度 (度)。
+        IsHeat (bool): 是否为环添加加热器。
+        IsAD (bool): 是否包含Add/Drop端口 (即四端口器件)。如果False，则为双端口（Input/Through）。
+        Name (str): 组件的名称。
+        oplayer (LayerSpec): 光学波导层。
+        heatlayer (LayerSpec): 加热器层。
+        routelayer (LayerSpec): (传递给内部组件) 加热器布线层。
+        vialayer (LayerSpec): (传递给内部组件) 过孔层。
 
-    返回：
-        Component: 生成的环形耦合器组件。
+    返回:
+        Component: 生成的滑轮耦合环形谐振器组件。
 
-    端口：
+    端口:
         Input: 输入端口。
         Through: 直通端口。
-        RingL: 左侧环形端口。
-        RingR: 右侧环形端口。
-        Add: Add 端口（仅在 IsAD=True 时存在）。
-        Drop: Drop 端口（仅在 IsAD=True 时存在）。
-        HeatIn: 加热输入端口（仅在 IsHeat=True 时存在）。
-        HeatOut: 加热输出端口（仅在 IsHeat=True 时存在）。
+        RingL: 左侧环对称轴上的参考点/端口。
+        RingR: 右侧环对称轴上的参考点/端口。
+        RingC: 环中心上方的参考点/端口。
+        Add: (如果 IsAD=True) 增加端口。
+        Drop: (如果 IsAD=True) 下载端口。
+        (如果 IsHeat=True，还会包含由 `RingPulleyT1` 生成的加热器电学端口)
     """
     c = RingPulleyT1(
         WidthRing=WidthRing,
@@ -87,35 +91,31 @@ def RingPulley1DC(
         vialayer: LayerSpec = LAYER.VIA,
 ) -> Component:
     """
-    创建一个具有不同耦合器的环形结构。
+    创建一个滑轮耦合环形谐振器，其上下两侧（或Input/Through侧与Add/Drop侧）
+    可以具有不同的耦合参数（总线宽度、间隙、耦合角）。
+    此函数是对 `RingPulleyT1` 的封装，通过设置 `RingPulleyT1` 的非对称耦合参数实现。
 
-    参数：
-        WidthRing: 环形波导的宽度。
-        WidthNear1: 上耦合波导的宽度。
-        WidthNear2: 下耦合波导的宽度。
-        WidthHeat: 加热电极的宽度。
-        RadiusRing: 环形波导的半径。
-        GapRing1: 上耦合波导与环形波导之间的间距。
-        GapRing2: 下耦合波导与环形波导之间的间距。
-        AngleCouple1: 上耦合角度。
-        AngleCouple2: 下耦合角度。
-        IsHeat: 是否添加加热电极。
-        Name: 组件的名称。
-        oplayer: 光学层的定义。
-        heatlayer: 加热层的定义。
+    参数:
+        WidthRing (float): 环形波导宽度 (µm)。
+        WidthNear1 (float): 上侧（或Input/Through）耦合总线的宽度 (µm)。
+        WidthNear2 (float): 下侧（或Add/Drop）耦合总线的宽度 (µm)。
+        WidthHeat (float): 加热器宽度 (µm)。
+        RadiusRing (float): 环的半径 (µm)。
+        GapRing1 (float): 上侧耦合间隙 (µm)。
+        GapRing2 (float): 下侧耦合间隙 (µm)。
+        AngleCouple1 (float): 上侧滑轮耦合角度 (度)。
+        AngleCouple2 (float): 下侧滑轮耦合角度 (度)。
+        IsHeat (bool): 是否为环添加加热器。
+        Name (str): 组件名称。
+        oplayer (LayerSpec): 光学波导层。
+        heatlayer (LayerSpec): 加热器层。
+        routelayer (LayerSpec): (传递给内部组件) 加热器布线层。
+        vialayer (LayerSpec): (传递给内部组件) 过孔层。
 
-    返回：
-        Component: 生成的环形耦合器组件。
+    返回:
+        Component: 生成的具有非对称耦合参数的滑轮环谐振器。
 
-    端口：
-        Input: 输入端口。
-        Through: 直通端口。
-        RingL: 左侧环形端口。
-        RingR: 右侧环形端口。
-        Add: Add 端口。
-        Drop: Drop 端口。
-        HeatIn: 加热输入端口（仅在 IsHeat=True 时存在）。
-        HeatOut: 加热输出端口（仅在 IsHeat=True 时存在）。
+    端口: (与 RingPulley / RingPulleyT1 类似)
     """
     c = RingPulleyT1(
         WidthRing=WidthRing,
@@ -156,35 +156,21 @@ def RingPulley1HS(
         vialayer: LayerSpec = LAYER.VIA,
 ) -> Component:
     """
-    创建一个带有加热侧的环形结构。
+    创建一个滑轮耦合环形谐振器，并集成一个“侧边”类型的加热器。
+    此函数是对 `RingPulleyT1` 的封装，将 `TypeHeater` 固定为 "side"。
 
-    参数：
-        WidthRing: 环形波导的宽度。
-        WidthNear: 耦合波导的宽度。
-        WidthHeat: 加热电极的宽度。
-        WidthRoute: 加热电极路由的宽度。
-        DeltaHeat: 加热电极的偏移量。
-        GapRoute: 加热电极路由的间距。
-        RadiusRing: 环形波导的半径。
-        GapRing: 环形波导与耦合波导之间的间距。
-        AngleCouple: 耦合角度。
-        IsAD: 是否添加 Add-Drop 端口。
-        Name: 组件的名称。
-        oplayer: 光学层的定义。
-        heatlayer: 加热层的定义。
+    参数:
+        (大部分参数与 RingPulley 类似)
+        WidthRoute (float): 侧边加热器引出线的宽度 (µm)。
+        DeltaHeat (float): 侧边加热器中心相对于环波导中心线的横向偏移量 (µm)。
+                           正值或负值决定加热器在环的哪一侧或具体偏移方式。
+        GapRoute (float): (当前未直接使用) 可能用于定义加热器引出结构之间的间隙 (µm)。
+        RadiusRing (float): 环半径，注意默认值为1000µm，较大。
 
-    返回：
-        Component: 生成的环形耦合器组件。
+    返回:
+        Component: 生成的带侧边加热器的滑轮环谐振器。
 
-    端口：
-        Input: 输入端口。
-        Through: 直通端口。
-        RingL: 左侧环形端口。
-        RingR: 右侧环形端口。
-        Add: Add 端口（仅在 IsAD=True 时存在）。
-        Drop: Drop 端口（仅在 IsAD=True 时存在）。
-        HeatIn: 加热输入端口。
-        HeatOut: 加热输出端口。
+    端口: (与 RingPulley / RingPulleyT1 类似)
     """
     c = RingPulleyT1(
         WidthRing=WidthRing,
@@ -224,35 +210,19 @@ def RingPulley1HSn(
         vialayer: LayerSpec = LAYER.VIA,
 ) -> Component:
     """
-    创建一个带有蛇形加热器的环形结构。
+    创建一个滑轮耦合环形谐振器，并集成一个“蛇形”类型的加热器。
+    此函数是对 `RingPulleyT1` 的封装，将 `TypeHeater` 固定为 "snake"。
 
-    参数：
-        WidthRing: 环形波导的宽度。
-        WidthNear: 耦合波导的宽度。
-        WidthHeat: 加热电极的宽度。
-        WidthRoute: 加热电极路由的宽度。
-        DeltaHeat: 加热电极的偏移量。
-        GapHeat: 加热电极与环形波导之间的间距。
-        RadiusRing: 环形波导的半径。
-        GapRing: 环形波导与耦合波导之间的间距。
-        AngleCouple: 耦合角度。
-        IsAD: 是否添加 Add-Drop 端口。
-        Name: 组件的名称。
-        oplayer: 光学层的定义。
-        heatlayer: 加热层的定义。
+    参数:
+        (大部分参数与 RingPulley 类似)
+        GapHeat (float): 蛇形加热器中切割部分的间隙宽度 (µm)。这是蛇形加热器的关键参数。
+        WidthRoute, DeltaHeat: (当前未直接传递或使用对蛇形加热器有直接影响的方式)
+        RadiusRing (float): 环半径，注意默认值为1000µm。
 
-    返回：
-        Component: 生成的环形耦合器组件。
+    返回:
+        Component: 生成的带蛇形加热器的滑轮环谐振器。
 
-    端口：
-        Input: 输入端口。
-        Through: 直通端口。
-        RingL: 左侧环形端口。
-        RingR: 右侧环形端口。
-        Add: Add 端口（仅在 IsAD=True 时存在）。
-        Drop: Drop 端口（仅在 IsAD=True 时存在）。
-        HeatIn: 加热输入端口。
-        HeatOut: 加热输出端口。
+    端口: (与 RingPulley / RingPulleyT1 类似)
     """
     c = RingPulleyT1(
         WidthRing=WidthRing,
@@ -288,7 +258,31 @@ def RingPulley2(
         routelayer: LayerSpec = LAYER.M2,
         vialayer: LayerSpec = LAYER.VIA,
 ) -> Component:
-    """创建一个带有滑轮输入输出的环形结构。"""
+    """
+    创建一个滑轮耦合环形谐zh振器，其输入/输出耦合臂具有特定的弯曲形状（由 `RingPulleyT2` 定义）。
+    此函数是对 `RingPulleyT2` 的简化封装，通常用于实现端口垂直于环对称轴引出的设计。
+
+    参数:
+        WidthRing (float): 环形波导宽度 (µm)。
+        WidthNear (float): 耦合总线宽度 (µm)。
+        WidthHeat (float): (如果RingPulleyT2支持) 加热器宽度 (µm)。
+        RadiusRing (float): 环半径 (µm)。
+        GapRing (float): 环与总线耦合间隙 (µm)。
+        AngleCouple (float): 滑轮耦合器的耦合角度 (度)。
+        IsHeat (bool): 是否为环添加加热器 (传递给 `RingPulleyT2`)。
+        Name (str): 组件名称。
+        oplayer (LayerSpec): 光学波导层。
+        heatlayer (LayerSpec): 加热器层。
+        routelayer (LayerSpec): (传递给内部组件) 加热器布线层。
+        vialayer (LayerSpec): (传递给内部组件) 过孔层。
+
+    返回:
+        Component: 生成的特定耦合臂形状的滑轮环谐振器。
+
+    端口: (由 RingPulleyT2 定义)
+        通常包括 Input, Through, 和环的参考端口。
+        如果 `RingPulleyT2` 支持 Add/Drop 和加热，则也会有相应端口。
+    """
     c = RingPulleyT2(WidthRing, WidthNear, WidthHeat, RadiusRing, 0, GapRing, 0, AngleCouple, IsHeat, "default", Name,
                      oplayer, heatlayer)
     return c
@@ -310,7 +304,22 @@ def RingPulley2ES(
         routelayer: LayerSpec = LAYER.M2,
         vialayer: LayerSpec = LAYER.VIA,
 ) -> Component:
-    """创建一个带有滑轮输入输出和电子线路的环形结构。"""
+    """
+    创建 `RingPulley2` 类型的滑轮耦合环，并集成 "bothside" (双侧对称) 类型的加热器/电极。
+    此函数是对 `RingPulleyT2` 的特定配置封装。
+
+    参数:
+        (大部分参数与 RingPulley2 类似)
+        WidthEle (float): 双侧对称加热器中，单边加热条的宽度 (µm)。
+                          (传递给 `RingPulleyT2` 的 `WidthHeat` 参数)。
+        DeltaEle (float): 双侧对称加热器中，单边加热条中心相对于环波导中心线的横向偏移量 (µm)。
+                          (传递给 `RingPulleyT2` 的 `DeltaHeat` 参数)。
+
+    返回:
+        Component: 生成的带双侧对称加热器的滑轮环。
+
+    端口: (由 RingPulleyT2 定义，并包含 "bothside" 加热器的特定端口)
+    """
     c = RingPulleyT2(WidthRing, WidthNear, WidthEle, RadiusRing, DeltaEle, GapRing, 0, AngleCouple, True, "bothside",
                      Name, oplayer, heatlayer)
     return c
@@ -332,7 +341,30 @@ def RingPulley3(
         routelayer: LayerSpec = LAYER.M2,
         vialayer: LayerSpec = LAYER.VIA,
 ) -> Component:
-    """创建一个带有大角度耦合器的环形结构。"""
+    """
+    创建一个具有大角度（接近180度）滑轮型耦合的环形谐振器。
+    耦合臂由一个短圆弧段和一个较长的欧拉弯曲段组成，使得总线波导几乎与环的切线方向平行引出。
+
+    参数:
+        WidthRing (float): 环形波导宽度 (µm)。
+        WidthNear (float): 耦合总线宽度 (µm)。
+        WidthHeat (float): (当前版本未使用) 加热器宽度 (µm)。
+        RadiusRing (float): 环半径 (µm)。
+        GapRing (float): 环与总线耦合间隙 (µm)。
+        AngleCouple (float): 耦合臂中圆弧段所占的角度的一半 (度)。
+                           总线引出方向接近 (180 - AngleCouple) 度。
+        IsHeat (bool): (当前版本未使用) 是否添加加热器。
+        Name (str): 组件名称。
+        oplayer (LayerSpec): 光学波导层。
+        heatlayer, routelayer, vialayer: (当前版本未使用) GDS图层。
+
+    返回:
+        Component: 生成的大角度滑轮耦合环。
+
+    端口:
+        Input, Through: 光学输入和直通端口。
+        RingL, RingR: 环左右两侧对称轴上的参考点/端口。
+    """
     c = gf.Component()
     # 光学部分
     ring_path90 = gf.path.arc(radius=RadiusRing, angle=90)
@@ -373,7 +405,21 @@ def RingPulley4(
         routelayer: LayerSpec = LAYER.M2,
         vialayer: LayerSpec = LAYER.VIA,
 ) -> Component:
-    """创建一个带有大角度耦合器的环形结构。"""
+    """
+    创建另一种具有大角度滑轮型耦合的环形谐振器。
+    与 `RingPulley3` 类似，但耦合臂中欧拉弯曲的角度参数不同，
+    可能导致不同的引出轨迹。
+
+    参数: (与 RingPulley3 类似)
+        AngleCouple (float): 耦合臂中圆弧段所占的角度的一半 (度)。
+                           欧拉弯的角度将是 (270 - AngleCouple)/2，这与RingPulley3的(180-AngleCouple)/2不同，
+                           意味着引出方向更偏向侧面。
+
+    返回:
+        Component: 生成的大角度滑轮耦合环。
+
+    端口: (与 RingPulley3 类似)
+    """
     c = gf.Component()
     # 光学部分
     ring_path90 = gf.path.arc(radius=RadiusRing, angle=90)
@@ -424,7 +470,34 @@ def RingFinger(
         routelayer: LayerSpec = LAYER.M2,
         vialayer: LayerSpec = LAYER.VIA,
 ) -> Component:
-    """创建一个山形环形结构。"""
+    """
+    创建一个“手指”形或梳状的多弯曲环形谐振器结构。
+    该结构由两个对称的半部分组成，每个半部分包含多个弯曲和直线段，
+    形成类似手指或梳齿的形状，并通过中间的直波导连接闭合。
+    通过外部总线进行滑轮型耦合。
+
+    参数:
+        WidthRing (float): 构成环主体（手指部分）的波导宽度 (µm)。
+        WidthNear (float): 外部耦合总线的波导宽度 (µm)。
+        RadiusCouple (float): 靠近耦合区域的“指关节”弯曲半径 (µm)。
+        RadiusSide (float): “手指”侧向突出部分的弯曲半径 (µm)。
+        LengthCouple (float): “指关节”处的直线段长度 (µm)。
+        LengthSide (float): “手指”侧向突出部分的直线段长度 (µm)。
+        LengthConnect (float): 连接两个对称半结构中心的直波导长度 (µm)。
+        GapRing (float): 环与外部耦合总线之间的间隙 (µm)。
+        AngleCouple (float): 外部滑轮耦合臂的角度参数 (度)。
+        AngleSide (float): “手指”侧向突出部分弯曲的总角度 (度)，例如180度形成U型弯。
+        Name (str): 组件名称。
+        oplayer (LayerSpec): 光学波导层。
+
+    返回:
+        Component: 生成的“手指”环谐振器组件。
+
+    端口:
+        Input: 输入端口。
+        Through: 直通端口。
+        Con1, Con2: 连接两个半结构的中间直波导的两端端口（作为参考）。
+    """
     c = gf.Component()
     # 光学部分
     S_ring = gf.Section(width=WidthRing, layer=oplayer, port_names=["o1", "o2"])
@@ -499,40 +572,45 @@ def RingPulleyT1(
         trelayer: LayerSpec = (3, 0)
 ) -> Component:
     """
-    创建一个通用环形耦合器，支持不同类型的加热电极和 Add-Drop 端口。
-    耦合为pulley耦合，且左右为同一水平出射（直pulley耦合）
+    创建一个通用的、可配置性强的滑轮耦合环形谐振器。
+    这是本模块中其他几种 `RingPulley` 变体的核心构建单元。
+    支持对称或非对称的Add/Drop端口耦合参数，多种类型的加热器，以及可选的热隔离槽。
 
-    参数：
-        WidthRing: 环形波导的宽度。（单位：um）
-        WidthNear: 耦合波导的宽度。（单位：um）
-        WidthHeat: 加热电极的宽度。（单位：um）
-        RadiusRing: 环形波导的半径。（单位：um）
-        DeltaHeat: 加热电极中心距离波导中心，正在外，负在内（单位：um）
-        GapRing: 环形波导与耦合波导之间的间距。（单位：um）
-        GapHeat: 加热电极间隔，对蛇形而言是弯过来的差别（单位：um）
-        AngleCouple: 耦合角度。
-        IsHeat: 是否添加加热电极。
-        TypeHeater: 加热电极类型，支持 "default"（默认）、"snake"（蛇形）、"side"（侧边）、"bothside"（两侧）
-        IsAD: 是否添加 Add-Drop 端口。
-        DirectionHeater: Heater 出口的方向，向上或者向下
-        Name: 组件的名称。
-        oplayer: 光学层的定义。
-        heatlayer: 加热层的定义。
-        trelayer: 热隔离刻蚀层的定义。
-        WidthNear2: 如果两侧的耦合不同，则可以用此参数指定另一侧的耦合波导宽度。（单位：um）
-        GapRing2: 如果两侧的耦合不同，则可以用此参数指定另一侧的环形波导与耦合波导之间的间距。（单位：um）
-        AngleCouple2: 如果两侧的耦合不同，则可以用此参数指定另一侧的耦合角度。
-    返回：
-        Component: 生成的环形耦合器组件。
-    端口：
-        Input: 输入端口。
-        Through: 直通端口。
-        RingL: 左侧环形端口。
-        RingR: 右侧环形端口。
-        Add: Add 端口（仅在 IsAD=True 时存在）。
-        Drop: Drop 端口（仅在 IsAD=True 时存在）。
-        HeatIn: 加热输入端口（仅在 IsHeat=True 时存在）。
-        HeatOut: 加热输出端口（仅在 IsHeat=True 时存在）。
+    参数:
+        WidthRing (float): 环波导宽度 (µm)。
+        WidthNear (float): Input/Through侧耦合总线的宽度 (µm)。
+        WidthHeat (float): 加热器宽度 (µm)。
+        WidthTrench (float): 热隔离槽的宽度 (µm)。
+        WidthRoute (float): 加热器引出线的宽度 (µm)。
+        RadiusRing (float): 环的半径 (µm)。
+        WidthNear2 (float | None): Add/Drop侧耦合总线的宽度 (µm)。如果为None，则使用 `WidthNear`。
+        GapRing2 (float | None): Add/Drop侧的耦合间隙 (µm)。如果为None，则使用 `GapRing`。
+        AngleCouple2 (float | None): Add/Drop侧的耦合角度 (度)。如果为None，则使用 `AngleCouple`。
+        DeltaHeat (float): 加热器的几何调整参数 (µm)，如偏移量。
+        GapRing (float): Input/Through侧的耦合间隙 (µm)。
+        GapHeat (float): 波导与加热器（特别是snake或side类型）的间隙 (µm)。
+        GapTrench (float): 波导边缘与热隔离槽内边缘的间隙 (µm)。
+        AngleCouple (float): Input/Through侧的滑轮耦合角度 (度)。
+        IsHeat (bool): 是否添加加热器。
+        TypeHeater (str): 加热器类型 ("default", "snake", "side", "bothside", "spilt")。
+        IsAD (bool): 是否构建为四端口Add-Drop器件。如果False，则只有Input和Through端口。
+        IsTrench (bool): 是否在环周围添加热隔离槽。
+        DirectionHeater (str): 加热器的主要方向或位置（例如 "up", "down"）。
+        Name (str): 组件名称。
+        oplayer (LayerSpec): 光学波导层。
+        heatlayer (LayerSpec): 加热器层。
+        routelayer (LayerSpec): 加热器布线层。
+        vialayer (LayerSpec): 过孔层。
+        trelayer (LayerSpec): 热隔离槽层。
+
+    返回:
+        Component: 生成的通用滑轮环谐振器组件。
+
+    端口: (根据IsAD和IsHeat参数动态生成)
+        Input, Through
+        Add, Drop (如果 IsAD=True)
+        RingL, RingR, RingC (环的参考端口)
+        HeatIn, HeatOut (或更具体的加热器端口，如果IsHeat=True)
     """
     c = gf.Component()  # 创建一个组件实例
     # 考虑是否对称耦合
@@ -628,34 +706,36 @@ def RingPulleyT2(
         vialayer: LayerSpec = LAYER.VIA,
 ) -> Component:
     """
-    创建一个带有滑轮输入输出的环形结构，支持热电极和 Add-Drop 端口。
-    耦合为pulley耦合，且左右为垂直的出射（弯曲pulley耦合）
+    创建一种特定几何形状的滑轮耦合环形谐振器。
+    其耦合臂由一个短圆弧段和较长的欧拉弯曲段组成，使得总线波导的引出方向
+    接近于垂直于环的对称轴（即端口近似90度引出）。
+    支持添加加热器。此组件不包含Add/Drop端口。
 
-    参数：
-        WidthRing: 环形波导的宽度。（单位：um）
-        WidthNear: 耦合波导的宽度。（单位：um）
-        WidthHeat: 加热电极的宽度。（单位：um）
-        RadiusRing: 环形波导的半径。（单位：um）
-        GapRing: 环形波导与耦合波导之间的间距。（单位：um）
-        AngleCouple: 耦合角度。
-        IsHeat: 是否添加加热电极。
-        TypeHeater: 加热电极类型，支持 "default"（默认）、"snake"（蛇形）、"side"（侧边）、"bothside"（两侧）
-        IsAD: 是否添加 Add-Drop 端口。
-        Name: 组件的名称。
-        oplayer: 光学层的定义。
-        heatlayer: 加热层的定义。
+    参数:
+        WidthRing (float): 环波导宽度 (µm)。
+        WidthNear (float): 耦合总线宽度 (µm)。
+        WidthHeat (float): 加热器宽度 (µm)。
+        RadiusRing (float): 环半径 (µm)。
+        DeltaHeat (float): 加热器的几何调整参数 (µm)。
+        GapRing (float): 环与总线耦合间隙 (µm)。
+        GapHeat (float): 波导与加热器间隙 (µm)。
+        AngleCouple (float): 耦合臂中圆弧段所占的角度 (度)。
+                           欧拉弯的角度将是 (90 - AngleCouple)/2。
+        IsHeat (bool): 是否添加加热器。
+        TypeHeater (str): 加热器类型。
+        Name (str): 组件名称。
+        oplayer (LayerSpec): 光学波导层。
+        heatlayer (LayerSpec): 加热器层。
+        routelayer (LayerSpec): 加热器布线层。
+        vialayer (LayerSpec): 过孔层。
 
-    返回：
-        Component: 生成的环形滑轮组件。
-    端口：
-        Input: 输入端口。
-        Through: 直通端口。
-        RingL: 左侧环形端口。
-        RingR: 右侧环形端口。
-        Add: Add 端口（仅在 IsAD=True 时存在）。
-        Drop: Drop 端口（仅在 IsAD=True 时存在）。
-        HeatIn: 加热输入端口（仅在 IsHeat=True 时存在）。
-        HeatOut: 加热输出端口（仅在 IsHeat=True 时存在）。
+    返回:
+        Component: 生成的特定耦合臂滑轮环。
+
+    端口:
+        Input, Through: 光学输入和直通端口。
+        RingL, RingR, RingD, RingU, RingC: 环上的参考端口。
+        (如果IsHeat=True，还有加热器端口)
     """
     c = gf.Component()
 
@@ -711,28 +791,38 @@ def DifferentHeater_local(
         vialayer: LayerSpec = LAYER.VIA,
 ) -> Component:
     """
-    创建一个加热电极组件，支持多种加热电极类型和方向。
-    加热电极可以添加到环形波导的左侧或右侧，并根据类型生成不同的形状。
+    （局部辅助函数）创建一个加热电极子组件，支持多种类型和方向。
+    此函数设计为在另一个组件（父组件 `parent_component`）的上下文中被调用和添加。
+    加热器路径基于父组件中已定义的环的参考端口（如 "RingL", "RingR", "RingC"）。
 
-    参数：
-        c: 父组件，加热电极将添加到该组件中。
-        WidthHeat: 加热电极的宽度（单位：um）。
-        WidthRing: 环形波导的宽度（单位：um）。
-        DeltaHeat: 加热电极中心距离波导中心的偏移量（单位：um）。
-        GapHeat: 加热电极之间的间距（单位：um）。
-        RadiusRing: 环形波导的半径（单位：um）。
-        heatlayer: 加热层的定义。
-        TypeHeater: 加热电极类型，支持 "default"（默认）、"snake"（蛇形）、"side"（侧边）、"bothside"（两侧）。
-        DirectionHeater: 加热电极出口的方向，支持 "up"（向上）或 "down"（向下）。
-        Name: 组件名称。
+    重要: 此函数依赖于 `parent_component` 中已存在名为 "RingL", "RingR", "RingC" 的端口。
+           在 `RingPulleyT1` 和 `RingPulleyT2` 的当前实现中，这些端口是在加热器逻辑之后添加的，
+           或者其位置可能与此函数预期的不同。这可能导致连接错误。
+           建议：要么确保父组件先定义这些参考端口，要么将加热器路径的生成独立于父组件的端口。
 
-    返回：
-        Component: 生成的加热电极组件。
+    参数:
+        parent_component (Component): 将要添加此加热器作为子组件的父级gdsfactory组件。
+                                      用于获取环的参考端口。
+        WidthHeat (float): 加热条宽度 (µm)。
+        WidthRing (float): 被加热环的波导宽度 (µm)。
+        DeltaHeat (float): 加热器的几何调整参数 (µm)。
+        GapHeat (float): 加热器与波导或自身结构之间的间隙 (µm)。
+        RadiusRing (float): 被加热环的半径 (µm)。
+        heatlayer (LayerSpec): 加热器层。
+        TypeHeater (str): 加热器类型 ("default", "snake", "side", "bothside", "spilt")。
+        DirectionHeater (str): 加热器相对于环的位置 ("up" 或 "down")。
+        Name (str): 生成的加热器组件的名称。
+        WidthRoute (float): 加热器引出线的宽度 (µm)。
+        routelayer (LayerSpec): 加热器布线层。
+        vialayer (LayerSpec): 过孔层。
 
-    端口：
-        HeatIn: 加热输入端口。
-        HeatOut: 加热输出端口。
-        RingL: 左侧环形端口（仅在某些加热类型中存在）。
+    返回:
+        Component: 生成的加热器子组件。调用者负责将其添加到父组件并进行连接。
+                   (原代码直接修改父组件c，已改为返回新组件)
+
+    端口: (根据TypeHeater生成)
+        HeatIn, HeatOut (或更具体的，如 HeatIntIn, HeatExtOut 等)
+        RingL (概念性，用于对齐)
     """
     h = gf.Component()
     if TypeHeater == "default":

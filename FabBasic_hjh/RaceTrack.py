@@ -25,28 +25,42 @@ def RaceTrackP(
         vialayer: LayerSpec = LAYER.VIA,
 ) -> Component:
     """
-    创建一个环形跑道波导组件，支持输入、输出、添加和丢弃端口。
+    创建一个基于滑轮型（角度）耦合的跑道环谐振器 (RaceTrack Pulley Coupler)。
+    该组件包含一个跑道形环和通过弯曲耦合段耦合到该环的输入/输出总线。
+    可以选择添加Add/Drop端口和加热器。
 
-    参数：
-        WidthRing: 环形波导的宽度（单位：um）。
-        WidthNear: 耦合波导的宽度（单位：um）。
-        LengthRun: 直线部分的长度（单位：um）。
-        RadiusRing: 环形波导的半径（单位：um）。
-        GapCouple: 环形波导与耦合波导之间的间距（单位：um）。
-        AngleCouple: 耦合角度（单位：度）。
-        IsAD: 是否添加添加和丢弃端口。
-        oplayer: 波导层的定义。
-        Name: 组件名称。
+    参数:
+        WidthRing (float): 跑道环波导的宽度 (µm)。
+        WidthNear (float): 耦合总线波导的宽度 (µm)。
+        WidthHeat (float): 加热器的宽度 (µm)。
+        DeltaHeat (float): 加热器的几何调整参数 (例如，偏移量) (µm)。
+        GapHeat (float): 波导与加热器之间的间隙 (µm)。
+        WidthRoute (float): 加热器引出线的宽度 (µm)。
+        LengthRun (float): 跑道环直线部分的长度 (µm)。
+        RadiusRing (float): 跑道环弯曲部分的半径 (µm)。
+        GapCouple (float): 环与耦合总线之间的最小间隙 (µm)。
+        AngleCouple (float): 定义滑轮耦合器弯曲耦合段的角度 (度)。
+        IsAD (bool): 如果为True，则添加Add和Drop端口；否则为双端口直通器件。
+        IsHeat (bool): 如果为True，则为跑道环添加加热器。
+        TypeHeater (str): 加热器的类型 (例如 "default", "snake", "side")。
+        DirectionHeater (str): 加热器的位置/方向，相对于环。
+        oplayer (LayerSpec): 光学波导层。
+        heatlayer (LayerSpec): 加热器层。
+        routelayer (LayerSpec): 加热器布线层 (主要用于某些复杂加热器类型)。
+        vialayer (LayerSpec): 过孔层 (主要用于某些复杂加热器类型)。
 
-    返回：
-        Component: 生成的环形跑道波导组件。
+    返回:
+        Component: 生成的滑轮耦合跑道环谐振器组件。
 
-    端口：
+    端口:
         Input: 输入端口。
         Through: 直通端口。
-        Add: 添加端口（如果 IsAD 为 True）。
-        Drop: 丢弃端口（如果 IsAD 为 True）。
-        Rcen1, Rcen2: 环形波导的中心端口。
+        Add: (如果 IsAD=True) 增加端口。
+        Drop: (如果 IsAD=True) 下载端口。
+        RingSmid1, RingSmid2: 跑道环直线段中点上方的参考端口。
+        RingBmid1, RingBmid2: 跑道环直线段中点下方的参考端口。
+        Rcen1, Rcen2: 跑道环两个弯曲部分的中心点参考端口。
+        (如果 IsHeat=True，还会根据 TypeHeater 和 DirectionHeater 生成相应的加热器电学端口)
     """
     c = gf.Component()
     layer = oplayer
@@ -166,29 +180,44 @@ def RaceTrackS(
         Name: str = "RaceTrack_Pulley",
 ) -> Component:
     """
-    创建一个环形跑道波导组件，支持输入、输出、添加和丢弃端口，并可选添加标签。
+    创建一个基于直线耦合的跑道环谐振器。
+    耦合通过环的直线段与平行总线波导之间的近场相互作用实现。
+    支持Add/Drop端口和不同类型的加热器（包括中心加热、侧边加热或GSG电极）。
 
-    参数：
-        WidthRing: 环形波导的宽度（单位：um）。
-        LengthRun: 直线部分的长度（单位：um）。
-        RadiusRing: 环形波导的半径（单位：um）。
-        GapCouple: 环形波导与耦合波导之间的间距（单位：um）。
-        LengthCouple: 耦合部分的长度（单位：um）。
-        IsAD: 是否添加添加和丢弃端口。
-        IsLabels: 是否添加端口标签。
-        oplayer: 波导层的定义。
-        heatlayer: 加热层的定义。
-        Name: 组件名称。
+    参数:
+        WidthRing (float): 跑道环波导宽度 (µm)。
+        WidthHeat (float): （如果IsHeat）加热条宽度 (µm)。
+        WidthRoute (float): （如果IsHeat）加热器引出线宽度 (µm)。
+        LengthRun (float): 跑道环直线段长度 (µm)。
+        RadiusRing (float): 跑道环弯曲半径 (µm)。
+        GapCouple (float): 环的直线段与耦合总线之间的间隙 (µm)。
+        LengthCouple (float): 直线耦合段的长度 (µm)。
+        GapHeat (float): 波导与加热器（或GSG的G电极）的间隙 (µm)。
+        DeltaHeat (float): 加热器/GSG电极的几何偏移参数 (µm)。
+                           - TypeHeater="center": 中心加热条的y偏移。
+                           - TypeHeater="side": 侧边加热条的y偏移。
+        IsAD (bool): 是否包含Add/Drop端口。
+        IsHeat (bool): 是否添加加热器/电极。
+        TypeHeater (str): 加热器/电极类型:
+                          - "center": 在环的直线段中心下方/上方放置加热条。
+                          - "side": 在环的直线段一侧放置加热条。
+                          - "ele": 在环的一侧放置GSG（Ground-Signal-Ground）电极。
+                          - "default", "snake": (如果DifferentHeater支持)
+        DirectionHeater (str): 当TypeHeater="side"时，指定加热器在"up"或"down"。
+        oplayer (LayerSpec): 光学波导层。
+        elelayer (LayerSpec): GSG电极层。
+        heatlayer (LayerSpec): 普通加热器层。
+        routelayer, vialayer: 用于加热器或GSG的布线和过孔层。
+        Name (str): 组件名称。
 
-    返回：
-        Component: 生成的环形跑道波导组件。
+    返回:
+        Component: 生成的直线耦合跑道环谐振器组件。
 
-    端口：
-        Input: 输入端口。
-        Through: 直通端口。
-        Add: 添加端口（如果 IsAD 为 True）。
-        Drop: 丢弃端口（如果 IsAD 为 True）。
-        Rcen1, Rcen2: 环形波导的中心端口。
+    端口: (与RaceTrackP类似，但耦合机制不同)
+        Input, Through, Add, Drop.
+        RingSmid1, RingSmid2, RingBmid1, RingBmid2: 环上参考点。
+        Rcen1, Rcen2: 弯曲中心参考点。
+        (以及可能的加热器/电极端口)
     """
     if TypeHeater == "center":
         return RaceTrackStrHC(
@@ -498,31 +527,35 @@ def TaperRaceTrackPulley(
         Name: str = "TaperRaceTrack_Pulley"
 ) -> Component:
     """
-    创建一个带有锥形耦合的环形跑道波导组件，支持输入、输出、添加和丢弃端口。
+     创建一个带有中心放置加热电极的直线耦合跑道环谐振器。
+     加热电极位于跑道环的几何中心区域（通常在两个直线段之间），并通过特定结构引出。
 
-    参数：
-        WidthRing: 环形波导的宽度（单位：um）。
-        WidthNear: 耦合波导的宽度（单位：um）。
-        WidthRun: 直线部分的宽度（单位：um）。
-        LengthRun: 直线部分的长度（单位：um）。
-        LengthTaper: 锥形部分的长度（单位：um）。
-        RadiusRing: 环形波导的半径（单位：um）。
-        GapCouple: 环形波导与耦合波导之间的间距（单位：um）。
-        AngleCouple: 耦合角度（单位：度）。
-        IsAD: 是否添加添加和丢弃端口。
-        oplayer: 波导层的定义。
-        Name: 组件名称。
+     参数:
+         WidthRing (float): 跑道环波导宽度 (µm)。
+         WidthHeat (float): 中心加热条的宽度 (µm)。
+         WidthRoute (float): 加热器引出金属线的宽度 (µm)。
+         DeltaHeat (float): 加热条中心相对于环几何中心线的垂直偏移量 (µm)。
+                            负值表示向下偏移。
+         GapRoute (float): 加热器引出结构（例如两个引出臂之间）的间隙或相关尺寸 (µm)。
+         LengthRun (float): 跑道环直线段长度 (µm)。
+         RadiusRing (float): 跑道环弯曲半径 (µm)。
+         GapCouple (float): 环与耦合总线的间隙 (µm)。
+         LengthCouple (float): 直线耦合段的长度 (µm)。
+         IsAD (bool): 是否包含Add/Drop端口。
+         IsHeat (bool): 是否添加加热器（在此函数中通常为True）。
+         oplayer (LayerSpec): 光学波导层。
+         heatlayer (LayerSpec): 加热器主条层。
+         routelayer (LayerSpec): 加热器引出线层。
+         vialayer (LayerSpec): 过孔层（如果引出结构需要）。
+         Name (str): 组件名称。
 
-    返回：
-        Component: 生成的环形跑道波导组件。
+     返回:
+         Component: 生成的带中心加热的跑道环组件。
 
-    端口：
-        Input: 输入端口。
-        Through: 直通端口。
-        Add: Add端口（如果 IsAD 为 True）。
-        Drop: Drop端口（如果 IsAD 为 True）。
-        Rcen1, Rcen2: 环形波导的中心端口。
-    """
+     端口: (与RaceTrackS类似，但加热器端口不同)
+         Input, Through, Add, Drop.
+         HeatIn, HeatOut: 中心加热器的电学端口。
+     """
     c = gf.Component()
     layer = oplayer
     secring = gf.Section(width=WidthRing, offset=0, layer=layer, port_names=("o1", "o2"))

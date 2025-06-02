@@ -27,6 +27,46 @@ def SingleRingIsolator0(
         tin: Component = None,
         oplayer: LayerSpec = LAYER.WG,
 ) -> Component:
+    """
+    创建一个基于单 Add-Drop 环形谐振器（使用RingPulley1DC）的隔离器原型组件。
+    包含输入（tin）和三个输出（tout）组件，通常用于连接光栅耦合器等IO结构。
+    通过调整环的参数和耦合，可以实现特定波长的隔离或滤波功能。
+
+    参数:
+        r_ring (float): 核心环谐振器的半径 (µm)。
+        r_euler_false (float): 用于连接路径的欧拉弯曲半径 (µm)。
+        width_ring (float): 环内波导的宽度 (µm)。
+        width_near1 (float): 主输入/直通总线在耦合区的宽度 (µm)。
+        width_near2 (float): Add/Drop总线在耦合区的宽度 (µm)。
+        width_heat (float): （如果RingPulley1DC支持）加热器的宽度 (µm)。
+        width_single (float): 外部单模波导的宽度 (µm)。
+        angle_rc1 (float): 主总线与环的耦合角度 (度)。
+        angle_rc2 (float): Add/Drop总线与环的耦合角度 (度)。
+        angle_th1 (float): Through端口引出路径的弯曲角度 (度)。
+        angle_dr (float): Drop端口引出路径的弯曲角度 (度)。
+        length_taper (float): 从单模波导到耦合总线宽度的锥形渐变长度 (µm)。
+        length_total (float): 组件的总目标布局长度，用于对齐最右端的IO组件 (µm)。
+        length_thadd (float): Through端口路径上的额外直线波导长度 (µm)。
+        pos_ring (float): 环的输入耦合点的大致X轴坐标 (µm)。
+        gap_rc1 (float): 主总线与环的耦合间隙 (µm)。
+        gap_rc2 (float): Add/Drop总线与环的耦合间隙 (µm)。
+        gap_ad (float): Drop端口相对于Through端口的垂直间隔 (µm)，主要影响布局。
+        tout (ComponentSpec | None): 用于输出端口（Through, Add, Drop）的组件规格（例如光栅）。
+                                     如果为 None，则不添加特定的输出终端组件。
+        tin (ComponentSpec | None): 用于输入端口的组件规格（例如光栅）。
+                                    如果为 None，则不添加特定的输入终端组件。
+        oplayer (LayerSpec): 光学波导层。
+
+    返回:
+        Component: 生成的单环隔离器原型组件。
+
+    端口:
+        input: 组件的总光学输入端口。
+        through: 组件的直通光学端口。
+        drop: 组件的下载光学端口。
+        add: 组件的增加光学端口。
+        RingC: 环中心的参考点（概念性端口，不用于连接）。
+    """
     sr = gf.Component()
     # Section CrossSection
     S_near1 = gf.Section(width=width_near1, layer=oplayer, port_names=("o1", "o2"))
@@ -133,6 +173,26 @@ def SingleRingIsolator1(
         tin: Component = None,
         oplayer: LayerSpec = LAYER.WG,
 ) -> Component:
+    """
+    创建一个带监控端口的单 Add-Drop 环形谐振器隔离器原型。
+    除了 `SingleRingIsolator0` 的功能外，此版本在主输入路径旁增加了一个浅耦合的监控路径，
+    用于引出部分光信号进行功率监控或反馈。监控路径末端可以连接到探测器或另一个IO组件。
+
+    参数:
+        (大部分参数与 `SingleRingIsolator0` 相同)
+        r_euler_moni (float): 监控路径中弯曲波导的半径 (µm)。
+        angle_th2 (float): Drop端口引出路径的弯曲角度 (度)。 (原参数名，建议改为 angle_dr)
+        length_monicouple (float): 监控路径与主输入路径平行耦合的直线段长度 (µm)。
+        pos_monitor (float): 监控耦合器相对于整体输入起点的大致X轴位置 (µm)。
+        gap_mc (float): 主输入路径与监控路径之间的耦合间隙 (µm)。
+
+    返回:
+        Component: 生成的带监控端口的单环隔离器原型组件。
+
+    端口:
+        (与 `SingleRingIsolator0` 类似，额外增加)
+        monitor_out: 监控路径的输出端口。
+    """
     sr = gf.Component()
     # Section CrossSection
     S_near1 = gf.Section(width=width_near1, layer=oplayer, port_names=("o1", "o2"))
@@ -260,37 +320,27 @@ def RingAndIsolator0(
         tin: Component = None,
         oplayer: LayerSpec = LAYER.WG,
 ) -> Component:
-    '''
+    """
+    创建一个集成组件，包含一个用于光梳生成的环形谐振器（梳状环）和一个
+    `SingleRingIsolator0` 类型的单环隔离器原型。两者通常串联在同一光路中，
+    先经过梳状环，再进入隔离器。
 
-    Args:
-        r_ring:
-        r_euler_false:
-        width_ring:isolator ring width
-        width_Cring: Comb Ring Width: if None,width_Cring = width_ring
-        width_near1:
-        width_near2:
-        width_heat:
-        width_single:
-        angle_rc1:angle of isolator ring input-pass
-        angle_rc2:angle of isolator ring add-drop
-        angle_th1:
-        angle_th2:
-        angle_Cring: Comb Ring coupler angle
-        length_taper:
-        length_total:
-        pos_ring: isolator ring position
-        pos_Cring: Comb Ring position
-        gap_rc1:
-        gap_rc2:
-        gap_ad:
-        gap_Cring: Comb Ring coupler gap
-        tout:
-        tin:
-        oplayer:
+    参数:
+        (大部分参数与 `SingleRingIsolator0` 相同，用于配置隔离器部分)
+        width_Cring (float | None): 梳状环的波导宽度 (µm)。如果为 None，则使用与隔离器环相同的宽度 (`width_ring`)。
+        width_nearC (float): 梳状环耦合区域的总线波导宽度 (µm)。
+        angle_Cring (float): 梳状环的耦合角度 (度)。
+        pos_Cring (float): 梳状环输入耦合点的大致X轴坐标 (µm)。
+        gap_Cring (float): 梳状环与总线的耦合间隙 (µm)。
 
-    Returns:
-        Ring and SingleRingIsolator0: ring for comb and ADD-DROP ring
-    '''
+    返回:
+        Component: 生成的梳状环+隔离器集成组件。
+
+    端口: (与 `SingleRingIsolator0` 类似)
+        input, through, drop, add: 组件的主要光学端口。
+        RingC_iso: 隔离器环中心的参考点。
+        RingC_comb: 梳状环中心的参考点。
+    """
     sr = gf.Component()
     if width_Cring == None:
         width_Cring = width_ring
