@@ -97,11 +97,16 @@ def remove_layer(
         layer: LayerSpec = (1, 10)
 ) -> Component:
     """
-    从组件中删除指定层的所有多边形。
+    创建一个新的组件，该组件包含输入组件中除了指定图层之外的所有多边形。
+    端口会被复制到新组件。
 
-    参数：
-        component: 目标组件。
-        layer: 要删除的层号，例如 (1, 0)。
+    参数:
+        component (Component): 源 gdsfactory 组件。
+        layer (LayerSpec): 要移除的 GDS 图层 (LayerSpec)。此图层上的多边形将不会被复制。
+                           默认为 (1, 10)。
+
+    返回:
+        Component: 一个移除了指定图层多边形的新 gdsfactory 组件。
     """
     c = gf.Component()
     layers = component.layers
@@ -122,21 +127,22 @@ def add_labels_to_ports(
         port_filter: str = None,
         **kwargs,
 ):
-    """Add labels to component ports.
+    """
+    为 gdsfactory 组件的端口添加文本标签。
+    此函数会直接修改传入的组件。
 
-    Args:
-        component: to add labels.
-        label_layer: layer spec for the label.
-        port_type: to select ports.
+    参数:
+        component (Component): 需要添加标签的 gdsfactory 组件。
+        label_layer (LayerSpec): 文本标签所在的 GDS 图层。默认为 (512, 8)。
+        port_type (str): 根据端口类型筛选端口 (例如："optical", "electrical")。默认为 "optical"。
+        port_filter (str | None): 用于筛选端口名称的字符串。如果端口名称包含此字符串，
+                                 则会添加标签。如果为 None，则所有符合其他条件的端口都会被标记。
+                                 默认为 None。
+        **kwargs: 传递给 `component.get_ports_list()` 的其他关键字参数。
+                  例如: layer, prefix, orientation, width, layers_excluded, clockwise。
 
-    keyword Args:
-        layer: select ports with GDS layer.
-        prefix: select ports with prefix in port name.
-        orientation: select ports with orientation in degrees.
-        width: select ports with port width.
-        layers_excluded: List of layers to exclude.
-        port_type: select ports with port_type (optical, electrical, vertical_te).
-        clockwise: if True, sort ports clockwise, False: counter-clockwise.
+    返回:
+        None
     """
     # new_component = component.copy()  # 创建组件的副本
     # component = remove_layer(component, layer=label_layer)
@@ -153,6 +159,21 @@ def add_labels_to_ports(
 # %% original straight
 @gf.cell
 def GfCStraight(length=10, width=1, layer=(1, 0)):
+    """
+    创建一个简单的直波导组件。
+
+    参数:
+        length (float): 直波导的长度 (单位: um)。默认为 10.0 um。
+        width (float): 直波导的宽度 (单位: um)。默认为 1.0 um。
+        layer (LayerSpec): 波导所在的 GDS 图层。默认为 (1, 0)。
+
+    返回:
+        Component: 代表直波导的 gdsfactory 组件。
+
+    端口:
+        o1: 直波导一端的光学端口。
+        o2: 直波导另一端的光学端口。
+    """
     c = gf.Component()
     S = gf.Section(width = width,layer=layer,port_names=("o1","o2"))
     X = gf.CrossSection(sections=(S,))
@@ -172,30 +193,46 @@ def GfCBendEuler(
         cross_section: CrossSectionSpec = "strip",
         allow_min_radius_violation: bool = False,
 ) -> ComponentAllAngle:
-    """Euler bend with changing bend radius.
+    """
+    创建一个曲率半径变化的欧拉弯曲组件。
+    此函数似乎是 gdsfactory 内置欧拉弯曲的一个封装或自定义实现。
 
-    By default, `radius` corresponds to the minimum radius of curvature of the bend.
-    However, if `with_arc_floorplan` is True, `radius` corresponds to the effective
-    radius of curvature (making the curve a drop-in replacement for an arc). If
-    p < 1.0, will create a "partial euler" curve as described in Vogelbacher et.
-    al. https://dx.doi.org/10.1364/oe.27.031394
+    默认情况下，`radius` 对应于弯曲的最小曲率半径。
+    但是，如果 `with_arc_floorplan` 为 True，`radius` 则对应于有效曲率半径
+    （使得该曲线可以作为圆弧弯曲的直接替代品）。
+    如果 p < 1.0，将创建一个 "部分欧拉" 曲线。
 
-    default p = 0.5 based on this paper
-    https://www.osapublishing.org/oe/fulltext.cfm?uri=oe-25-8-9150&id=362937
+    参数:
+        radius (float | None): 最小曲率半径 (单位: um)。默认为 `cross_section` 中定义的半径。
+        angle (float): 曲线的总角度 (单位: 度)。默认为 90.0 度。
+        p (float): 曲线中欧拉曲线部分的比例 (0 到 1)。默认为 0.5。
+        with_arc_floorplan (bool): 如果为 False，`radius` 是最小曲率半径。
+                                  如果为 True，曲线将被缩放，使得其端点与具有 `radius` 和 `angle`
+                                  参数的圆弧弯曲相匹配。默认为 True。
+        npoints (int | None): 用于路径每360度所使用的点数。默认为 None，由gdsfactory自动计算。
+        layer (LayerSpec | None): 弯曲的特定 GDS 图层。如果提供，将覆盖 `cross_section` 的图层。
+                               默认为 None。
+        width (float | None): 弯曲的特定宽度。如果提供，将覆盖 `cross_section` 的宽度。
+                             默认为 None。
+        cross_section (CrossSectionSpec): 截面规格 (可以是 CrossSection 对象、字符串名称或字典)。
+                                         默认为 "strip"。
+        allow_min_radius_violation (bool): 如果为 True，则允许半径小于 `cross_section.min_radius`。
+                                          默认为 False。
 
-    Args:
-        radius: in um. Defaults to cross_section_radius.
-        angle: total angle of the curve.
-        p: Proportion of the curve that is an Euler curve.
-        with_arc_floorplan: If False: `radius` is the minimum radius of curvature
-          If True: The curve scales such that the endpoints match a bend_circular
-          with parameters `radius` and `angle`.
-        npoints: Number of points used per 360 degrees.
-        layer: layer to use. Defaults to cross_section.layer.
-        width: width to use. Defaults to cross_section.width.
-        cross_section: specification (CrossSection, string, CrossSectionFactory dict).
-        allow_min_radius_violation: if True allows radius to be smaller than cross_section radius.
-        all_angle: if True, the bend is drawn with a single euler curve.
+    返回:
+        ComponentAllAngle: 代表欧拉弯曲的 gdsfactory 组件。
+
+    端口:
+        o1: 弯曲起始端的光学端口。
+        o2: 弯曲结束端的光学端口。
+
+    信息 (Info):
+        length (float): 计算得到的弯曲长度。
+        dx (float): 弯曲在水平方向上的跨度。
+        dy (float): 弯曲在垂直方向上的跨度。
+        min_bend_radius (float): 实现的最小弯曲半径。
+        radius (float): 输入的半径参数。
+        width (float): 弯曲的宽度。
 
     .. code::
 
@@ -257,6 +294,26 @@ def Crossing_taper(
         LengthTaper: float = 100,
         oplayer: LayerSpec = LAYER.WG,
 ) -> Component:
+    """
+    创建一个四端口交叉结构，每个臂上都带有锥形波导。
+    一个中心的方形波导区域连接到四个锥形波导，形成输入/输出端口。
+
+    参数:
+        WidthCross (float): 锥形波导连接到中心方形区域的宽度 (锥形的较宽端)。默认为 1.0 um。
+        WidthWg (float): 输入/输出端口处的波导宽度 (锥形的较窄端)，也用作中心方形区域的边长。
+                         默认为 0.45 um。
+        LengthTaper (float): 每个锥形波导的长度。默认为 100.0 um。
+        oplayer (LayerSpec): 波导和锥形所在的 GDS 图层。默认为 LAYER.WG。
+
+    返回:
+        Component: 生成的带锥形臂的交叉组件。
+
+    端口:
+        o1: 光学端口1。
+        o2: 光学端口2。
+        o3: 光学端口3。
+        o4: 光学端口4。
+    """
     Crossing = gf.Component()
     center = Crossing << GfCStraight(width=WidthWg, length=WidthWg, layer=oplayer)
     center.movex(-WidthWg / 2)
@@ -282,10 +339,29 @@ def TaperRsoa(
         RadiusBend: float = 50,
         layer: LayerSpec = LAYER.WG,
         layers: LayerSpecs | None = None,
-        Name="taper_rsoa"
 ) -> Component:
-    c = gf.Component(Name)
-    layers = layers or [layer]
+    """
+    创建一个锥形波导组件，可能用于反射型半导体光放大器 (RSOA) 的端面。
+    该组件由一个欧拉弯曲、一个锥形波导和一个直波导段组成。
+
+    参数:
+        AngleRsoa (float): 初始欧拉弯曲的角度 (单位: 度)。默认为 13.0 度。
+        WidthRsoa (float): 锥形波导较宽端的宽度 (也是末端直波导的宽度)。默认为 8.0 um。
+        WidthWg (float): 锥形波导较窄端的宽度 (也是欧拉弯曲的宽度)。默认为 0.8 um。
+        LengthRsoa (float): 锥形部分的长度。默认为 200.0 um。
+        LengthAdd (float): 宽端额外直波导部分的长度。默认为 100.0 um。
+        RadiusBend (float): 初始欧拉弯曲的半径。默认为 50.0 um。
+        layer (LayerSpec): 所有波导组件的 GDS 图层。默认为 LAYER.WG。
+        Name (str): 组件的名称。默认为 "taper_rsoa"。
+
+    返回:
+        Component: 生成的 RSOA 锥形结构组件。
+
+    端口:
+        o1: 位于宽直波导段末端的光学端口。
+        o2: 位于欧拉弯曲起始端的光学端口。
+    """
+    c = gf.Component()
     ebend = c << gf.components.bend_euler(angle=-AngleRsoa, width=WidthWg, radius=RadiusBend, layer=layer)
     rtaper = c << gf.components.taper(length=LengthRsoa, width1=WidthWg, width2=WidthRsoa, layer=layer)
     rstr = c << gf.components.straight(length=LengthAdd, width=WidthRsoa, layer=layer)
@@ -308,21 +384,23 @@ def OffsetRamp(
     """
     创建一个带有偏移的锥形渐变波导组件 (Offset Ramp Component)。
     该组件用于连接两个不同宽度或在垂直方向上有所偏移的波导。
-    它通过一个线性渐变的区域实现宽度的平滑过渡。
+    它通过一个线性渐变的区域实现宽度的平滑过渡和位置的偏移。
 
     参数:
-        length (float): 渐变区域的长度 (单位: um)。默认值为 10um。
-        width1 (float): 输入端的波导宽度 (单位: um)。默认值为 5um。
-        width2 (float | None): 输出端的波导宽度 (单位: um)。如果为 None，则输出宽度等于输入宽度 (width1)。默认值为 None。
-        offset (float): 输出端中心相对于输入端中心的垂直偏移量 (单位: um)。正值表示向上偏移，负值表示向下偏移。默认值为 0。
-        layer (LayerSpec): 定义波导的层。默认为 LAYER.WG。
+        length (float): 渐变区域的长度 (单位: um)。默认值为 10.0 um。
+        width1 (float): 输入端的波导宽度 (单位: um)。默认值为 5.0 um。
+        width2 (float | None): 输出端的波导宽度 (单位: um)。如果为 None，则输出宽度等于输入宽度 (width1)。
+                               默认为 None。
+        offset (float): 输出端中心相对于输入端中心的垂直偏移量 (单位: um)。
+                        正值表示输出端向上偏移，负值表示向下偏移。默认值为 0 um。
+        layer (LayerSpec): 定义波导的 GDS 图层。默认为 LAYER.WG。
 
     返回:
         Component: 生成的偏移渐变波导组件。
 
     端口:
-        "o1": 输入端口，位于渐变区域的起始端。
-        "o2": 输出端口，位于渐变区域的终止端。
+        "o1": 输入端口，位于渐变区域的起始端 (左侧，x=0)。
+        "o2": 输出端口，位于渐变区域的终止端 (右侧，x=length)。
     """
     # 如果未指定 width2，则使其等于 width1，创建一个等宽但可能有偏移的连接
     if width2 is None:
@@ -379,6 +457,34 @@ def cir2end(
         layers: LayerSpecs | None = None,
         Name="cir2end"
 ) -> Component:
+    """
+    创建一个从锥形波导过渡到一系列半径递减的180度圆弧弯曲的组件。
+    这可能用于实现一个紧凑的延迟线、螺旋结构或者特定的模式转换器。
+
+    参数:
+        WidthNear (float): 靠近输入端的波导宽度 (锥形的较宽端)。默认为 1.0 um。
+        WidthEnd (float): 末端波导宽度 (锥形的较窄端，也是所有圆弧部分的宽度)。默认为 0.5 um。
+        LengthTaper (float): 初始锥形波导的长度。默认为 100.0 um。
+        Pitch (float): 相邻180度圆弧对（一个完整周期）的半径减小量。
+                       或者说，每经过一个180度弯曲，下一个同向180度弯曲的半径减小 Pitch。
+                       原代码中 `RadiusBend0 - (i + 1) * Pitch / 2` 暗示 Pitch 是直径相关的变化，
+                       或者每个半圆半径减小 Pitch/2。这里假设 Pitch 是指每个完整周期（两个180度弯）的半径差。
+                       为了清晰，这里将 Pitch 理解为每个180度弯曲半径相对于前一个同方向弯曲的减小量。
+                       默认为 10.0 um。
+        RadiusBend0 (float): 第一个 (最外层) 180度圆弧弯曲的半径。默认为 50.0 um。
+        Period (float): 定义了180度圆弧弯曲的对数 (或周期数)。总共会产生 `2 * int(Period)` 个180度弯曲。
+                        原代码 Period=5.5 可能会导致非整数个弯曲，这里会取整。默认为 5.5。
+        oplayer (LayerSpec): 光学波导层。默认为 LAYER.WG。
+        Name (str): 组件名称。默认为 "cir2end"。
+
+    返回:
+        Component: 生成的 "cir2end" 组件。
+
+    端口:
+        o1: 组件的输入端口，位于初始锥形波导的宽端。
+        (注意：原代码没有明确定义输出端口，最后一个圆弧的o2端口未导出。
+         如果需要输出端口，应在最后一个圆弧后添加。)
+    """
     c = gf.Component(Name)
     taper = c << gf.c.taper(width1=WidthNear, width2=WidthEnd, length=LengthTaper, layer=oplayer)
     if RadiusBend0 - Period * Pitch < 10:
@@ -405,27 +511,33 @@ def euler_Bend_Half(
         use_eff: bool = False,
         npoints: int | None = None,
 ) -> Path:
-    """Returns an euler bend that adiabatically transitions from  curved to straight
+    """
+    返回一个欧拉弯曲路径，该路径从弯曲状态逐渐过渡到直线状态 (或者说，是完整欧拉弯曲的一半)。
 
-    `radius` is the minimum radius of curvature of the bend.
-    However, if `use_eff` is set to True, `radius` corresponds to the effective
-    radius of curvature (making the curve a drop-in replacement for an arc).
-    If p < 1.0, will create a "partial euler" curve as described in Vogelbacher et. al.
-    https://dx.doi.org/10.1364/oe.27.031394
+    如果 `use_eff` 为 True，`radius` 参数对应于有效曲率半径，使得该曲线
+    可以作为具有相同 `radius` 和 `angle` 的圆弧弯曲的直接替代品。
+    如果 `use_eff` 为 False (默认)，`radius` 参数对应于弯曲的最小曲率半径。
+    参数 `p` 控制曲线中纯欧拉过渡部分的比例。
 
-    Args:
-        radius: minimum radius of curvature.
-        angle: total angle of the curve.
-        p: Proportion of the curve that is an Euler curve.
-        use_eff: If False: `radius` is the minimum radius of curvature of the bend. \
-                If True: The curve will be scaled such that the endpoints match an \
-                arc with parameters `radius` and `angle`.
-        npoints: Number of points used per 360 degrees.
+    参数:
+        radius (float): 最小曲率半径 (如果 use_eff=False) 或有效半径 (如果 use_eff=True)。
+                        默认为 10.0 um。
+        angle (float): 曲线的总角度 (单位: 度)。默认为 90.0 度。
+        p (float): 曲线中欧拉部分的比例 (0 < p <= 1)。默认为 0.5。
+        use_eff (bool): 如果为 False，`radius` 是最小曲率半径。
+                        如果为 True，曲线将被缩放以匹配具有 `radius` 和 `angle` 参数的圆弧的端点。
+                        默认为 False。
+        npoints (int | None): 用于生成路径每360度的点数。默认为 None (由gdsfactory自动计算)。
 
-    .. plot::
-        p = euler_Bend_Half(radius=10, angle=45, p=1, use_eff=True, npoints=720)
-        p.plot()
+    返回:
+        Path: 生成的半欧拉弯曲路径对象。
 
+    异常:
+        ValueError: 如果 `p` 不在 (0, 1] 范围内。
+
+    示例:
+        >>> path = euler_Bend_Half(radius=10, angle=45, p=1, use_eff=True)
+        >>> # path.plot() # 在Jupyter等环境中可以绘图查看
     """
 
     if (p <= 0) or (p > 1):
@@ -517,18 +629,27 @@ def euler_Bend_Part(
         use_eff: bool = False,
         npoints: int | None = None,
 ) -> Path:
-    """Euler bend with curvature transitioning from radius1 to radius2.
+    """
+    创建一个欧拉弯曲路径，其曲率从 1/radius1 平滑过渡到 1/radius2。
 
-    Args:
-        radius1: Starting radius of curvature.
-        radius2: Ending radius of curvature.
-        angle: Total angle of the bend (degrees).
-        p: Proportion of the curve using the Euler transition (0 ≤ p ≤ 1).
-        use_eff: If True, scale to match effective radius of a circular arc.
-        npoints: Number of points along the curve.
+    参数:
+        radius1 (float): 起始曲率半径 (单位: um)。默认为 10.0 um。
+        radius2 (float): 结束曲率半径 (单位: um)。默认为 20.0 um。
+        angle (float): 弯曲的总角度 (单位: 度)。默认为 90.0 度。
+        p (float): 欧拉过渡段所占总角度的比例 (0 < p <= 1)。
+                   p=1 表示整个弯曲都是动态曲率过渡。
+                   p<1 表示前 p*angle 的角度是动态曲率过渡，
+                   剩余 (1-p)*angle 的角度是一个曲率为 1/radius2 的圆弧。
+                   默认为 0.5。
+        use_eff (bool): 如果为 True，则尝试缩放路径，使其端点行为类似于某个“有效半径”的圆弧。
+                        此处的“有效半径”可能基于 radius1 或 (radius1+radius2)/2。默认为 False。
+        npoints (int | None): 生成路径的总点数。默认为 None (由gdsfactory自动计算)。
 
-    Returns:
-        Path: The generated Euler bend path.
+    返回:
+        Path: 生成的欧拉弯曲路径对象。
+
+    异常:
+        ValueError: 如果 radius1 或 radius2 非正，或者 p 不在 (0, 1] 范围内。
     """
     if radius1 <= 0 or radius2 <= 0:
         raise ValueError("Radius values must be positive")
@@ -648,6 +769,17 @@ def TWQRcode(
         Size: float = 10,
         lglayer: LayerSpec = (10, 0)
 ) -> Component:
+    """
+    创建一个包含指定网站URL的QR码组件。
+
+    参数:
+        Size (float): QR码中每个像素点 (小方块) 的尺寸 (单位: um)。默认为 10.0 um。
+        lglayer (LayerSpec): QR码图形所在的 GDS 图层。默认为 (10, 0)。
+
+    返回:
+        Component: 生成的QR码组件。
+                   组件名为 "logo" (可以考虑改为更具描述性的名称，如 "team_website_qrcode")。
+    """
     logo = gf.Component("logo")
     qrcode = logo << gf.c.qrcode(data='https://photonics.pku.edu.cn/', psize=Size, layer=lglayer)
     return logo
@@ -655,15 +787,17 @@ def TWQRcode(
 
 # %% Component shift
 def shift_component(component: Component, dx: float, dy: float) -> Component:
-    """Shifts all elements in the component by (dx, dy).
+    """
+    创建一个新组件，其中包含原始组件所有元素平移 (dx, dy)后的副本。
+    原始组件保持不变。
 
-    Args:
-        component: The component to shift.
-        dx: The shift in the x-direction.
-        dy: The shift in the y-direction.
+    参数:
+        component (Component): 需要平移的源组件。
+        dx (float): 在 x 方向上的平移量。
+        dy (float): 在 y 方向上的平移量。
 
-    Returns:
-        A new component with all elements shifted.
+    返回:
+        Component: 一个包含平移后所有元素的新组件。
     """
     new_component = Component()  # 创建一个新的组件实例
 
@@ -696,6 +830,21 @@ def GetFromLayer(
         OLayer: LayerSpec = (1, 0),
         FLayer: LayerSpec = None,
 ) -> Component:
+    """
+    从原始组件 (CompOriginal) 中提取指定原始图层 (OLayer) 上的所有多边形，
+    并将这些多边形放置到一个新的组件中，可以指定一个新的最终图层 (FLayer)。
+    原始组件的端口会被复制到新组件。
+
+    参数:
+        CompOriginal (Component): 要从中提取图层的原始组件。
+        OLayer (LayerSpec): 要从原始组件中提取的多边形所在的图层。默认为 (1, 0)。
+        FLayer (LayerSpec | None): 提取出的多边形在新组件中要赋予的图层。
+                                   如果为 None，则使用与 OLayer 相同的图层。默认为 None。
+
+    返回:
+        Component: 一个新的组件，仅包含从原始组件的 OLayer 上提取并在 FLayer 上重绘的多边形，
+                   以及复制的端口。
+    """
     if FLayer is None:
         FLayer = OLayer
     CompFinal = gf.Component(CompOriginal.name + "Layer=" + str(OLayer))
