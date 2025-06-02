@@ -17,7 +17,7 @@ def DoubleRaceTrack(
         GapCouple: float = 1,
         AngleCouple: float = 20,
         DeltaHeat: float = 0,
-        DeltaLengthRS: float = 2,
+        DeltaRun: float = 2,
         IsHeat: bool = False,
         TypeCouple: str = "p",
         TypeHeater: str = "default",
@@ -81,7 +81,7 @@ def DoubleRaceTrack(
         )
         ring2 = c << RaceTrackP(
             WidthRing=WidthRing, WidthNear=WidthNear, GapCouple=GapCouple,IsHeat=IsHeat,
-            LengthRun=LengthRun + DeltaLengthRS, RadiusRing=RadiusRing, AngleCouple=AngleCouple, oplayer=oplayer
+            LengthRun=LengthRun + DeltaRun, RadiusRing=RadiusRing, AngleCouple=AngleCouple, oplayer=oplayer
         )
     elif TypeCouple == "s" or TypeCouple == "S":
         ring1 = c << RaceTrackS(
@@ -170,17 +170,21 @@ def CoupleDouRaceTrack(
         WidthRing: float = 8,
         WidthHeat: float = 10,
         WidthRoute: float = 20,
+        WidthNear: float = 1,
         LengthRun: float = 200,
         RadiusRing: float = 100,
         GapCoupleOut: float = 1,
         GapCoupleIn: float = 1,
         LengthCoupleOut: float = 200,
         LengthCoupleIn: float = 100,
+        AngleCouple:float = 10,
         GapHeat: float = 10,
         DeltaHeat: float = 0,
         DeltaRun: float = 20,
         IsHeat: bool = True,
         TypeHeater: str = "default",
+        DirectionsHeater: str = ['down', 'down'],
+        TypeCouple: str = "S",
         oplayer: LayerSpec = LAYER.WG,
         elelayer: LayerSpec = LAYER.M2,
         heatlayer: LayerSpec = LAYER.M1,
@@ -188,21 +192,35 @@ def CoupleDouRaceTrack(
         vialayer: LayerSpec = LAYER.VIA,
 )->Component:
     c = gf.Component()
-    racetrack1 = c << RaceTrackS(
-        WidthRing= WidthRing,WidthHeat= WidthHeat,WidthRoute= WidthRoute,
-        LengthRun= LengthRun,
-        RadiusRing= RadiusRing,GapCouple= GapCoupleOut,LengthCouple= LengthCoupleOut,
-        GapHeat= GapHeat,DeltaHeat= DeltaHeat,IsHeat= IsHeat,elelayer= elelayer,heatlayer= heatlayer,TypeHeater= TypeHeater,
-        IsAD= False,
-        oplayer= oplayer,routelayer= routelayer,vialayer= vialayer)
-    racetrack2 = c << RaceTrackS(
-        WidthRing= WidthRing,WidthHeat= WidthHeat,WidthRoute= WidthRoute,
-        LengthRun= LengthRun+DeltaRun,
-        RadiusRing= RadiusRing,GapCouple= GapCoupleOut,LengthCouple= LengthCoupleOut,
-        GapHeat= GapHeat,DeltaHeat= DeltaHeat,IsHeat= IsHeat,elelayer= elelayer,heatlayer= heatlayer,TypeHeater= TypeHeater,
-        IsAD= False,
-        oplayer= oplayer,routelayer= routelayer,vialayer= vialayer)
+    if TypeCouple == "s" or TypeCouple == "S":
+        racetrack1 = c << RaceTrackS(
+            WidthRing= WidthRing,WidthHeat= WidthHeat,WidthRoute= WidthRoute,
+            LengthRun= LengthRun,
+            RadiusRing= RadiusRing,GapCouple= GapCoupleOut,LengthCouple= LengthCoupleOut,
+            GapHeat= GapHeat,DeltaHeat= DeltaHeat,IsHeat= IsHeat,elelayer= elelayer,heatlayer= heatlayer,TypeHeater= TypeHeater,
+            IsAD= False,
+            oplayer= oplayer,routelayer= routelayer,vialayer= vialayer)
+        racetrack2 = c << RaceTrackS(
+            WidthRing= WidthRing,WidthHeat= WidthHeat,WidthRoute= WidthRoute,
+            LengthRun= LengthRun+DeltaRun,
+            RadiusRing= RadiusRing,GapCouple= GapCoupleOut,LengthCouple= LengthCoupleOut,
+            GapHeat= GapHeat,DeltaHeat= DeltaHeat,IsHeat= IsHeat,elelayer= elelayer,heatlayer= heatlayer,TypeHeater= TypeHeater,
+            IsAD= False,
+            oplayer= oplayer,routelayer= routelayer,vialayer= vialayer)
+    elif TypeCouple == "p" or TypeCouple == "P":
+        racetrack1 = c << RaceTrackP(
+            WidthRing=WidthRing, WidthNear=WidthNear, GapCouple=GapCoupleOut,IsHeat=IsHeat,
+            LengthRun=LengthRun, RadiusRing=RadiusRing, AngleCouple=AngleCouple, oplayer=oplayer
+        )
+        racetrack2 = c << RaceTrackP(
+            WidthRing=WidthRing, WidthNear=WidthNear, GapCouple=GapCoupleOut,IsHeat=IsHeat,
+            LengthRun=LengthRun + DeltaRun, RadiusRing=RadiusRing, AngleCouple=AngleCouple, oplayer=oplayer
+        )
     racetrack1.connect("RingSmid1",other=racetrack2.ports["RingSmid1"])
     racetrack1.movex(+WidthRing+GapCoupleIn)
-    racetrack1.movey(-DeltaRun)
+    racetrack1.movey(DeltaRun/2-LengthCoupleIn+LengthRun)
+    c.add_port("R1Input",port=racetrack1.ports["Input"])
+    c.add_port("R1Through", port=racetrack1.ports["Through"])
+    c.add_port("R2Input", port=racetrack2.ports["Input"])
+    c.add_port("R2Through", port=racetrack2.ports["Through"])
     return c
