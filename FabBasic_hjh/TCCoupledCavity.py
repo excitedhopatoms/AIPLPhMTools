@@ -1090,9 +1090,9 @@ def TCCoupleDouRaceTrackST2(
     # # ring.add_port("Ring2C", port=ring0.ports["Ring2C"])
     for port in ring0.ports:
         if "R1" in port.name:
-            ring.add_port("R1"+port.name, port=port)
+            ring.add_port(port.name, port=port)
         if "R2" in port.name:
-            ring.add_port("R2"+port.name, port=port)
+            ring.add_port(port.name, port=port)
     # # add_labels_to_ports(ring,(412,8))
     CCRing = sr << ring
     CCRing.move((pos_ring[0],-pos_ring[1]))

@@ -227,7 +227,13 @@ def CoupleDouRaceTrack(
         racetrack1.movey(-DeltaRun / 2 + LengthCoupleIn - LengthRun)
         racetrack2.mirror_y(racetrack2.ports["Input"].center[1])
         racetrack1.mirror_y(racetrack2.ports["Input"].center[1])
-
+    if IsHeat:
+        for port in racetrack1.ports:
+            if "Heat" in port.name:
+                c.add_port(name="R1" + port.name, port=port)
+        for port in racetrack2.ports:
+            if "Heat" in port.name:
+                c.add_port(name="R2" + port.name, port=port)
     c.add_port("R1Input",port=racetrack1.ports["Input"])
     c.add_port("R1Through", port=racetrack1.ports["Through"])
     c.add_port("R2Input", port=racetrack2.ports["Input"])

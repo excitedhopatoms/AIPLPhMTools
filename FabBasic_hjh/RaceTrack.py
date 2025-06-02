@@ -126,13 +126,20 @@ def RaceTrackP(
         RHP3.connect("HeatOut", other=RHP2.ports["HeatOut"])
         heater.add_port("HeatBmid1", port=RHP1.ports["HeatIn"])
         heater.add_port("HeatBmid2", port=RHP2.ports["HeatIn"])
-        heater.add_port("HeatIn", port=RHP3.ports["HeatOut"])
-        heater.add_port("HeatOut",port=RHP1.ports["HeatIn"])
+        heater.add_port("HeatIn", port=RHP3.ports["HeatIn"])
+        heater.add_port("HeatOut",port=RHP1.ports["HeatOut"])
+        if TypeHeater == 'spilt':
+            heater.add_port("HeatLIn", port=RHP3.ports["HeatLIn"])
+            heater.add_port("HeatRIn", port=RHP3.ports["HeatRIn"])
+            heater.add_port("HeatLOut", port=RHP1.ports["HeatLOut"])
+            heater.add_port("HeatROut", port=RHP1.ports["HeatROut"])
         h = c << heater
         h.connect("HeatBmid1",c.ports["RingBmid1"],allow_width_mismatch=True,allow_layer_mismatch=True)
         # h.mirror_x(h.ports["HeatBmid1"].center[0])
         if TypeHeater == "side":
             h.movey(-DeltaHeat)
+        for port in h.ports:
+            c.add_port(port.name, port=port)
     return c
 
 
