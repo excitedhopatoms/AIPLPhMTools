@@ -9,14 +9,20 @@ def RaceTrackP(
         WidthRing: float = 8,
         WidthNear: float = 5,
         WidthHeat: float = 10,
+        DeltaHeat: float = 10,
+        GapHeat: float = 10,
+        WidthRoute: float = 20,
         LengthRun: float = 200,
         RadiusRing: float = 100,
         GapCouple: float = 1,
         AngleCouple: float = 20,
         IsAD: bool = True,
         IsHeat: bool = True,
+        TypeHeater: str = "default",
         oplayer: LayerSpec = LAYER.WG,
-        Name: str = "RaceTrack_Pulley"
+        heatlayer: LayerSpec = LAYER.M1,
+        routelayer: LayerSpec = LAYER.M2,
+        vialayer: LayerSpec = LAYER.VIA,
 ) -> Component:
     """
     创建一个环形跑道波导组件，支持输入、输出、添加和丢弃端口。
@@ -64,6 +70,10 @@ def RaceTrackP(
     RP2.connect("o1", other=RP1.ports["o1"])
     RP3.connect("o2", other=RP2.ports["o2"])
     RP4.connect("o1", other=RP3.ports["o1"])
+    c.add_port("RingSmid1", port=RP1.ports["o2"])
+    c.add_port("RingSmid2", port=RP3.ports["o2"])
+    c.add_port("RingBmid1", port=RP2.ports["o1"])
+    c.add_port("RingBmid2", port=RP4.ports["o1"])
     # out port
     r_delta = WidthRing / 2 + GapCouple + WidthNear / 2
     rcoup1 = gf.path.arc(radius=RadiusRing + r_delta, angle=-AngleCouple / 2)
@@ -93,6 +103,36 @@ def RaceTrackP(
     c.add_port(name="Rcen1", port=RP1.ports["o2"])
     c.add_port(name="Rcen2", port=RP3.ports["o2"])
     print("length="+str(RingPath1.length()*4))
+    if IsHeat:
+        rrun1 = gf.path.straight(length=LengthRun / 2)
+        rring1 = gf.path.arc(radius=RadiusRing, angle=70)
+        rring2 = gf.path.arc(radius=RadiusRing, angle=-70)
+        rb1 = euler_Bend_Half(radius=RadiusRing, angle=20, p=0.5)
+        rb2 = euler_Bend_Half(radius=RadiusRing, angle=-20, p=0.5)
+        HeatPath1 = rring1 + rb1
+        HeatPath2 = rring2 + rb2+ rrun1
+        HeatPath3 = rrun1
+        heater = gf.Component()
+        RHP1 = heater << DifferentHeater(PathHeat=HeatPath1,WidthHeat=WidthHeat,WidthRoute=WidthRoute,WidthWG=WidthRing,
+                                         DeltaHeat=DeltaHeat, GapHeat=GapHeat,
+                               heatlayer=heatlayer,routelayer=routelayer,vialayer=vialayer,TypeHeater=TypeHeater)
+        RHP2 = heater << DifferentHeater(PathHeat=HeatPath2, WidthHeat=WidthHeat, WidthRoute=WidthRoute, WidthWG=WidthRing,
+                                         DeltaHeat=DeltaHeat, GapHeat=GapHeat,
+                               heatlayer=heatlayer, routelayer=routelayer, vialayer=vialayer, TypeHeater=TypeHeater)
+        RHP3 = heater << DifferentHeater(PathHeat=HeatPath3, WidthHeat=WidthHeat, WidthRoute=WidthRoute, WidthWG=WidthRing,
+                                         DeltaHeat=DeltaHeat, GapHeat=GapHeat,
+                               heatlayer=heatlayer, routelayer=routelayer, vialayer=vialayer, TypeHeater=TypeHeater)
+        RHP2.connect("HeatIn", other=RHP1.ports["HeatIn"])
+        RHP3.connect("HeatOut", other=RHP2.ports["HeatOut"])
+        heater.add_port("HeatBmid1", port=RHP1.ports["HeatIn"])
+        heater.add_port("HeatBmid2", port=RHP2.ports["HeatIn"])
+        heater.add_port("HeatIn", port=RHP3.ports["HeatOut"])
+        heater.add_port("HeatOut",port=RHP1.ports["HeatIn"])
+        h = c << heater
+        h.connect("HeatBmid1",c.ports["RingBmid1"],allow_width_mismatch=True,allow_layer_mismatch=True)
+        # h.mirror_x(h.ports["HeatBmid1"].center[0])
+        if TypeHeater == "side":
+            h.movey(-DeltaHeat)
     return c
 
 
@@ -172,13 +212,14 @@ def RaceTrackS(
     rrun1 = gf.path.straight(length=LengthRun / 2)
     rring1 = gf.path.arc(radius=RadiusRing, angle=60)
     rring2 = gf.path.arc(radius=RadiusRing, angle=-60)
+    rring3 = gf.path.arc(radius=RadiusRing, angle=-30)
     rb1 = euler_Bend_Half(radius=RadiusRing, angle=30, p=0.5)
     rb2 = euler_Bend_Half(radius=RadiusRing, angle=-30, p=0.5)
-    rbh1 = euler_Bend_Half(radius=RadiusRing-2, angle=-30, p=0.5)
+    rbh1 = euler_Bend_Half(radius=RadiusRing-4*WidthRoute, angle=-60, p=0.5)
     RingPath1 = rring1 + rb1 + rrun1
     RingPath2 = rring2 + rb2 + rrun1
     HeatPath1 = rring1 + rb1 + rrun1
-    HeatPath2 = rring2 + rbh1
+    HeatPath2 = rring3 + rbh1
     RP1 = CRaceTrack << gf.path.extrude(RingPath1, cross_section=wgring)
     RP2 = CRaceTrack << gf.path.extrude(RingPath2, cross_section=wgring)
     RP3 = CRaceTrack << gf.path.extrude(RingPath1, cross_section=wgring)
