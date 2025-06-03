@@ -989,6 +989,7 @@ def TCRingT1(
         length_total: float = 10000,
         length_th_horizontal: float = 10,
         length_th_vertical: float = 10,
+        length_busheater: float = 100,
         pos_ring: float = 500,
         gap_rc: float = 1,
         gap_heat: float = 1,
@@ -1001,7 +1002,8 @@ def TCRingT1(
         heatlayer: LayerSpec = LAYER.M1,
         direction_heater: str = "up",
         position_taper: str = "before_bend",  # 控制锥形波导的位置
-        type_heater: str = "default",  # 控制加热器类型
+        type_heater: str = "none",  # 控制加热器类型
+        type_busheaeter: str = "none",
 ) -> Component:
     """
     创建一个环形波导组件，支持通过 position_taper 参数控制锥形波导的位置，并通过 type_heater 参数控制加热器类型。
@@ -1044,6 +1046,8 @@ def TCRingT1(
     """
     sr = gf.Component()
     ring = gf.Component()
+    if type_heater == "none":
+        is_heat=False
     ring0 = ring << RingPulleyT1(
         WidthRing=width_ring, WidthNear=width_near, WidthHeat=width_heat, GapRing=gap_rc, GapHeat=gap_heat,
         RadiusRing=r_ring, AngleCouple=angle_rc, DeltaHeat=delta_heat, DirectionHeater=direction_heater,
@@ -1144,6 +1148,16 @@ def TCRingT1(
             sr.add_port(port.name, port=Ring.ports[port.name])
         if "Drop" in port.name:
             sr.add_port(port.name, port=Ring.ports[port.name])
+    if type_busheaeter is not "None":
+        pbusheat = gf.path.straight(length=length_busheater)
+        cbusheat = sr << DifferentHeater(pbusheat,
+           WidthHeat=width_heat,WidthWG=width_single,WidthRoute=20,
+           DeltaHeat=delta_heat,GapHeat=gap_heat,heatlayer=heatlayer,TypeHeater=type_busheaeter
+           )
+        cbusheat.connect("HeatIn",other=Ring.ports["o1"],allow_width_mismatch=True, allow_layer_mismatch=True)
+        for port in cbusheat.ports:
+            if "Heat" in port.name:
+                sr.add_port("Bus"+port.name, port=port)
     sr = remove_layer(sr, layer=(512, 8))
     add_labels_to_ports(sr)
     return sr
