@@ -1366,9 +1366,9 @@ def TCRingDCouple(
     str_d2b = ring << GfCStraight(width=width_near, length=length_th_horizontal, layer=oplayer)
     str_i2b.connect("o1", other=ring0.ports["Input"])
     str_d2b.connect("o1", other=ring0.ports["Drop"])
-    bend_input = ring << GfCBendEuler(width=width_near, radius=r_euler_min, layer=oplayer, angle=-90,
+    bend_input = ring << gf.c.bend_euler(width=width_near, radius=r_euler_min, layer=oplayer, angle=-90,
                                       with_arc_floorplan=False)
-    bend_drop = ring << GfCBendEuler(width=width_near, radius=r_euler_min, layer=oplayer, angle=90,
+    bend_drop = ring << gf.c.bend_euler(width=width_near, radius=r_euler_min, layer=oplayer, angle=90,
                                      with_arc_floorplan=False)
     bend_input.connect("o1", other=str_i2b.ports["o2"])
     bend_drop.connect("o1", other=str_d2b.ports["o2"])
@@ -1379,7 +1379,7 @@ def TCRingDCouple(
     heat_near.connect('HeatIn', bend_input.ports['o2'], allow_width_mismatch=True, allow_layer_mismatch=True)
     str_near.connect('o1', bend_input.ports['o2'])
 
-    bend_through = ring << GfCBendEuler(width=width_near, radius=r_euler_min, layer=oplayer, angle=-180,
+    bend_through = ring << gf.c.bend_euler(width=width_near, radius=r_euler_min, layer=oplayer, angle=-180,
                                         with_arc_floorplan=False)
     bend_through.connect("o1", ring0.ports["Through"])
     taper_through = ring << gf.c.taper(width1=width_near, width2=width_single, layer=oplayer, length=length_taper)
