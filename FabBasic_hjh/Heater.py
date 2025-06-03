@@ -73,7 +73,7 @@ def DifferentHeater(
         WidthHeat: float = 4,
         WidthWG: float = 1,
         WidthRoute: float = 10,
-        WidthVia: float = 0.5,
+        WidthVia: float = 0.26,
         Spacing: float = 1.1,
         DeltaHeat: float = 2,
         GapHeat: float = 3,
@@ -208,7 +208,7 @@ def DifferentHeater(
         raise ValueError(
             "no Heater Type"
         )
-    h = snap_all_polygons_iteratively(h)
+    h = snap_all_polygons_iteratively(h,grid_size=0.001)
     return h
 
 

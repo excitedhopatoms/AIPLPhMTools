@@ -1,8 +1,7 @@
 from .BasicDefine import *
 from .ELE import *
 from .Heater import DifferentHeater
-
-
+from .SnapMerge import *
 # %% RaceTrackPulley
 @gf.cell
 def RaceTrackP(
@@ -147,6 +146,7 @@ def RaceTrackP(
             heater.add_port("HeatRIn", port=RHP3.ports["HeatRIn"])
             heater.add_port("HeatLOut", port=RHP1.ports["HeatLOut"])
             heater.add_port("HeatROut", port=RHP1.ports["HeatROut"])
+        heater = snap_all_polygons_iteratively(heater)
         h = c << heater
         h.connect("HeatBmid1",c.ports["RingBmid1"],allow_width_mismatch=True,allow_layer_mismatch=True)
         # h.mirror_x(h.ports["HeatBmid1"].center[0])
@@ -330,6 +330,7 @@ def RaceTrackS(
         h.mirror_x(h.ports["HeatBmid1"].center[0])
         if TypeHeater == "side":
             h.movey(-DeltaHeat)
+        heater = snap_all_polygons_iteratively(heater)
     print("length="+str(RingPath1.length()*4))
     # if IsLabels:
     add_labels_to_ports(c)

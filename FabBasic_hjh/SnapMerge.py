@@ -23,7 +23,7 @@ def snap_polygon_vertices(polygon_points: np.ndarray, grid_size: float):
 
 def snap_all_polygons_iteratively(
         component_in: ComponentSpec,
-        grid_size: float = 0.0001,
+        grid_size: float = 0.001,
 ) -> Component:
     """
     Snaps all polygons in a component to the grid by iterating through
@@ -85,12 +85,14 @@ def snap_all_polygons_iteratively(
     # 3. 遍历每一个图层,对所有图层都扩大一点点，然后进行合并
     for layer_spec in active_layers:
         c_in_sized_from_layer = c_in_orig.get_region(layer_spec)
-        c_in_sized_from_layer = c_in_sized_from_layer.size(2)
+        c_in_sized_from_layer = c_in_sized_from_layer.size(-20)
         c_sized.add_polygon(c_in_sized_from_layer,layer=layer_spec)
     c_sized = merge_polygons_in_each_layer(c_sized)
+    c_sized.flatten()
     for layer_spec in active_layers:
         c_in_sized_from_layer = c_sized.get_region(layer_spec)
-        c_in_sized_from_layer = c_in_sized_from_layer.size(-2)
+        c_in_sized_from_layer = c_in_sized_from_layer.size(20)
+        # c_in_sized_from_layer = c_in_sized_from_layer.size(0)
         c_sized2.add_polygon(c_in_sized_from_layer,layer=layer_spec)
     c_sized2 = merge_polygons_in_each_layer(c_sized2)
     # 4. 遍历每一个图层,对所有图层都snap到格点上
@@ -171,7 +173,7 @@ def merge_polygons_in_each_layer(
     if not active_layers:
         print(f"警告: 组件 '{c_in.name}' 中没有图层可供处理。")
         return component_out
-
+    # c_in.flatten()
     for layer_spec in active_layers:
         try:
             layer_merged_component = gf.boolean(

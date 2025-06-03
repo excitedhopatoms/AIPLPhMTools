@@ -2,7 +2,7 @@ from gdsfactory.component import Component
 
 from .BasicDefine import *
 from .Heater import SnakeHeater, DifferentHeater
-
+from .SnapMerge import *
 
 # %% RingPulley1:straight pulley
 @gf.cell
@@ -1011,6 +1011,7 @@ def DifferentHeater_local(
         c.add_port(name="HeatOut", port=heater.ports["HeatL"])  # 添加加热输入端口
         c.add_port(name="HeatIn", port=heater.ports["HeatR"])  # 添加加热输出端口
     h.flatten()
+    h=snap_all_polygons_iteratively(h,grid_size=0.0001)
     return h
 
 
