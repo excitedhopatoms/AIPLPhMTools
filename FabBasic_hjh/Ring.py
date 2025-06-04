@@ -682,6 +682,7 @@ def RingPulleyT1(
         ring_tr = c << gf.c.ring(width=WidthTrench, layer=trelayer,
                                  radius=RadiusRing - WidthRing / 2 - WidthTrench / 2 - GapTrench)
         ring_tr.movey(RadiusRing)
+    c=snap_all_polygons_iteratively(c)
     add_labels_to_ports(c)
     return c
 

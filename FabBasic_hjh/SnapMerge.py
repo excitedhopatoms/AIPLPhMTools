@@ -81,20 +81,27 @@ def snap_all_polygons_iteratively(
         print(f"警告: 组件 '{c_flat.name}' 中没有带多边形的图层可处理。")
         # 即使没有多边形，仍然处理端口和标签
     c_sized = gf.Component(name=f"{safe_original_name}_iter_snapped_sized")
+    c_sized1 = gf.Component(name=f"{safe_original_name}_iter_snapped_sized1")
     c_sized2 = gf.Component(name=f"{safe_original_name}_iter_snapped_sized2")
     # 3. 遍历每一个图层,对所有图层都扩大一点点，然后进行合并
     for layer_spec in active_layers:
         c_in_sized_from_layer = c_in_orig.get_region(layer_spec)
-        c_in_sized_from_layer = c_in_sized_from_layer.size(-20)
+        c_in_sized_from_layer = c_in_sized_from_layer.size(-30)
         c_sized.add_polygon(c_in_sized_from_layer,layer=layer_spec)
     c_sized = merge_polygons_in_each_layer(c_sized)
     c_sized.flatten()
     for layer_spec in active_layers:
         c_in_sized_from_layer = c_sized.get_region(layer_spec)
-        c_in_sized_from_layer = c_in_sized_from_layer.size(20)
-        # c_in_sized_from_layer = c_in_sized_from_layer.size(0)
+        c_in_sized_from_layer = c_in_sized_from_layer.size(60)
+        c_sized1.add_polygon(c_in_sized_from_layer,layer=layer_spec)
+    c_sized1 = merge_polygons_in_each_layer(c_sized1)
+    c_sized1.flatten()
+    for layer_spec in active_layers:
+        c_in_sized_from_layer = c_sized1.get_region(layer_spec)
+        c_in_sized_from_layer = c_in_sized_from_layer.size(-30)
         c_sized2.add_polygon(c_in_sized_from_layer,layer=layer_spec)
     c_sized2 = merge_polygons_in_each_layer(c_sized2)
+    c_sized2.flatten()
     # 4. 遍历每一个图层,对所有图层都snap到格点上
     for layer_spec in active_layers:
         # 获取当前图层上的所有多边形

@@ -993,6 +993,7 @@ def TCRingT1(
         pos_ring: float = 500,
         gap_rc: float = 1,
         gap_heat: float = 1,
+        gap_heat_bus: float = None,
         delta_heat: float = 1,
         tin: Component = taper_in,
         tout: Component = taper_out,
@@ -1149,6 +1150,8 @@ def TCRingT1(
         if "Drop" in port.name:
             sr.add_port(port.name, port=Ring.ports[port.name])
     if type_busheaeter is not "None":
+        if gap_heat_bus is None:
+            gap_heat_bus=gap_heat
         pbusheat = gf.path.straight(length=length_busheater)
         cbusheat = sr << DifferentHeater(pbusheat,
            WidthHeat=width_heat,WidthWG=width_single,WidthRoute=20,
