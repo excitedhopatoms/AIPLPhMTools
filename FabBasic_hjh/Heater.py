@@ -220,7 +220,7 @@ def ViaArray(
         CompEn: Component,
         WidthVia: float = 0.5,
         Spacing: float = 1.1,
-        Enclosure: float = 1.5,
+        Enclosure: float = 2,
         arraylayer: LayerSpec = None,
         vialayer: gf.typings.LayerSpec = LAYER.VIA,
 ) -> Component:
