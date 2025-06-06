@@ -1,44 +1,65 @@
 from .BasicDefine import *
 from .ELE import *
-
+from .Heater import DifferentHeater
+from .SnapMerge import *
 # %% RaceTrackPulley
 @gf.cell
-def RaceTrackPulley(
+def RaceTrackP(
         WidthRing: float = 8,
         WidthNear: float = 5,
         WidthHeat: float = 10,
+        DeltaHeat: float = 10,
+        GapHeat: float = 10,
+        WidthRoute: float = 20,
         LengthRun: float = 200,
         RadiusRing: float = 100,
-        GapRing: float = 1,
+        GapCouple: float = 1,
         AngleCouple: float = 20,
         IsAD: bool = True,
         IsHeat: bool = True,
+        TypeHeater: str = "default",
         oplayer: LayerSpec = LAYER.WG,
-        Name: str = "RaceTrack_Pulley"
+        heatlayer: LayerSpec = LAYER.M1,
+        routelayer: LayerSpec = LAYER.M2,
+        vialayer: LayerSpec = LAYER.VIA,
 ) -> Component:
     """
-    创建一个环形跑道波导组件，支持输入、输出、添加和丢弃端口。
+    创建一个基于滑轮型（角度）耦合的跑道环谐振器 (RaceTrack Pulley Coupler)。
+    该组件包含一个跑道形环和通过弯曲耦合段耦合到该环的输入/输出总线。
+    可以选择添加Add/Drop端口和加热器。
 
-    参数：
-        WidthRing: 环形波导的宽度（单位：um）。
-        WidthNear: 耦合波导的宽度（单位：um）。
-        LengthRun: 直线部分的长度（单位：um）。
-        RadiusRing: 环形波导的半径（单位：um）。
-        GapRing: 环形波导与耦合波导之间的间距（单位：um）。
-        AngleCouple: 耦合角度（单位：度）。
-        IsAD: 是否添加添加和丢弃端口。
-        oplayer: 波导层的定义。
-        Name: 组件名称。
+    参数:
+        WidthRing (float): 跑道环波导的宽度 (µm)。
+        WidthNear (float): 耦合总线波导的宽度 (µm)。
+        WidthHeat (float): 加热器的宽度 (µm)。
+        DeltaHeat (float): 加热器的几何调整参数 (例如，偏移量) (µm)。
+        GapHeat (float): 波导与加热器之间的间隙 (µm)。
+        WidthRoute (float): 加热器引出线的宽度 (µm)。
+        LengthRun (float): 跑道环直线部分的长度 (µm)。
+        RadiusRing (float): 跑道环弯曲部分的半径 (µm)。
+        GapCouple (float): 环与耦合总线之间的最小间隙 (µm)。
+        AngleCouple (float): 定义滑轮耦合器弯曲耦合段的角度 (度)。
+        IsAD (bool): 如果为True，则添加Add和Drop端口；否则为双端口直通器件。
+        IsHeat (bool): 如果为True，则为跑道环添加加热器。
+        TypeHeater (str): 加热器的类型 (例如 "default", "snake", "side")。
+        DirectionHeater (str): 加热器的位置/方向，相对于环。
+        oplayer (LayerSpec): 光学波导层。
+        heatlayer (LayerSpec): 加热器层。
+        routelayer (LayerSpec): 加热器布线层 (主要用于某些复杂加热器类型)。
+        vialayer (LayerSpec): 过孔层 (主要用于某些复杂加热器类型)。
 
-    返回：
-        Component: 生成的环形跑道波导组件。
+    返回:
+        Component: 生成的滑轮耦合跑道环谐振器组件。
 
-    端口：
+    端口:
         Input: 输入端口。
         Through: 直通端口。
-        Add: 添加端口（如果 IsAD 为 True）。
-        Drop: 丢弃端口（如果 IsAD 为 True）。
-        Rcen1, Rcen2: 环形波导的中心端口。
+        Add: (如果 IsAD=True) 增加端口。
+        Drop: (如果 IsAD=True) 下载端口。
+        RingSmid1, RingSmid2: 跑道环直线段中点上方的参考端口。
+        RingBmid1, RingBmid2: 跑道环直线段中点下方的参考端口。
+        Rcen1, Rcen2: 跑道环两个弯曲部分的中心点参考端口。
+        (如果 IsHeat=True，还会根据 TypeHeater 和 DirectionHeater 生成相应的加热器电学端口)
     """
     c = gf.Component()
     layer = oplayer
@@ -62,8 +83,12 @@ def RaceTrackPulley(
     RP2.connect("o1", other=RP1.ports["o1"])
     RP3.connect("o2", other=RP2.ports["o2"])
     RP4.connect("o1", other=RP3.ports["o1"])
+    c.add_port("RingSmid1", port=RP1.ports["o2"])
+    c.add_port("RingSmid2", port=RP3.ports["o2"])
+    c.add_port("RingBmid1", port=RP2.ports["o1"])
+    c.add_port("RingBmid2", port=RP4.ports["o1"])
     # out port
-    r_delta = WidthRing / 2 + GapRing + WidthNear / 2
+    r_delta = WidthRing / 2 + GapCouple + WidthNear / 2
     rcoup1 = gf.path.arc(radius=RadiusRing + r_delta, angle=-AngleCouple / 2)
     rcoup2 = gf.path.arc(radius=RadiusRing + r_delta, angle=AngleCouple / 2)
     rcb1 = euler_Bend_Half(radius=RadiusRing + r_delta, angle=-AngleCouple / 2, p=0.5)
@@ -91,21 +116,59 @@ def RaceTrackPulley(
     c.add_port(name="Rcen1", port=RP1.ports["o2"])
     c.add_port(name="Rcen2", port=RP3.ports["o2"])
     print("length="+str(RingPath1.length()*4))
+    if IsHeat:
+        rrun1 = gf.path.straight(length=LengthRun / 2)
+        rring1 = gf.path.arc(radius=RadiusRing, angle=45)
+        rring2 = gf.path.arc(radius=RadiusRing, angle=-70)
+        rb1 = euler_Bend_Half(radius=RadiusRing/2, angle=45, p=0.5)
+        rb2 = euler_Bend_Half(radius=RadiusRing, angle=-20, p=0.5)
+        HeatPath1 = rring1 + rb1
+        HeatPath2 = rring2 + rb2+ rrun1
+        HeatPath3 = rrun1
+        heater = gf.Component()
+        RHP1 = heater << DifferentHeater(PathHeat=HeatPath1,WidthHeat=WidthHeat,WidthRoute=WidthRoute,WidthWG=WidthRing,
+                                         DeltaHeat=DeltaHeat, GapHeat=GapHeat,
+                               heatlayer=heatlayer,routelayer=routelayer,vialayer=vialayer,TypeHeater=TypeHeater)
+        RHP2 = heater << DifferentHeater(PathHeat=HeatPath2, WidthHeat=WidthHeat, WidthRoute=WidthRoute, WidthWG=WidthRing,
+                                         DeltaHeat=DeltaHeat, GapHeat=GapHeat,
+                               heatlayer=heatlayer, routelayer=routelayer, vialayer=vialayer, TypeHeater=TypeHeater)
+        RHP3 = heater << DifferentHeater(PathHeat=HeatPath3, WidthHeat=WidthHeat, WidthRoute=WidthRoute, WidthWG=WidthRing,
+                                         DeltaHeat=DeltaHeat, GapHeat=GapHeat,
+                               heatlayer=heatlayer, routelayer=routelayer, vialayer=vialayer, TypeHeater=TypeHeater)
+        RHP2.connect("HeatIn", other=RHP1.ports["HeatIn"])
+        RHP3.connect("HeatOut", other=RHP2.ports["HeatOut"])
+        heater.add_port("HeatBmid1", port=RHP1.ports["HeatIn"])
+        heater.add_port("HeatBmid2", port=RHP2.ports["HeatIn"])
+        heater.add_port("HeatIn", port=RHP3.ports["HeatIn"])
+        heater.add_port("HeatOut",port=RHP1.ports["HeatOut"])
+        if TypeHeater == 'spilt':
+            heater.add_port("HeatLIn", port=RHP3.ports["HeatLIn"])
+            heater.add_port("HeatRIn", port=RHP3.ports["HeatRIn"])
+            heater.add_port("HeatLOut", port=RHP1.ports["HeatLOut"])
+            heater.add_port("HeatROut", port=RHP1.ports["HeatROut"])
+        heater = snap_all_polygons_iteratively(heater)
+        h = c << heater
+        h.connect("HeatBmid1",c.ports["RingBmid1"],allow_width_mismatch=True,allow_layer_mismatch=True)
+        # h.mirror_x(h.ports["HeatBmid1"].center[0])
+        if TypeHeater == "side":
+            h.movey(-DeltaHeat)
+        for port in h.ports:
+            c.add_port(port.name, port=port)
     return c
 
 
 # %% RaceTrackPulley2
 @gf.cell
-def RaceTrackStr(
+def RaceTrackS(
         WidthRing: float = 8,
         WidthHeat: float = 10,
         WidthRoute: float = 20,
         LengthRun: float = 200,
         RadiusRing: float = 100,
-        GapRun: float = 1,
+        GapCouple: float = 1,
         LengthCouple: float = 200,
         GapHeat: float = 10,
-        DeltaHeat: float = 0,
+        DeltaHeat: float = 20,
         IsAD: bool = True,
         IsHeat: bool = True,
         TypeHeater: str = "center",
@@ -117,42 +180,57 @@ def RaceTrackStr(
         Name: str = "RaceTrack_Pulley",
 ) -> Component:
     """
-    创建一个环形跑道波导组件，支持输入、输出、添加和丢弃端口，并可选添加标签。
+    创建一个基于直线耦合的跑道环谐振器。
+    耦合通过环的直线段与平行总线波导之间的近场相互作用实现。
+    支持Add/Drop端口和不同类型的加热器（包括中心加热、侧边加热或GSG电极）。
 
-    参数：
-        WidthRing: 环形波导的宽度（单位：um）。
-        LengthRun: 直线部分的长度（单位：um）。
-        RadiusRing: 环形波导的半径（单位：um）。
-        GapRun: 环形波导与耦合波导之间的间距（单位：um）。
-        LengthCouple: 耦合部分的长度（单位：um）。
-        IsAD: 是否添加添加和丢弃端口。
-        IsLabels: 是否添加端口标签。
-        oplayer: 波导层的定义。
-        heatlayer: 加热层的定义。
-        Name: 组件名称。
+    参数:
+        WidthRing (float): 跑道环波导宽度 (µm)。
+        WidthHeat (float): （如果IsHeat）加热条宽度 (µm)。
+        WidthRoute (float): （如果IsHeat）加热器引出线宽度 (µm)。
+        LengthRun (float): 跑道环直线段长度 (µm)。
+        RadiusRing (float): 跑道环弯曲半径 (µm)。
+        GapCouple (float): 环的直线段与耦合总线之间的间隙 (µm)。
+        LengthCouple (float): 直线耦合段的长度 (µm)。
+        GapHeat (float): 波导与加热器（或GSG的G电极）的间隙 (µm)。
+        DeltaHeat (float): 加热器/GSG电极的几何偏移参数 (µm)。
+                           - TypeHeater="center": 中心加热条的y偏移。
+                           - TypeHeater="side": 侧边加热条的y偏移。
+        IsAD (bool): 是否包含Add/Drop端口。
+        IsHeat (bool): 是否添加加热器/电极。
+        TypeHeater (str): 加热器/电极类型:
+                          - "center": 在环的直线段中心下方/上方放置加热条。
+                          - "side": 在环的直线段一侧放置加热条。
+                          - "ele": 在环的一侧放置GSG（Ground-Signal-Ground）电极。
+                          - "default", "snake": (如果DifferentHeater支持)
+        DirectionHeater (str): 当TypeHeater="side"时，指定加热器在"up"或"down"。
+        oplayer (LayerSpec): 光学波导层。
+        elelayer (LayerSpec): GSG电极层。
+        heatlayer (LayerSpec): 普通加热器层。
+        routelayer, vialayer: 用于加热器或GSG的布线和过孔层。
+        Name (str): 组件名称。
 
-    返回：
-        Component: 生成的环形跑道波导组件。
+    返回:
+        Component: 生成的直线耦合跑道环谐振器组件。
 
-    端口：
-        Input: 输入端口。
-        Through: 直通端口。
-        Add: 添加端口（如果 IsAD 为 True）。
-        Drop: 丢弃端口（如果 IsAD 为 True）。
-        Rcen1, Rcen2: 环形波导的中心端口。
+    端口: (与RaceTrackP类似，但耦合机制不同)
+        Input, Through, Add, Drop.
+        RingSmid1, RingSmid2, RingBmid1, RingBmid2: 环上参考点。
+        Rcen1, Rcen2: 弯曲中心参考点。
+        (以及可能的加热器/电极端口)
     """
     if TypeHeater == "center":
-        return RaceTrackStrH2(
+        return RaceTrackStrHC(
             WidthRing=WidthRing,
             WidthHeat=WidthHeat,
             WidthRoute = WidthRoute,
             LengthRun=LengthRun,
             RadiusRing=RadiusRing,
-            GapRun=GapRun,
+            GapCouple=GapCouple,
             GapRoute=GapHeat,
             DeltaHeat=DeltaHeat,
             LengthCouple=LengthCouple,
-            IsAD=True,
+            IsAD=IsAD,
             IsHeat=IsHeat,
             oplayer=oplayer,
             heatlayer=heatlayer,
@@ -170,10 +248,14 @@ def RaceTrackStr(
     rrun1 = gf.path.straight(length=LengthRun / 2)
     rring1 = gf.path.arc(radius=RadiusRing, angle=60)
     rring2 = gf.path.arc(radius=RadiusRing, angle=-60)
+    rring3 = gf.path.arc(radius=RadiusRing, angle=-30)
     rb1 = euler_Bend_Half(radius=RadiusRing, angle=30, p=0.5)
     rb2 = euler_Bend_Half(radius=RadiusRing, angle=-30, p=0.5)
+    rbh1 = euler_Bend_Half(radius=RadiusRing-4*WidthRoute, angle=-60, p=0.5)
     RingPath1 = rring1 + rb1 + rrun1
     RingPath2 = rring2 + rb2 + rrun1
+    HeatPath1 = rring1 + rb1 + rrun1
+    HeatPath2 = rring3 + rbh1
     RP1 = CRaceTrack << gf.path.extrude(RingPath1, cross_section=wgring)
     RP2 = CRaceTrack << gf.path.extrude(RingPath2, cross_section=wgring)
     RP3 = CRaceTrack << gf.path.extrude(RingPath1, cross_section=wgring)
@@ -183,6 +265,10 @@ def RaceTrackStr(
     RP3.connect("o2", other=RP2.ports["o2"])
     RP4.connect("o1", other=RP3.ports["o1"])
     c << CRaceTrack
+    c.add_port("RingSmid1", port=RP1.ports["o2"])
+    c.add_port("RingSmid2", port=RP3.ports["o2"])
+    c.add_port("RingBmid1", port=RP2.ports["o1"])
+    c.add_port("RingBmid2", port=RP4.ports["o1"])
     # out port
     rcoup1 = gf.path.straight(length=LengthCouple / 2)
     rcoup2 = gf.path.straight(length=LengthCouple / 2)
@@ -194,7 +280,7 @@ def RaceTrackStr(
     RC1 = c << gf.path.extrude(RingCoup1, cross_section=wgnear)
     RC2 = c << gf.path.extrude(RingCoup2, cross_section=wgnear)
     RC1.connect("o2", other=RP3.ports["o2"], allow_width_mismatch=True)
-    RC1.movex(-GapRun - WidthRing)
+    RC1.movex(-GapCouple - WidthRing)
     RC2.connect("o1", other=RC1.ports["o2"])
     # ports:
     c.add_port(name="Input", port=RC1.ports["o1"])
@@ -204,7 +290,7 @@ def RaceTrackStr(
         RC3 = c << gf.path.extrude(RingCoup1, cross_section=wgnear)
         RC4 = c << gf.path.extrude(RingCoup2, cross_section=wgnear)
         RC3.connect("o2", other=RP1.ports["o2"], allow_width_mismatch=True)
-        RC3.movex(GapRun + WidthRing)
+        RC3.movex(GapCouple + WidthRing)
         RC4.connect("o1", other=RC3.ports["o2"])
         c.add_port(name="Add", port=RC3.ports["o1"])
         c.add_port(name="Drop", port=RC4.ports["o2"])
@@ -220,13 +306,38 @@ def RaceTrackStr(
         ele.movey(-LengthRun/2)
     else:
         heater = gf.Component()
+        RHP1 = heater << DifferentHeater(PathHeat=HeatPath1,WidthHeat=WidthHeat,WidthRoute=WidthRoute,WidthWG=WidthRing,
+                                         DeltaHeat=DeltaHeat, GapHeat=GapHeat,
+                               heatlayer=heatlayer,routelayer=routelayer,vialayer=vialayer,TypeHeater=TypeHeater)
+        RHP2 = heater << DifferentHeater(PathHeat=HeatPath1, WidthHeat=WidthHeat, WidthRoute=WidthRoute, WidthWG=WidthRing,
+                                         DeltaHeat=DeltaHeat, GapHeat=GapHeat,
+                               heatlayer=heatlayer, routelayer=routelayer, vialayer=vialayer, TypeHeater=TypeHeater)
+        RHP3 = heater << DifferentHeater(PathHeat=HeatPath2, WidthHeat=WidthHeat, WidthRoute=WidthRoute, WidthWG=WidthRing,
+                                         DeltaHeat=DeltaHeat, GapHeat=GapHeat,
+                               heatlayer=heatlayer, routelayer=routelayer, vialayer=vialayer, TypeHeater=TypeHeater)
+        RHP4 = heater << DifferentHeater(PathHeat=HeatPath2, WidthHeat=WidthHeat, WidthRoute=WidthRoute, WidthWG=WidthRing,
+                                         DeltaHeat=DeltaHeat,GapHeat=GapHeat,
+                               heatlayer=heatlayer, routelayer=routelayer, vialayer=vialayer, TypeHeater=TypeHeater)
+        RHP2.connect("HeatOut", other=RHP1.ports["HeatOut"],mirror=True)
+        RHP3.connect("HeatIn", other=RHP1.ports["HeatIn"])
+        RHP4.connect("HeatIn", other=RHP2.ports["HeatIn"],mirror=True)
+        heater.add_port("HeatBmid1", port=RHP1.ports["HeatIn"])
+        heater.add_port("HeatBmin2", port=RHP2.ports["HeatIn"])
+        heater.add_port("HeatIn", port=RHP3.ports["HeatOut"])
+        heater.add_port("HeatOut",port=RHP4.ports["HeatOut"])
+        h = c << heater
+        h.connect("HeatBmid1",c.ports["RingBmid1"],allow_width_mismatch=True,allow_layer_mismatch=True)
+        h.mirror_x(h.ports["HeatBmid1"].center[0])
+        if TypeHeater == "side":
+            h.movey(-DeltaHeat)
+        heater = snap_all_polygons_iteratively(heater)
     print("length="+str(RingPath1.length()*4))
     # if IsLabels:
     add_labels_to_ports(c)
     return c
 
 # %% RaceTrackStrH2
-def RaceTrackStrH2(
+def RaceTrackStrHC(
         WidthRing: float = 8,
         WidthHeat: float = 8,
         WidthRoute: float = 50,
@@ -234,7 +345,7 @@ def RaceTrackStrH2(
         GapRoute: float = 50,
         LengthRun: float = 200,
         RadiusRing: float = 500,
-        GapRun: float = 1,
+        GapCouple: float = 1,
         LengthCouple: float = 200,
         IsAD: bool = True,
         IsHeat: bool = True,
@@ -246,6 +357,7 @@ def RaceTrackStrH2(
 ) -> Component:
     """
      创建一个带有加热电极的环形跑道波导组件，支持输入、输出、添加和丢弃端口。
+     加热电极置于中间
 
      参数：
          WidthRing: 环形波导的宽度（单位：um）。
@@ -255,7 +367,7 @@ def RaceTrackStrH2(
          GapRoute: 加热电极之间的间距（单位：um）。
          LengthRun: 直线部分的长度（单位：um）。
          RadiusRing: 环形波导的半径（单位：um）。
-         GapRun: 环形波导与耦合波导之间的间距（单位：um）。
+         GapCouple: 环形波导与耦合波导之间的间距（单位：um）。
          LengthCouple: 耦合部分的长度（单位：um）。
          IsAD: 是否添加添加和丢弃端口。
          IsLabels: 是否添加端口标签。
@@ -298,7 +410,15 @@ def RaceTrackStrH2(
     RP2.connect("o1", other=RP1.ports["o1"])
     RP3.connect("o2", other=RP2.ports["o2"])
     RP4.connect("o1", other=RP3.ports["o1"])
+    CRaceTrack.add_port("RingSmid1", port=RP1.ports["o2"])
+    CRaceTrack.add_port("RingSmid2", port=RP3.ports["o2"])
+    CRaceTrack.add_port("RingBmid1", port=RP2.ports["o1"])
+    CRaceTrack.add_port("RingBmid2", port=RP4.ports["o1"])
     c << CRaceTrack
+    c.add_port("RingSmid1", port=CRaceTrack.ports["RingSmid1"])
+    c.add_port("RingSmid2", port=CRaceTrack.ports["RingSmid2"])
+    c.add_port("RingBmid1", port=CRaceTrack.ports["RingBmid1"])
+    c.add_port("RingBmid2", port=CRaceTrack.ports["RingBmid2"])
     # out port
     rcoup1 = gf.path.straight(length=LengthCouple / 2)
     rcoup2 = gf.path.straight(length=LengthCouple / 2)
@@ -310,7 +430,7 @@ def RaceTrackStrH2(
     RC1 = c << gf.path.extrude(RingCoup1, cross_section=wgnear)
     RC2 = c << gf.path.extrude(RingCoup2, cross_section=wgnear)
     RC1.connect("o2", other=RP3.ports["o2"])
-    RC1.movex(-GapRun - WidthRing)
+    RC1.movex(-GapCouple - WidthRing)
     RC2.connect("o1", other=RC1.ports["o2"])
     # ports:
     c.add_port(name="Input", port=RC1.ports["o1"])
@@ -320,7 +440,7 @@ def RaceTrackStrH2(
         RC3 = c << gf.path.extrude(RingCoup1, cross_section=wgnear)
         RC4 = c << gf.path.extrude(RingCoup2, cross_section=wgnear)
         RC3.connect("o2", other=RP1.ports["o2"])
-        RC3.movex(GapRun + WidthRing)
+        RC3.movex(GapCouple + WidthRing)
         RC4.connect("o1", other=RC3.ports["o2"])
         c.add_port(name="Add", port=RC3.ports["o1"])
         c.add_port(name="Drop", port=RC4.ports["o2"])
@@ -398,7 +518,7 @@ def TaperRaceTrackPulley(
         LengthRun: float = 300,
         LengthTaper: float = 200,
         RadiusRing: float = 150,
-        GapRing: float = 1,
+        GapCouple: float = 1,
         AngleCouple: float = 20,
         IsAD: bool = True,
         oplayer: LayerSpec = LAYER.WG,
@@ -408,31 +528,35 @@ def TaperRaceTrackPulley(
         Name: str = "TaperRaceTrack_Pulley"
 ) -> Component:
     """
-    创建一个带有锥形耦合的环形跑道波导组件，支持输入、输出、添加和丢弃端口。
+     创建一个带有中心放置加热电极的直线耦合跑道环谐振器。
+     加热电极位于跑道环的几何中心区域（通常在两个直线段之间），并通过特定结构引出。
 
-    参数：
-        WidthRing: 环形波导的宽度（单位：um）。
-        WidthNear: 耦合波导的宽度（单位：um）。
-        WidthRun: 直线部分的宽度（单位：um）。
-        LengthRun: 直线部分的长度（单位：um）。
-        LengthTaper: 锥形部分的长度（单位：um）。
-        RadiusRing: 环形波导的半径（单位：um）。
-        GapRing: 环形波导与耦合波导之间的间距（单位：um）。
-        AngleCouple: 耦合角度（单位：度）。
-        IsAD: 是否添加添加和丢弃端口。
-        oplayer: 波导层的定义。
-        Name: 组件名称。
+     参数:
+         WidthRing (float): 跑道环波导宽度 (µm)。
+         WidthHeat (float): 中心加热条的宽度 (µm)。
+         WidthRoute (float): 加热器引出金属线的宽度 (µm)。
+         DeltaHeat (float): 加热条中心相对于环几何中心线的垂直偏移量 (µm)。
+                            负值表示向下偏移。
+         GapRoute (float): 加热器引出结构（例如两个引出臂之间）的间隙或相关尺寸 (µm)。
+         LengthRun (float): 跑道环直线段长度 (µm)。
+         RadiusRing (float): 跑道环弯曲半径 (µm)。
+         GapCouple (float): 环与耦合总线的间隙 (µm)。
+         LengthCouple (float): 直线耦合段的长度 (µm)。
+         IsAD (bool): 是否包含Add/Drop端口。
+         IsHeat (bool): 是否添加加热器（在此函数中通常为True）。
+         oplayer (LayerSpec): 光学波导层。
+         heatlayer (LayerSpec): 加热器主条层。
+         routelayer (LayerSpec): 加热器引出线层。
+         vialayer (LayerSpec): 过孔层（如果引出结构需要）。
+         Name (str): 组件名称。
 
-    返回：
-        Component: 生成的环形跑道波导组件。
+     返回:
+         Component: 生成的带中心加热的跑道环组件。
 
-    端口：
-        Input: 输入端口。
-        Through: 直通端口。
-        Add: Add端口（如果 IsAD 为 True）。
-        Drop: Drop端口（如果 IsAD 为 True）。
-        Rcen1, Rcen2: 环形波导的中心端口。
-    """
+     端口: (与RaceTrackS类似，但加热器端口不同)
+         Input, Through, Add, Drop.
+         HeatIn, HeatOut: 中心加热器的电学端口。
+     """
     c = gf.Component()
     layer = oplayer
     secring = gf.Section(width=WidthRing, offset=0, layer=layer, port_names=("o1", "o2"))
@@ -471,7 +595,7 @@ def TaperRaceTrackPulley(
     RP[2].connect("o2", other=RP[1].ports["o2"])
     RP[3].connect("o1", other=RP[2].ports["o1"])
     # out port
-    r_delta = WidthRing / 2 + GapRing + WidthNear / 2
+    r_delta = WidthRing / 2 + GapCouple + WidthNear / 2
     rcoup1 = gf.path.arc(radius=RadiusRing + r_delta, angle=-AngleCouple / 2)
     rcoup2 = gf.path.arc(radius=RadiusRing + r_delta, angle=AngleCouple / 2)
     rcb1 = euler_Bend_Half(radius=RadiusRing + r_delta, angle=-AngleCouple / 2, p=0.5)
@@ -500,5 +624,4 @@ def TaperRaceTrackPulley(
     c.add_port(name="Rcen2", port=RP[2].ports["o2"])
     return c
 
-
-__all__ = ['RaceTrackStr', 'RaceTrackPulley', 'RaceTrackStrH2', 'TaperRaceTrackPulley']
+__all__ = ['RaceTrackS', 'RaceTrackP', 'RaceTrackStrHC', 'TaperRaceTrackPulley']

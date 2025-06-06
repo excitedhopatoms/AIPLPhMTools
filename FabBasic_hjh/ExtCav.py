@@ -2,7 +2,7 @@ from .BasicDefine import *
 from .CouplerMZI import *
 from .Heater import *
 from .MultiRing import *
-
+from .MultiRaceTrack import *
 
 # %% ExternalCavity:Proven design
 @gf.cell
@@ -33,6 +33,47 @@ def ExternalCavitySOI(
         slablayer: LayerSpec = (1, 0),
         swglayer: LayerSpec = LAYER.WG,
 ) -> Component:
+    """
+    创建一个SOI（Silicon-On-Insulator）平台的外腔激光器（External Cavity Laser）核心光学组件。
+    该设计包含一个DMZI（马赫-曾德干涉仪）作为模式选择单元，以及一个双环滑轮型谐振器（DoubleRingPulley）
+    作为精细调谐和窄线宽单元。组件还集成了加热器用于调谐。
+
+    参数:
+        r_ring (float): 环谐振器的基础半径 (µm)。
+        radius_delta (float): 双环之间的小半径差，用于失谐 (µm)。
+        width_ring (float): 环谐振器波导宽度 (µm)。
+        width_single (float): 输入/输出及MZI内部的单模波导宽度 (µm)。
+        width_single2 (float): 从环输出到外部的单模波导宽度 (µm)。
+        width_near (float): 环与总线耦合区域的总线波导宽度 (µm)。
+        width_heat (float): 加热条宽度 (µm)。
+        width_route (float): 加热器引出金属线的宽度 (µm)。
+        width_cld (float): 波导到slab区域边缘的包层宽度，用于定义slab区域 (µm)。
+        angle_rc (float): 环形耦合器的耦合角度 (度)。
+        length_dc (float): DMZI中定向耦合器的耦合长度 (µm)。
+        length_t_s2n (float): 从单模波导到环耦合总线波导的锥形过渡长度 (µm)。
+        length_taper (float): 通用锥形波导长度 (µm)。
+        length_r2r (float): 双环谐振器中两个环之间的连接长度 (µm)。
+        length_bridge (float): DMZI臂的桥接（平行臂）长度 (µm)。
+        length_input (float): 输入端口波导的额外延伸长度 (µm)。
+        gap_rc (float): 环与总线之间的耦合间隙 (µm)。
+        gap_dc (float): DMZI中定向耦合器的平行波导间隙 (µm)。
+        gap_heat (float): 光波导与加热器之间的间隙 (µm)。
+        oplayer (LayerSpec): 光学波导层。
+        routelayer (LayerSpec): 加热器布线层。
+        openlayer (LayerSpec): 焊盘开口层。
+        heatlayer (LayerSpec): 加热器金属层。
+        slablayer (LayerSpec): Slab层（例如浅刻蚀层）。
+        swglayer (LayerSpec): 用于加热器下方的亚波长光栅或其他辅助结构层。
+
+    返回:
+        Component: 生成的外腔激光器核心组件。
+
+    端口:
+        input: 组件的光学输入端口。
+        output: 组件的光学输出端口。
+        Rout0, Rout1, Rout2, Rout3: 从双环谐振器引出的额外端口（可能用于监控或特定配置）。
+        (以及多个加热器相关的电学端口，未在文档中一一列出，但会根据加热器设计自动生成)
+    """
     ec_ref = gf.Component()
     offsetVC = ViaArray(Spacing=0.7, WidthVia=0.3, Row=15, Col=8, IsEn=True, Enclosure=0.5, ViaLayer=(0, 1),
                         ViaEnLayers=[heatlayer, swglayer])
@@ -217,18 +258,41 @@ def ExternalCavitySiN(
         type_busheater: str = "default",
         type_r2r: str = "straight",
         direction_io: str = "LR",
+        direction_rh: str = "down",
         oplayer: LayerSpec = LAYER.WG,
         heatlayer: LayerSpec = LAYER.M1,
         trelayer: LayerSpec = LAYER.DT,
 ) -> Component:
-    '''
-    diffenernt:
-        width_ring_PMZI
-        width_near_PMZI
-        width_ring
-        width_near
+    """
+    为氮化硅（SiN）平台设计的外腔激光器核心组件。
+    此设计集成了一个PMZI（基于Pulley耦合器的MZI）和带有加热器的双环谐振器。
+    组件参数允许对各个部分进行详细配置。
 
-    '''
+    参数:
+        (各项参数含义请参考上面各子组件或类似组件的文档)
+        r_ring, r_euler_false, r_mzi, r_r2r, radius_delta: 半径相关参数 (µm)。
+        width_ring, width_mzi_ring, width_single, width_near, width_mzi_near, width_heat: 宽度相关参数 (µm)。
+        delta_heat: 加热器几何参数 (µm)。
+        angle_rc, angle_pmzi, angle_m2r: 角度相关参数 (度)。
+        length_bend, length_t_s2n, length_taper, length_r2r, length_bridge, length_input, length_cr2, length_cr1: 长度相关参数 (µm)。
+        gap_rc, gap_mzi, gap_heat, gap_heat2: 间隙相关参数 (µm)。
+        type_ringheater, type_mziheater, type_busheater: 不同部分加热器的类型。
+        type_r2r: 双环连接方式。
+        direction_io: 组件整体输入输出方向。
+        direction_rh: 环加热器的相对位置。
+        oplayer, heatlayer, trelayer: GDS图层定义。
+
+    返回:
+        Component: 生成的SiN外腔激光器核心组件。
+
+    端口:
+        o1, o2: 组件的主光学输入和输出端口。
+        Ro1, Ro2, Ro3, Ro4: 从双环引出的附加光学端口。
+        Ring1HeatIn, Ring1HeatOut, Ring2HeatIn, Ring2HeatOut: 双环加热器的电学端口。
+        PMZIHeatLIn, PMZIHeatLOut, PMZIHeatRIn, PMZIHeatROut: PMZI加热器的电学端口。
+        BusHeatLIn, BusHeatLOut, BusHeatRIn, BusHeatROut: 输入总线加热器的电学端口。
+        (实际端口名称可能因内部加热器组件的具体实现而略有不同)
+    """
     ec_ref = gf.Component()
     # section and cross section
     S_near = gf.Section(width=width_near, offset=0, layer=oplayer, port_names=("o1", "o2"))
@@ -268,7 +332,7 @@ def ExternalCavitySiN(
         RadiusRing=r_ring + radius_delta, GapRing=gap_rc, GapHeat=gap_heat, RadiusR2R=r_r2r,
         AngleCouple=angle_rc,
         oplayer=oplayer, heatlayer=heatlayer, IsHeat=True, TypeHeater=type_ringheater, DeltaHeat=delta_heat,
-        TypeR2R=type_r2r,
+        TypeR2R=type_r2r,DirectionsHeater=[direction_rh,direction_rh]
     )
     doublering = ec_ref << ring_ref
     doublering.connect("o1", tapercoupler2.ports["o2"])
@@ -287,7 +351,7 @@ def ExternalCavitySiN(
     ## left
     str_input = list(range(30))
     bend_input = list(range(30))
-    str_input[0] = ec_ref << gf.c.taper(width1=width_mzi_near, width2=width_single, length=length_taper, layer=oplayer)
+    str_input[0] = ec_ref << gf.c.taper(width1=width_mzi_near, width2=width_single, length=min(length_taper,abs(width_near-width_single)*200,50), layer=oplayer)
     str_input[0].connect("o1", coupler2x2.ports["Input2"], mirror=True)
     ## right
     str_output = list(range(30))
@@ -295,7 +359,7 @@ def ExternalCavitySiN(
     path_bend_output = euler_Bend_Half(angle=-90, radius=r_mzi)
     bend_output[0] = ec_ref << gf.path.extrude(path_bend_output, layer=oplayer, width=width_near)
     bend_output[0].connect("o1", coupler2x2.ports["Input1"])
-    str_output[0] = ec_ref << gf.c.taper(width1=width_near, width2=width_single, length=length_taper, layer=oplayer)
+    str_output[0] = ec_ref << gf.c.taper(width1=width_near, width2=width_single, length=min(length_taper,abs(width_near-width_single)*200,50), layer=oplayer)
     str_output[0].connect("o1", bend_output[0].ports["o2"])
     # input heater
     str_input[1] = ec_ref << GfCStraight(width=width_single, length=length_input, layer=oplayer)
@@ -305,7 +369,7 @@ def ExternalCavitySiN(
                                        WidthRoute=20,
                                        heatlayer=heatlayer, TypeHeater=type_busheater)
     if direction_io == "LR":
-        str_input[1].connect("o2", str_input[0].ports["o2"])
+        str_input[1].connect("o1", str_input[0].ports["o2"])
         ec_ref.add_port("o1", port=str_input[1].ports["o2"])
         ec_ref.add_port("o2", port=str_output[0].ports["o2"])
     elif direction_io == "RL":
@@ -374,12 +438,21 @@ def ExternalCavitySiNH2(
         heatlayer: LayerSpec = LAYER.M1,
         trelayer: LayerSpec = LAYER.DT,
 ) -> Component:
-    '''
-    width_ring_PMZI = width_near_Ring
-    width_near_PMZI  = couple width_ring_PMZI
-    width_ring_Ring
-    width_ring_Ring > width_near_Ring = width_ring_PMZI > width_near_PMZI
-    '''
+    """
+    `ExternalCavitySiN` 的一个特定配置版本。
+    主要区别在于 `width_mzi_ring` 被设置为等于 `width_near` (环耦合总线宽度)，
+    以及 `length_input` 参数被用于 `ExternalCavitySiN` 内部的 `length_busheater`。
+
+    参数:
+        (大部分参数与 ExternalCavitySiN 相同)
+        length_r2r (float): 双环间连接长度，默认为 1550.0 µm。
+        length_busheater (float): 明确的总线加热器段长度，默认为 300.0 µm。
+                                (原 `length_input` 的角色由此参数替代)。
+        length_rc1, length_rc2: 连接MZI和环的短直波导长度。
+
+    返回:
+        Component: 生成的特定配置的外腔激光器核心组件。
+    """
     return ExternalCavitySiN(
         r_ring=r_ring,
         r_euler_false=r_euler_false,
@@ -440,12 +513,25 @@ def ExternalCavitySiNH2_1(
         oplayer: LayerSpec = LAYER.WG,
         heatlayer: LayerSpec = LAYER.M1,
 ) -> Component:
-    '''
-    width_ring_PMZI = width_near_Ring
-    width_near_PMZI  = couple width_ring_PMZI
-    width_ring_Ring
-    width_ring_Ring > width_near_Ring = width_ring_PMZI = width_near_PMZI
-    '''
+    """
+    `ExternalCavitySiN` 的又一个特定配置版本，此版本在其原始代码中
+    明确调用了 `PMZIHSn` (带蛇形加热器的PMZI) 和 `DoubleRingPulley2_1HSn` (可能是特定版本的双环)。
+    这里的实现将基于这些假设，并尽量保持与 `ExternalCavitySiN` 结构的一致性，
+    同时反映这些特定组件的调用。
+
+    参数:
+        (大部分参数与 ExternalCavitySiN/SiNH2 相同)
+        length_ring2coup (float): 双环单元相对于其输入连接点的额外X轴偏移，默认为 -20.0 µm。
+        length_busheater (float): 总线加热器段长度，默认为 300.0 µm。
+        (其他参数如 delta_heat, gap_heat2, type_ringheater, direction_rh 用于配置内部的加热组件)
+
+    返回:
+        Component: 生成的特定配置的外腔激光器核心组件。
+
+    注意:
+        此函数依赖于 `PMZIHSn` 和 `DoubleRingPulley2_1HSn` 组件的可用性。
+        如果这些组件未定义或行为不同，此处的实现可能需要调整。
+    """
     ec_ref = gf.Component("ec_ref")
     ec_ref = gf.Component()
     # section and cross section
@@ -571,6 +657,36 @@ def ExternalCavity2(
         Crossing: Component = None,
         Name="ec2_ref"
 ) -> Component:
+    """
+    创建一种外腔激光器设计，其核心是一个三环谐振结构（通过ADRAPRADR组件实现），
+    并通过交叉波导进行输入和输出。
+
+    参数:
+        r_ring (float): 三环结构中环的基础半径 (µm)。
+        radius_delta (float): 三环结构中环之间的半径差 (µm)。
+        width_single (float): 输入/输出波导以及连接交叉波导的波导宽度 (µm)。
+        width_ring (float): 三环结构中各个环的波导宽度 (µm)。
+        width_near (float): 三环结构中用于耦合的总线波导宽度 (µm)。
+        angle_rc (float): 三环结构中主环的耦合角度 (度)。
+        angle_rc3 (float): 三环结构中特定耦合部分的角度 (度)。
+        length_taper (float): 锥形波导的长度 (µm)。
+        length_r2r (float): ADRAPRADR组件内部环间连接的长度 (µm)。
+        gap_rc (float): ADRAPRADR组件内部环耦合的间隙 (µm)。
+        oplayer (LayerSpec): 光学波导层。
+        Crossing (ComponentSpec | None): 用户提供的交叉波导组件。如果为None，则使用默认的Crossing_taper。
+        Name (str): 生成组件的名称。
+
+    返回:
+        Component: 生成的基于三环和交叉的外腔组件。
+
+    端口:
+        input: 组件的光学输入端口。
+        output: 组件的光学输出端口。
+        to1, to2: 从三环结构引出的端口。
+        r1Th, r1Ad, r2Th, r2Ad: 从三环结构的特定环引出的Through和Add端口（经过taper和bend）。
+        r1L, r1R, r2L, r2R, r3L, r3R: 三环结构内部加热器（如果存在于ADRAPRADR中）的端口。
+        co2, co3: 三环结构连接到交叉波导之前的端口。
+    """
     ec2_ref = gf.Component(Name)
     if Crossing == None:
         crossing0 = Crossing_taper(WidthCross=0.8, WidthWg=width_single, LengthTaper=5, oplayer=oplayer)
@@ -653,6 +769,24 @@ def ExternalCavity3(
         Crossing: Component = None,
         Name="ec2_ref"
 ) -> Component:
+    """
+    创建另一种基于三环谐振结构（ADRAPRADR）和交叉波导的外腔激光器设计。
+    与 ExternalCavity2 的主要区别可能在于 ADRAPRADR 的参数配置 (如 IsSquare=True)
+    以及输出端口的处理方式 (直接从交叉引出并taper)。
+
+    参数:
+        (大部分参数与 ExternalCavity2 类似)
+        width_near (float): 同时用作三环耦合总线宽度和提供给默认Crossing_taper的臂宽。
+        length_r2c (float): ADRAPRADR内部环到交叉的连接长度，默认为1.0 µm。
+        Crossing (ComponentSpec | None): 自定义交叉波导。如果None，默认Crossing_taper的臂宽为width_near。
+
+    返回:
+        Component: 生成的特定配置的外腔组件。
+
+    端口:
+        co2, co3: 从交叉波导引出的光学端口 (经过taper)。
+        r1L, r1R, r2L, r2R, r3L, r3R: ADRAPRADR内部加热器（如果存在）的端口。
+    """
     ec3_ref = gf.Component(Name)
     if Crossing == None:
         crossing0 = Crossing_taper(WidthCross=2, WidthWg=width_near, LengthTaper=10, oplayer=oplayer)
@@ -697,7 +831,7 @@ def ExternalCavity3(
     add_labels_to_ports(ec3_ref)
     return ec3_ref
 
-def ExternalCavitryRaceTrack(
+def ExternalCavityRaceTrack(
         r_ring: float = 200,
         r_euler_false: float = 100,
         r_mzi: float = 100,
@@ -740,15 +874,32 @@ def ExternalCavitryRaceTrack(
         heatlayer: LayerSpec = LAYER.M1,
         trelayer: LayerSpec = LAYER.DT,
 ) -> Component:
-    '''
-    Racetrack的腔 基于LN的外腔激光器设计，
-    diffenernt:
-        width_ring_PMZI
-        width_near_PMZI
-        width_ring
-        width_near
+    """
+    创建一个基于跑道形（RaceTrack）谐振器的外腔激光器核心组件。
+    该设计集成了可选类型的MZI（DMZI或PMZI）和双跑道环谐振器，并支持各部分加热调谐。
 
-    '''
+    参数:
+        (各项参数含义复杂，具体参考内部子组件和设计意图)
+        r_ring: 跑道环的弯曲半径 (µm)。
+        width_ring, width_near, ... : 各种波导宽度 (µm)。
+        length_racetrack, length_bridge, ... : 各种直线段长度 (µm)。
+        angle_rc, angle_pmzi, ... : 角度参数 (度)。
+        gap_rc, gap_mzi, ... : 间隙参数 (µm)。
+        type_...heater: 各部分加热器类型。
+        type_rscoupler: 跑道环的耦合方式 ('s'代表直线耦合, 'p'代表滑轮式/角度耦合)。
+        type_r2r: 双跑道环的连接方式。
+        type_mzi: MZI的类型。
+        direction_io: 组件整体输入输出方向。
+        oplayer, heatlayer, trelayer: GDS图层。
+
+    返回:
+        Component: 生成的基于跑道环的外腔激光器组件。
+
+    端口:
+        o1, o2: 主光学输入/输出。
+        Ro1, Ro2, Ro3, Ro4: 从双跑道环引出的附加端口。
+        (以及各加热器对应的电学端口)
+    """
     ec_ref = gf.Component()
     if type_rscoupler =="s" or type_rscoupler == "S":
         width_near=width_ring
@@ -904,6 +1055,13 @@ def ExternalCavitryRaceTrack(
 
 
 
-# %% function export
-__all__ = ['ExternalCavity2', 'ExternalCavitySOI', 'ExternalCavity3', 'ExternalCavitySiNH2', 'ExternalCavitySiNH2_1',
-           'ExternalCavitySiN','ExternalCavitryRaceTrack']
+__all__ = [
+    'ExternalCavitySOI',
+    'ExternalCavitySiN',
+    'ExternalCavitySiNH2',
+    'ExternalCavitySiNH2_1',
+    'ExternalCavity2',
+    'ExternalCavity3',
+    'ExternalCavityRaceTrack'
+]
+

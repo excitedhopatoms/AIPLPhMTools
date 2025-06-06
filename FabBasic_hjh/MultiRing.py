@@ -28,48 +28,44 @@ def DoubleRingPulley(
         vialayer: LayerSpec = LAYER.VIA,
 ) -> Component:
     """
-    创建一个双环形谐振器组件，支持加热电极和环形波导的连接。
-    双环形谐振器由两个环形波导组成，可以通过参数调整环的尺寸、间距和加热电极的配置。
+    创建一个双环滑轮型（Pulley）谐振器组件。
+    该组件由两个 `RingPulleyT1` 单元串联而成，第二个环的半径可以与第一个不同。
+    支持为每个环独立配置加热器方向和环的几何朝向。
 
-    参数：
-        WidthRing: 环形波导的宽度（单位：um）。
-        WidthNear: 靠近环形波导的波导宽度（单位：um）。
-        WidthHeat: 加热电极的宽度（单位：um）。
-        WidthEnd: 末端波导的宽度（单位：um）。
-        Pitch: 结构的间距（单位：um）。
-        Period: 结构的周期（单位：um）。
-        LengthTaper: 锥形波导的长度（单位：um）。
-        LengthR2R: 环形波导之间的连接长度（单位：um）。
-        RadiusRing: 环形波导的半径（单位：um）。
-        RadiusBend0: 弯曲波导的半径（单位：um）。
-        DeltaRadius: 两个环形波导的半径差（单位：um）。
-        GapRing: 环形波导之间的间隙（单位：um）。
-        EndPort: 需要连接的端口列表。
-        AngleCouple: 耦合角度（单位：度）。
-        IsHeat: 是否包含加热电极。
-        Name: 组件名称。
-        oplayer: 光学波导层的定义。
-        heatlayer: 加热层的定义。
+    参数:
+        WidthRing (float): 环的波导宽度 (µm)。
+        WidthNear (float): 耦合到环的总线波导宽度 (µm)。
+        WidthHeat (float): 加热器的宽度 (µm)。
+        LengthR2R (float): 当 `TypeR2R`="straight"时，连接两个环的直波导长度 (µm)。
+        RadiusRing (float): 第一个环的弯曲半径 (µm)。
+        RadiusR2R (float | None): 当 `TypeR2R`="bend"时，连接两个环的弯曲半径 (µm)。
+                                  若为None，则设为 `RadiusRing - 10`。
+        DeltaRadius (float): 第二个环的半径相对于第一个环的半径增量 (µm)。
+                             `RadiusRing2 = RadiusRing + DeltaRadius`。
+        GapRing (float): 环与其耦合总线之间的间隙 (µm)。
+        GapHeat (float): 波导与加热器之间的间隙 (µm)。
+        DeltaHeat (float): 传递给 `RingPulleyT1` 的加热器几何参数 (µm)。
+        AngleCouple (float): `RingPulleyT1` 组件的耦合角度 (度)。
+        IsHeat (bool): 是否为两个环都启用加热器。
+        TypeHeater (str): 加热器的类型，传递给 `RingPulleyT1`。
+        TypeR2R (str): 两个环之间的连接方式。"straight" 或 "bend"。
+        DirectionsHeater (list[str]): 长度为2的列表，分别指定第一个和第二个环加热器的方向。
+        DirectionsRing (list[str]): 长度为2的列表，分别指定第一个和第二个环的几何朝向或镜像状态。
+        oplayer (LayerSpec): 光学波导层。
+        heatlayer (LayerSpec): 加热器层。
+        routelayer (LayerSpec): (当前函数未直接使用) 加热器布线层。
+        vialayer (LayerSpec): (当前函数未直接使用) 过孔层。
 
-    返回：
-        Component: 包含双环形谐振器的组件。
+    返回:
+        Component: 生成的双环滑轮型谐振器组件。
 
-    端口：
-        o1: 第一个环形波导的输入端口。
-        o2: 第二个环形波导的输入端口。
-        r2ro1: 环形波导之间的连接端口。
-        r1A: 第一个环形波导的 Add 端口。
-        r1D: 第一个环形波导的 Drop 端口。
-        r1I: 第一个环形波导的 Input 端口。
-        r1T: 第一个环形波导的 Through 端口。
-        r2A: 第二个环形波导的 Add 端口。
-        r2D: 第二个环形波导的 Drop 端口。
-        r2I: 第二个环形波导的 Input 端口。
-        r2T: 第二个环形波导的 Through 端口。
-        R1HeatIn: 第一个环形波导的加热输入端口（如果包含加热电极）。
-        R1HeatOut: 第一个环形波导的加热输出端口（如果包含加热电极）。
-        R2HeatIn: 第二个环形波导的加热输入端口（如果包含加热电极）。
-        R2HeatOut: 第二个环形波导的加热输出端口（如果包含加热电极）。
+    端口:
+        o1: 第一个环的 "Input" 端口。
+        o2: 第二个环的 "Input" 端口。 (注意：如果环是串联的，此端口可能不是外部输入)
+        R2Ro1: 第一个环的 "Drop" 端口，用作环间连接的起点。
+        R1Add, R1Drop, R1Input, R1Through: 第一个环的四个标准端口。
+        R2Add, R2Drop, R2Input, R2Through: 第二个环的四个标准端口。
+        (如果 IsHeat=True，还会添加如 R1HeatIn, R2HeatOut 等加热器端口)
     """
     c = gf.Component()
     ring1 = c << RingPulleyT1(
@@ -153,42 +149,16 @@ def DoubleRingPulley2HSn(
         vialayer: LayerSpec = LAYER.VIA,
 ) -> Component:
     """
-    创建一个带有蛇形加热电极的双环形谐振器组件。
+    创建一个双环滑轮型谐振器组件，固定使用蛇形加热器 (`TypeHeater="snake"`)。
+    这是 `DoubleRingPulley` 的一个特定配置版本。
 
-    参数：
-        WidthRing: 环形波导的宽度（单位：um）。
-        WidthNear: 靠近环形波导的波导宽度（单位：um）。
-        WidthHeat: 加热电极的宽度（单位：um）。
-        LengthR2R: 环形波导之间的连接长度（单位：um）。
-        RadiusRing: 环形波导的半径（单位：um）。
-        DeltaRadius: 两个环形波导的半径差（单位：um）。
-        GapRing: 环形波导之间的间隙（单位：um）。
-        GapHeat: 加热电极的间隙（单位：um）。
-        AngleCouple: 耦合角度（单位：度）。
-        IsHeat: 是否包含加热电极。
-        Name: 组件名称。
-        oplayer: 光学波导层的定义。
-        heatlayer: 加热层的定义。
+    参数:
+        (与 `DoubleRingPulley` 的参数类似，但 `TypeHeater` 被固定)
+        GapHeat (float): 传递给内部蛇形加热器的间隙参数 (µm)。
+        IsHeat (bool): 是否启用加热器。虽然类型固定为蛇形，但仍可通过此参数关闭加热。
 
-    返回：
-        Component: 包含双环形谐振器和加热电极的组件。
-
-    端口：
-        o1: 第一个环形波导的输入端口。
-        o2: 第二个环形波导的 Through 端口。
-        r2ro1: 环形波导之间的连接端口。
-        R1A: 第一个环形波导的 Add 端口。
-        r1D: 第一个环形波导的 Drop 端口。
-        r1I: 第一个环形波导的 Input 端口。
-        r1T: 第一个环形波导的 Through 端口。
-        r2A: 第二个环形波导的 Add 端口。
-        r2D: 第二个环形波导的 Drop 端口。
-        r2I: 第二个环形波导的 Input 端口。
-        r2T: 第二个环形波导的 Through 端口。
-        R1HeatIn: 第一个环形波导的加热输入端口（如果包含加热电极）。
-        R1HeatOut: 第一个环形波导的加热输出端口（如果包含加热电极）。
-        R2HeatIn: 第二个环形波导的加热输入端口（如果包含加热电极）。
-        R2HeatOut: 第二个环形波导的加热输出端口（如果包含加热电极）。
+    返回:
+        Component: 生成的带蛇形加热器的双环滑轮谐振器。
     """
     c = DoubleRingPulley(
         WidthRing=WidthRing,
@@ -228,42 +198,17 @@ def DoubleRingPulley2_1HSn(
         vialayer: LayerSpec = LAYER.VIA,
 ) -> Component:
     """
-    创建一个带有蛇形加热电极和环形波导之间圆形连接的双环形谐振器组件。
+    创建双环滑轮型谐振器，固定使用蛇形加热器 (`TypeHeater="snake"`)
+    并且两个环之间采用弯曲波导连接 (`TypeR2R="bend"`)。
+    这是 `DoubleRingPulley` 的一个特定配置版本。
 
-    参数：
-        WidthRing: 环形波导的宽度（单位：um）。
-        WidthNear: 靠近环形波导的波导宽度（单位：um）。
-        WidthHeat: 加热电极的宽度（单位：um）。
-        LengthR2R: 环形波导之间的连接长度（单位：um）。
-        RadiusRing: 环形波导的半径（单位：um）。
-        DeltaRadius: 两个环形波导的半径差（单位：um）。
-        GapRing: 环形波导之间的间隙（单位：um）。
-        GapHeat: 加热电极的间隙（单位：um）。
-        AngleCouple: 耦合角度（单位：度）。
-        IsHeat: 是否包含加热电极。
-        Name: 组件名称。
-        oplayer: 光学波导层的定义。
-        heatlayer: 加热层的定义。
+    参数:
+        (与 `DoubleRingPulley` 的参数类似，但 `TypeHeater` 和 `TypeR2R` 被固定)
+        LengthR2R (float): 影响环间弯曲连接布局的特征长度 (µm)。
+        Name (str): 组件的名称。
 
-    返回：
-        Component: 包含双环形谐振器和加热电极的组件。
-
-    端口：
-        o1: 第一个环形波导的输入端口。
-        o2: 第二个环形波导的 Through 端口。
-        r2ro1: 环形波导之间的连接端口。
-        r1A: 第一个环形波导的 Add 端口。
-        r1D: 第一个环形波导的 Drop 端口。
-        r1I: 第一个环形波导的 Input 端口。
-        r1T: 第一个环形波导的 Through 端口。
-        r2A: 第二个环形波导的 Add 端口。
-        r2D: 第二个环形波导的 Drop 端口。
-        r2I: 第二个环形波导的 Input 端口。
-        r2T: 第二个环形波导的 Through 端口。
-        1HeatIn: 第一个环形波导的加热输入端口（如果包含加热电极）。
-        1HeatOut: 第一个环形波导的加热输出端口（如果包含加热电极）。
-        2HeatIn: 第二个环形波导的加热输入端口（如果包含加热电极）。
-        2HeatOut: 第二个环形波导的加热输出端口（如果包含加热电极）。
+    返回:
+        Component: 生成的特定配置的双环组件。
     """
     c = DoubleRingPulley(
         WidthRing=WidthRing,
@@ -311,45 +256,31 @@ def ADRAPRADR(
         CrossComp: Component = None,
 ) -> Component:
     """
-    创建一个包含三个环形谐振器和交叉波导的组件。
+    创建一个由三个环组成的谐振结构：两个Add-Drop环（ADR1, ADR2）夹着一个全通环（APR, ring3）。
+    ADR1的Drop连接到APR的Input，APR的Through连接到ADR2的Drop。
+    可以选择是否通过一个交叉波导组件连接ADR1的Input和ADR2的Input。
 
-    参数：
-        WidthRing: 环形波导的宽度（单位：um）。
-        WidthNear: 靠近环形波导的波导宽度（单位：um）。
-        WidthHeat: 加热电极的宽度（单位：um）。
-        WidthSingle: 单模波导的宽度（单位：um）。
-        LengthTaper: 锥形波导的长度（单位：um）。
-        LengthR2R: 环形波导之间的连接长度（单位：um）。
-        LengthR2C: 环形波导与交叉波导的连接长度（单位：um）。
-        RadiusRing: 环形波导的半径（单位：um）。
-        RadiusCrossBend: 交叉波导的弯曲半径（单位：um）。
-        DeltaRadius: 环形波导的半径差（单位：um）。
-        GapRing: 环形波导之间的间隙（单位：um）。
-        AngleCouple: 耦合角度（单位：度）。
-        AngleCouple3: 第三个环形谐振器的耦合角度（单位：度）。
-        IsHeat: 是否包含加热电极。
-        IsSquare: 是否使用方形布局。
-        Name: 组件名称。
-        oplayer: 光学波导层的定义。
-        heatlayer: 加热层的定义。
-        CrossComp: 交叉波导组件。
+    参数:
+        (大部分参数用于定义内部的 `RingPulley` 和 `RingPulley2` 组件)
+        WidthSingle (float): 当 `IsSquare`=True时，连接到交叉波导的波导宽度 (µm)。
+        LengthR2R (float): ADR1到APR，以及APR到ADR2的连接直波导长度 (µm)。
+        LengthR2C (float): 当 `IsSquare`=True时，从外部到交叉波导的连接直波导长度 (µm)。
+        RadiusCrossBend (float): 当 `IsSquare`=True时，连接到交叉波导的弯曲半径 (µm)。
+        DeltaRadius (float): 中间环 (ring3) 相对于两侧AD环的半径差异 (µm)。
+        AngleCouple3 (float): 中间环 (ring3, 使用RingPulley2) 的耦合角度 (度)。
+        IsSquare (bool): 如果为True，则尝试以方形布局连接ADR1和ADR2的Input端口到提供的`CrossComp`。
+        CrossComp (ComponentSpec | None): 可选的外部交叉波导组件。如果`IsSquare`为True且提供了此组件，
+                                        则会尝试使用它。
 
-    返回：
-        Component: 包含三个环形谐振器和交叉波导的组件。
+    返回:
+        Component: 生成的 ADR-AP-ADR 结构组件。
 
-    端口：
-        r1Th: 第一个环形波导的 Through 端口。
-        r1Ad: 第一个环形波导的 Add 端口。
-        r2Th: 第二个环形波导的 Through 端口。
-        r2Ad: 第二个环形波导的 Add 端口。
-        r1L: 第一个环形波导的 RingL 端口。
-        r1R: 第一个环形波导的 RingR 端口。
-        r2L: 第二个环形波导的 RingL 端口。
-        r2R: 第二个环形波导的 RingR 端口。
-        r3L: 第三个环形波导的 RingL 端口。
-        r3R: 第三个环形波导的 RingR 端口。
-        co2: 交叉波导的输出端口 2。
-        co3: 交叉波导的输出端口 3。
+    端口:
+        (如果IsSquare=False，则没有co2, co3端口，ADR1和ADR2的Input端口直接暴露)
+        co2, co3: (仅当IsSquare=True且CrossComp提供时) 交叉波导的另外两个端口。
+        r1Th, r1Ad: 第一个AD环的Through和Add端口。
+        r2Th, r2Ad: 第二个AD环的Through和Add端口。
+        r1L, r1R, r2L, r2R, r3L, r3R: 三个环的加热器端口（如果IsHeat=True且内部环组件生成这些端口）。
     """
     TriRing = gf.Component()
     ring1 = TriRing << RingPulley(
@@ -403,259 +334,7 @@ def ADRAPRADR(
     add_labels_to_ports(TriRing)
     return TriRing
 
-
-# %% DoubleRaceTrackPulley
-@gf.cell
-def DoubleRaceTrack(
-        WidthRing: float = 8,
-        WidthNear: float = 5,
-        LengthRun: float = 200,
-        LengthTaper: float = 100,
-        LengthR2R: float = 300,
-        DeltaLength: float = 2,
-        RadiusRing: float = 100,
-        GapCouple: float = 1,
-        AngleCouple: float = 20,
-        LengthCouple: float = 10,
-        IsSameSide: bool = True,
-        layer: LayerSpec = LAYER.WG,
-        TypeCouple: str = "p",
-) -> Component:
-    """
-    创建一个双跑道形谐振器组件。
-
-    参数：
-        WidthRing: 跑道形波导的宽度（单位：um）。
-        WidthNear: 靠近跑道形波导的波导宽度（单位：um）。
-        WidthEnd: 末端波导的宽度（单位：um）。
-        LengthRun: 跑道形波导的直线长度（单位：um）。
-        LengthTaper: 锥形波导的长度（单位：um）。
-        LengthR2R: 跑道形波导之间的连接长度（单位：um）。
-        DeltaLength: 两个跑道形波导的直线长度差（单位：um）。
-        RadiusRing: 跑道形波导的半径（单位：um）。
-        RadiusBend0: 弯曲波导的半径（单位：um）。
-        GapRing: 跑道形波导之间的间隙（单位：um）。
-        AngleCouple: 耦合角度（单位：度）。
-        Pitch: 结构的间距（单位：um）。
-        Period: 结构的周期（单位：um）。
-        IsSameSide: 是否在同一侧连接。
-        layer: 波导层的定义。
-        layers: 多波导层的定义。
-        Name: 组件名称。
-        TypeCouple: RaceTrack腔的耦合类型，p或者s,
-
-    返回：
-        Component: 包含双跑道形谐振器的组件。
-
-    端口：
-        o1: 第一个跑道形波导的输入端口。
-        o2: 第二个跑道形波导的输入端口。
-        R1cen1: 第一个跑道形波导的中心端口 1。
-        R1cen2: 第一个跑道形波导的中心端口 2。
-        R2cen1: 第二个跑道形波导的中心端口 1。
-        R2cen2: 第二个跑道形波导的中心端口 2。
-    """
-    c = gf.Component()
-    layer = gf.get_layer(layer)
-    if TypeCouple == "p" or TypeCouple == "P":
-        ring1 = c << RaceTrackPulley(
-            WidthRing=WidthRing, WidthNear=WidthNear, GapRing=GapCouple,
-            LengthRun=LengthRun, RadiusRing=RadiusRing, AngleCouple=AngleCouple, oplayer=layer
-        )
-        ring2 = c << RaceTrackPulley(
-            WidthRing=WidthRing, WidthNear=WidthNear, GapRing=GapCouple,
-            LengthRun=LengthRun + DeltaLength, RadiusRing=RadiusRing, AngleCouple=AngleCouple, oplayer=layer
-        )
-    elif TypeCouple == "s" or TypeCouple == "S":
-        ring1 = c << RaceTrackStr(
-            WidthRing=WidthRing, GapRun=GapCouple,
-            LengthRun=LengthRun, RadiusRing=RadiusRing, LengthCouple=LengthCouple, oplayer=layer
-        )
-        ring2 = c << RaceTrackStr(
-            WidthRing=WidthRing, GapRun=GapCouple,
-            LengthRun=LengthRun + DeltaLength, RadiusRing=RadiusRing, LengthCouple=LengthCouple, oplayer=layer
-        )
-        WidthNear=WidthRing
-    str_r2r = c << GfCStraight(width=WidthNear, length=LengthR2R, layer=layer)
-    str_r2r.connect("o1", ring1.ports["Drop"])
-    ring2.connect("Drop", str_r2r.ports["o2"])
-    if IsSameSide:
-        ring2.mirror_y(ring2.ports["Drop"].center[1])
-
-    c.add_port(name="o1", port=ring1.ports["Input"])
-    c.add_port(name="o2", port=ring2.ports["Input"])
-    c.add_port(name="R1cen1", port=ring1.ports["Rcen1"])
-    c.add_port(name="R1cen2", port=ring1.ports["Rcen2"])
-    c.add_port(name="R2cen1", port=ring2.ports["Rcen1"])
-    c.add_port(name="R2cen2", port=ring2.ports["Rcen2"])
-    return c
-# %% DoubleRingPulley
-@gf.cell
-def DoubleRaceTrack(
-        WidthRing: float = 8,
-        WidthNear: float = 5,
-        WidthHeat: float = 2,
-        LengthCouple: float = 10,
-        LengthRun: float = 200,
-        LengthR2R: float = 300,
-        RadiusR2R: float = None,
-        RadiusRing: float = 100,
-        GapHeat: float = 10,
-        GapCouple: float = 1,
-        AngleCouple: float = 20,
-        DeltaHeat: float = 0,
-        DeltaLengthRS: float = 2,
-        IsHeat: bool = False,
-        TypeCouple: str = "p",
-        TypeHeater: str = "default",
-        TypeR2R: str = "straight",
-        DirectionsHeater: [str] = ["up", "up"],
-        DirectionsRing: [str] = ["up", "up"],
-        oplayer: LayerSpec = LAYER.WG,
-        heatlayer: LayerSpec = LAYER.M1,
-        routelayer: LayerSpec = LAYER.M2,
-        vialayer: LayerSpec = LAYER.VIA,
-) -> Component:
-    """
-    创建一个双环形跑道形谐振器组件，支持加热电极和环形波导的连接。
-    双环形谐振器由两个环形波导组成，可以通过参数调整环的尺寸、间距和加热电极的配置。
-
-    参数：
-        WidthRing: 环形波导的宽度（单位：um）。
-        WidthNear: 靠近环形波导的波导宽度（单位：um）。
-        WidthHeat: 加热电极的宽度（单位：um）。
-        WidthEnd: 末端波导的宽度（单位：um）。
-        Pitch: 结构的间距（单位：um）。
-        Period: 结构的周期（单位：um）。
-        LengthTaper: 锥形波导的长度（单位：um）。
-        LengthR2R: 环形波导之间的连接长度（单位：um）。
-        RadiusRing: 环形波导的半径（单位：um）。
-        RadiusBend0: 弯曲波导的半径（单位：um）。
-        DeltaRadius: 两个环形波导的半径差（单位：um）。
-        GapRing: 环形波导之间的间隙（单位：um）。
-        EndPort: 需要连接的端口列表。
-        AngleCouple: 耦合角度（单位：度）。
-        IsHeat: 是否包含加热电极。
-        Name: 组件名称。
-        oplayer: 光学波导层的定义。
-        heatlayer: 加热层的定义。
-
-    返回：
-        Component: 包含双环形谐振器的组件。
-
-    端口：
-        o1: 第一个环形波导的输入端口。
-        o2: 第二个环形波导的输入端口。
-        r2ro1: 环形波导之间的连接端口。
-        r1A: 第一个环形波导的 Add 端口。
-        r1D: 第一个环形波导的 Drop 端口。
-        r1I: 第一个环形波导的 Input 端口。
-        r1T: 第一个环形波导的 Through 端口。
-        r2A: 第二个环形波导的 Add 端口。
-        r2D: 第二个环形波导的 Drop 端口。
-        r2I: 第二个环形波导的 Input 端口。
-        r2T: 第二个环形波导的 Through 端口。
-        R1HeatIn: 第一个环形波导的加热输入端口（如果包含加热电极）。
-        R1HeatOut: 第一个环形波导的加热输出端口（如果包含加热电极）。
-        R2HeatIn: 第二个环形波导的加热输入端口（如果包含加热电极）。
-        R2HeatOut: 第二个环形波导的加热输出端口（如果包含加热电极）。
-    """
-    c = gf.Component()
-    if TypeCouple == "p" or TypeCouple == "P":
-        ring1 = c << RaceTrackPulley(
-            WidthRing=WidthRing, WidthNear=WidthNear, GapRing=GapCouple,IsHeat=IsHeat,
-            LengthRun=LengthRun, RadiusRing=RadiusRing, AngleCouple=AngleCouple, oplayer=oplayer
-        )
-        ring2 = c << RaceTrackPulley(
-            WidthRing=WidthRing, WidthNear=WidthNear, GapRing=GapCouple,IsHeat=IsHeat,
-            LengthRun=LengthRun + DeltaLengthRS, RadiusRing=RadiusRing, AngleCouple=AngleCouple, oplayer=oplayer
-        )
-    elif TypeCouple == "s" or TypeCouple == "S":
-        ring1 = c << RaceTrackStr(
-            WidthRing=WidthRing,
-            WidthHeat=WidthHeat,
-            LengthRun=LengthRun,
-            RadiusRing=RadiusRing,
-            GapRun=GapCouple,
-            GapHeat=GapHeat,
-            DeltaHeat=DeltaHeat,
-            LengthCouple=LengthCouple,
-            IsAD=True,
-            IsHeat=IsHeat,
-            oplayer=oplayer,
-            heatlayer=heatlayer,
-            vialayer=vialayer,
-            routelayer=routelayer,
-        )
-        ring2 = c << RaceTrackStr(
-            WidthRing=WidthRing,
-            WidthHeat=WidthHeat,
-            LengthRun=LengthRun,
-            RadiusRing=RadiusRing,
-            GapRun=GapCouple,
-            GapHeat=GapHeat,
-            DeltaHeat=DeltaHeat,
-            LengthCouple=LengthCouple,
-            IsAD=True,
-            IsHeat=IsHeat,
-            oplayer=oplayer,
-            heatlayer=heatlayer,
-            vialayer=vialayer,
-            routelayer=routelayer,
-        )
-        WidthNear=WidthRing
-    if TypeR2R == "straight":
-        str_R2R = c << GfCStraight(width=WidthNear, length=LengthR2R, layer=oplayer)
-        ring1.connect("Drop", str_R2R.ports["o1"])
-        ring2.connect("Drop", str_R2R.ports["o2"], allow_width_mismatch=True)
-    elif TypeR2R == "bend":
-        if RadiusR2R is None:
-            RadiusR2R = RadiusRing - 10
-        str_R2R = c << GfCStraight(width=WidthNear, length=LengthR2R, layer=oplayer)
-        str_R2R.connect("o1", ring1.ports["Drop"])
-        ring2.connect("Drop", str_R2R.ports["o2"], allow_width_mismatch=True)
-        # Add circular bends for ring-to-ring connection
-        bendl1 = c << gf.c.bend_euler(width=WidthNear, radius=RadiusR2R, angle=90, layer=oplayer)
-        bendr1 = c << gf.c.bend_euler(width=WidthNear, radius=RadiusR2R, angle=90, layer=oplayer)
-        bendl2 = c << gf.c.bend_euler(width=WidthNear, radius=RadiusR2R, angle=-90, layer=oplayer)
-        bendr2 = c << gf.c.bend_euler(width=WidthNear, radius=RadiusR2R, angle=-90, layer=oplayer)
-        bendl1.connect("o1", ring1.ports["Drop"])
-        bendl2.connect("o1", bendl1.ports["o2"])
-        bendr1.connect("o2", ring2.ports["Drop"])
-        bendr2.connect("o2", bendr1.ports["o1"])
-        route = gf.routing.route_single(c, bendl2.ports["o2"], bendr2.ports["o1"], route_width=WidthNear, layer=oplayer)
-        # c.add(route.references)
-        c.remove(str_R2R)
-
-    if DirectionsRing[0] == "down":
-        ring1.mirror_y(ring1.ports["Drop"].center[1])
-    if DirectionsRing[1] == "up":
-        ring2.mirror_y(ring2.ports["Drop"].center[1])
-    c.add_port(name="o1", port=ring1.ports["Input"])
-    c.add_port(name="o2", port=ring2.ports["Input"])
-    c.add_port(name="R2Ro1", port=ring1.ports["Drop"])
-    c.add_port(name="R1Add", port=ring1.ports["Add"])
-    c.add_port(name="R1Drop", port=ring1.ports["Drop"])
-    c.add_port(name="R1Input", port=ring1.ports["Input"])
-    c.add_port(name="R1Through", port=ring1.ports["Through"])
-    c.add_port(name="R2Add", port=ring2.ports["Add"])
-    c.add_port(name="R2Drop", port=ring2.ports["Drop"])
-    c.add_port(name="R2Input", port=ring2.ports["Input"])
-    c.add_port(name="R2Through", port=ring2.ports["Through"])
-
-    if IsHeat:
-        for port in ring1.ports:
-            if "Heat" in port.name:
-                c.add_port(name="R1" + port.name, port=ring1.ports[port.name])
-        for port in ring2.ports:
-            if "Heat" in port.name:
-                c.add_port(name="R2" + port.name, port=ring2.ports[port.name])
-    add_labels_to_ports(c, label_layer=(512, 8))
-    return c
-
-
 # %% CoupleCavity
-
 @gf.cell
 def CoupleRingDRT1(
         WidthRing1: float = 1,
@@ -689,48 +368,36 @@ def CoupleRingDRT1(
         vialayer: LayerSpec = LAYER.VIA,
 ) -> Component:
     """
-    创建一个双环形谐振器组件，支持加热电极和环形波导的连接。
-    双环形谐振器由两个环形波导组成，可以通过参数调整环的尺寸、间距和加热电极的配置。
+    创建一个由两个可配置参数的 `RingPulleyT1` 单元组成的耦合环结构。
+    第二个环 (`ring2_c` - 仅光学部分) 相对于第一个环 (`ring1`) 进行旋转和平移定位，
+    并通过两条直波导 (`str_ring2_1`, `str_ring2_2`) 连接到其概念上的耦合总线。
+    加热器部分 (`ring2h`) 是独立获取并对齐的。
 
-    参数：
-        WidthRing: 环形波导的宽度（单位：um）。
-        WidthNear: 靠近环形波导的波导宽度（单位：um）。
-        WidthHeat: 加热电极的宽度（单位：um）。
-        WidthEnd: 末端波导的宽度（单位：um）。
-        Pitch: 结构的间距（单位：um）。
-        Period: 结构的周期（单位：um）。
-        LengthTaper: 锥形波导的长度（单位：um）。
-        LengthR2R: 环形波导之间的连接长度（单位：um）。
-        RadiusRing: 环形波导的半径（单位：um）。
-        RadiusBend0: 弯曲波导的半径（单位：um）。
-        DeltaRadius: 两个环形波导的半径差（单位：um）。
-        GapRing: 环形波导之间的间隙（单位：um）。
-        EndPort: 需要连接的端口列表。
-        AngleCouple: 耦合角度（单位：度）。
-        IsHeat: 是否包含加热电极。
-        Name: 组件名称。
-        oplayer: 光学波导层的定义。
-        heatlayer: 加热层的定义。
+    这种结构设计比较特殊，环2的光学部分和加热部分是分开处理和对齐的。
 
-    返回：
-        Component: 包含双环形谐振器的组件。
+    参数:
+        (参数分为两组，分别对应ring1和ring2的 RingPulleyT1 配置)
+        WidthRing1, WidthNear1, ..., AngleCouple1: 第一个环的参数。
+        WidthRing2, WidthNear2, ..., RadiusRing2, GapRB2: 第二个环的参数。
+            如果为None，则通常继承自第一个环的对应参数。
+        LengthNear2 (float): 第二个环耦合总线的长度 (µm)。
+        DeltaHeat2 (float | None): 第二个环加热器的DeltaHeat参数。
+        AngleR12 (float): 第二个环相对于第一个环的旋转角度 (度)，旋转中心是第一个环的中心。
+        GapRR (float): 两个环之间的（期望）间隙 (µm)，用于定位第二个环。
+        IsHeat (bool): 是否为两个环都启用加热器。
+        TypeHeaterR1, TypeHeaterR2: 两个环各自的加热器类型。
+        DirectionsHeater (list[str]): 两个环加热器的方向。
+        Name (str): 组件名称。
+        oplayer, heatlayer: GDS图层。
 
-    端口：
-        o1: 第一个环形波导的输入端口。
-        o2: 第二个环形波导的输入端口。
-        r2ro1: 环形波导之间的连接端口。
-        r1A: 第一个环形波导的 Add 端口。
-        r1D: 第一个环形波导的 Drop 端口。
-        r1I: 第一个环形波导的 Input 端口。
-        r1T: 第一个环形波导的 Through 端口。
-        r2A: 第二个环形波导的 Add 端口。
-        r2D: 第二个环形波导的 Drop 端口。
-        r2I: 第二个环形波导的 Input 端口。
-        r2T: 第二个环形波导的 Through 端口。
-        R1HeatIn: 第一个环形波导的加热输入端口（如果包含加热电极）。
-        R1HeatOut: 第一个环形波导的加热输出端口（如果包含加热电极）。
-        R2HeatIn: 第二个环形波导的加热输入端口（如果包含加热电极）。
-        R2HeatOut: 第二个环形波导的加热输出端口（如果包含加热电极）。
+    返回:
+        Component: 生成的耦合双环组件。
+
+    端口:
+        Input, Through: 第一个环的外部输入/直通端口。
+        Add, Drop: 连接到第二个环耦合总线的外部端口。
+        Ring1C, Ring2C: 两个环的中心参考端口。
+        (以及可能的加热器端口 R1Heat..., R2Heat...)
     """
     if WidthRing2 is None:
         WidthRing2 = WidthRing1
@@ -795,5 +462,5 @@ def CoupleRingDRT1(
     return c
 
 
-__all__ = ['DoubleRingPulley', 'DoubleRaceTrack', 'DoubleRingPulley2HSn', 'ADRAPRADR', 'DoubleRingPulley2_1HSn',
+__all__ = ['DoubleRingPulley', 'DoubleRingPulley2HSn', 'ADRAPRADR', 'DoubleRingPulley2_1HSn',
            'CoupleRingDRT1']

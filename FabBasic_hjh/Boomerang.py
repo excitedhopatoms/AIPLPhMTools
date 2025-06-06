@@ -32,6 +32,50 @@ def Boomerang(
         routelayer: LayerSpec = LAYER.M2,
         vialayer: LayerSpec = LAYER.VIA,
 ) -> Component:
+    """
+     创建一个“回旋镖”形状的光学谐振腔或延迟线组件。
+     该组件由两个对称的半结构组成，每个半结构包含内弯曲路径、外弯曲路径、
+     连接它们的锥形波导以及一个桥形连接结构。可以选择性地为内部和外部路径添加加热器。
+
+     参数:
+         WidthRingIn (float): 内环部分的波导宽度 (单位: um)。
+         WidthRingOut (float): 外环部分的波导宽度 (单位: um)。
+         WidthStraight (float): 用于连接桥和锥形波导末端的直波导宽度 (单位: um)。
+         WidthHeat (float): 加热器的宽度 (单位: um)。
+         WidthRoute (float): 加热器引出线的宽度 (单位: um)。
+         WidthVia (float): 加热器过孔的尺寸 (单位: um)。
+         RadiusRing (float): 环形部分的基础半径，通常指内环圆弧段的半径 (单位: um)。
+         RadiusEuler (float): 连接桥中欧拉弯曲的半径 (单位: um)。
+         Spacing (float): 元素间距，常用于加热器设计中的过孔间距等 (单位: um)。
+         GapRR (float): 内环波导与外环波导之间的间隙 (单位: um)。
+         GapHeat (float): 波导与加热器之间的横向间隙 (单位: um)。
+         DeltaHeat (float): 加热器的特定尺寸参数，如偏移量或长度，取决于加热器类型 (单位: um)。
+         LengthBridge1 (float): 连接桥中较长直波导段的长度 (单位: um)。
+         LengthBridge2 (float): 连接桥中较短直波导段的长度 (单位: um)。
+         LengthTaper (float): 从环形宽度过渡到直波导宽度的锥形波导长度 (单位: um)。
+         IsHeatIn (bool): 是否为内环路径添加加热器。
+         IsHeatOut (bool): 是否为外环路径添加加热器。
+         TypeHeater (str): 加热器的类型，例如 "default", "snake", "side"。
+         oplayer (LayerSpec): 光学波导层定义。
+         heatlayer (LayerSpec): 加热器层定义。
+         routelayer (LayerSpec): 加热器布线层定义。
+         vialayer (LayerSpec): 加热器过孔层定义。
+
+     返回:
+         Component: 生成的“回旋镖”组件。
+
+     端口:
+         Lo1: 左半部分内环路径的输入/输出端口。
+         Lo2: 左半部分外环路径的输入/输出端口。
+         Ro1: 右半部分内环路径的输入/输出端口。
+         Ro2: 右半部分外环路径的输入/输出端口。
+         Lb1, Lb2: 左半部分桥接结构的端口，用于可能的外部连接或测试。
+         Rb1, Rb2: 右半部分桥接结构的端口。
+         (如果添加加热器，还会有相应的加热器端口，例如 HeatILIn, HeatOLOut 等)
+
+     信息 (Info):
+         length (float): 计算得到的整个回旋镖结构的光学路径长度 (估算值)。
+     """
     c = gf.Component()
     Cring1 = gf.Component()
     Test = gf.Component()
@@ -170,6 +214,36 @@ def RingBoomerang(
         routelayer: LayerSpec = LAYER.M2,
         vialayer: LayerSpec = LAYER.VIA,
 ) -> Component:
+    """
+    创建一个包含单个“回旋镖”谐振器并通过总线波导进行耦合的环形谐振器结构。
+    “回旋镖”本身是一个具有特定路径的谐振单元。
+
+    参数:
+        (参数与 Boomerang 函数中的大部分相同，用于定义回旋镖单元的几何形状和加热器)
+        WidthRingIn, WidthRingOut, WidthStraight, WidthHeat, WidthRoute, WidthVia,
+        RadiusRing, RadiusEuler (用于Boomerang内部和外部S弯), Spacing, GapRR, GapHeat, DeltaHeat,
+        LengthBridge1, LengthBridge2, LengthTaper (Boomerang内部)。
+
+        GapRB (float): 回旋镖的桥臂与外部总线波导之间的耦合间隙。
+        LengthCouple (float): 总线波导上用于与回旋镖桥臂耦合的直波导段长度。
+        IsHeatIn (bool): Boomerang单元内环是否加热。
+        IsHeatOut (bool): Boomerang单元外环是否加热。
+        TypeHeater (str): 加热器类型。
+        oplayer, heatlayer, routelayer, vialayer: 相应的GDS图层定义。
+
+    返回:
+        Component: 生成的带耦合的单个回旋镖环形谐振器组件。
+
+    端口:
+        Input: 总线波导的输入端口。
+        Through: 总线波导的直通端口。
+        Add: (如果设计为四端口) 总线波导的增加端口。
+        Drop: (如果设计为四端口) 总线波导的下载端口。
+        (以及从 Boomerang 单元继承的加热器端口，如果启用)
+
+    信息 (Info):
+        length (float): Boomerang 单元的光学路径长度。
+    """
     c = gf.Component()
     # sections
     C_in = gf.Section(layer=oplayer, width=WidthRingIn, port_names=["o1", "o2"])
@@ -239,6 +313,37 @@ def RingDouBoomerang(
         routelayer: LayerSpec = LAYER.M2,
         vialayer: LayerSpec = LAYER.VIA,
 ) -> Component:
+    """
+    创建一个包含两个串联（或特定方式耦合）的“回旋镖”谐振器的组件。
+    两个回旋镖单元可以通过 `DeltaLB2` 参数实现结构上的微小差异，从而可能导致谐振频率的失谐。
+    外部通过总线波导进行整体的输入和输出。
+
+    参数:
+        (大部分参数与 RingBoomerang 相同，用于配置每个 Boomerang 单元)
+        DeltaLB2 (float): 第二个 Boomerang 单元的 `LengthBridge2` 参数相对于第一个单元的增量。
+                          例如，如果第一个 L_B2=40, DeltaLB2=2, 则第二个 L_B2=42。
+                          用于在两个回旋镖之间引入细微的路径长度差异。
+        IsHeat (bool): 控制两个 Boomerang 单元是否都启用其内部的加热器逻辑。
+                       (注意：Boomerang 单元本身有 IsHeatIn, IsHeatOut 参数，
+                        此处的 IsHeat 可能是一个总开关，或者需要更细致地传递给子单元。)
+                       原代码中，Cring1 的 IsHeatIn=False, IsHeatOut=IsHeat。
+                       Cring2 的 IsHeatIn=IsHeat, IsHeatOut=False。这是一种特定的加热配置。
+
+    返回:
+        Component: 生成的双回旋镖谐振器组件。
+
+    端口:
+        Input: 组件的总输入端口。
+        Through: 组件的总直通端口。
+        Add: 组件的总增加端口。
+        Drop: 组件的总下载端口。
+        R1Lo1, R1Lo2, ..., R2Ro1, R2Ro2, ...: 从两个 Boomerang 单元暴露出的原始端口，带R1/R2前缀。
+        (以及可能的加热器端口)
+
+    信息 (Info):
+        R1length (float): 第一个 Boomerang 单元的光学路径长度。
+        R2length (float): 第二个 Boomerang 单元的光学路径长度。
+    """
     c = gf.Component()
     # sections
     C_in = gf.Section(layer=oplayer, width=WidthRingIn, port_names=["o1", "o2"])

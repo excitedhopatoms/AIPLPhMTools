@@ -35,13 +35,46 @@ def TCRaceTrackP(
         length_run: float = 1000,
         pos_ring: float = 5000,
         gap_rc: float = 1,
-        tout: Component =taper_in_DFB_reverse,
-        tin: Component = taper_in_DFB,
+        tout: Component =None,
+        tin: Component = None,
         oplayer: LayerSpec = LAYER.WG,
 ) -> Component:
+    """
+    创建一个集成了单个 `RaceTrackP` (滑轮耦合跑道环) 谐振器的完整组件。
+    包含标准的输入/输出锥形波导（如果提供了 `tin`/`tout`），
+    并通过弯曲和锥形波导将核心跑道环的Input/Through端口连接到外部。
+    此设计为双端口器件（Input/Through）。
+
+    参数:
+        r_ring (float): 跑道环的弯曲半径 (µm)。
+        r_bend (float): 用于连接外部IO的引出臂的弯曲半径 (µm)。
+        width_ring (float): 跑道环波导宽度 (µm)。
+        width_near (float): 耦合总线波导宽度 (µm)。
+        width_heat (float): (未使用，但传递给RaceTrackP的参数可能需要) 加热器宽度 (µm)。
+        width_single (float): 外部单模IO波导宽度 (µm)。
+        angle_rc (float): 跑道环的滑轮耦合角度 (度)。
+        length_taper (float): 从单模波导到耦合总线宽度的锥形长度 (µm)。
+        length_total (float): 组件目标总长度，用于对齐输出IO组件的右边缘 (µm)。
+        length_run (float): 跑道环直线段的长度 (µm)。
+        pos_ring (float): 核心跑道环组件的大致X轴中心位置 (µm)。
+        gap_rc (float): 环与总线的耦合间隙 (µm)。
+        tout (ComponentSpec | None): 输出端接组件（如光栅）的规格。如果None，则输出端口在引出臂末端。
+        tin (ComponentSpec | None): 输入端接组件（如光栅）的规格。如果None，则输入端口在引出臂末端。
+        oplayer (LayerSpec): 光学波导层。
+
+    返回:
+        Component: 生成的集成滑轮耦合跑道环组件。
+
+    端口:
+        input: 组件的总光学输入端口。
+        output: 组件的总光学输出端口 (对应核心环的Through端口)。
+        inputo2: (如果tin存在) 输入IO组件的内部端口（连接到引出臂）。
+        outputo1: (如果tout存在) 输出IO组件的内部端口（连接到引出臂）。
+        RingC: 跑道环中心的参考端口。
+    """
     sr = gf.Component("RaceTrack")
-    ring = sr << RaceTrackPulley(
-        WidthRing=width_ring, WidthNear=width_near, GapRing=gap_rc, oplayer=oplayer, RadiusRing=r_ring,
+    ring = sr << RaceTrackP(
+        WidthRing=width_ring, WidthNear=width_near, GapCouple=gap_rc, oplayer=oplayer, RadiusRing=r_ring,
         AngleCouple=angle_rc, IsAD=False,LengthRun=length_run,
     )
     taper_s2n_1 = sr << gf.c.taper(width1=width_single, width2=width_near, length=length_taper, layer=oplayer)
@@ -60,20 +93,21 @@ def TCRaceTrackP(
         ctin.movex(-pos_ring)
         route_in = gf.routing.route_single(sr,ctin.ports["o2"], bend_single_1.ports["o1"], layer=oplayer, route_width=width_single)
         # sr.add(route_in.references)
+        sr.add_port("input", port=ctin.ports["o1"])
+        sr.add_port("inputo2", port=ctin.ports["o2"])
     # output
     if tout != None:
         ctout = sr << tout
-        ctout.connect("o2", other=ctin.ports["o1"],allow_width_mismatch=True)
+        ctout.connect("o2", other=bend_single_1.ports["o1"],allow_width_mismatch=True)
         ctout.movex(length_total)
         delta = ctout.ports["o1"].center[1] - bend_single_2.ports["o2"].center[1]
         ctout.movey(-delta)
         route_out = gf.routing.route_single(sr,ctout.ports["o1"], bend_single_2.ports["o2"], layer=oplayer,
                                          route_width=width_single)
         # sr.add(route_out.references)
-    sr.add_port("input", port=ctin.ports["o1"])
-    sr.add_port("output", port=ctout.ports["o2"])
-    sr.add_port("inputo2", port=ctin.ports["o2"])
-    sr.add_port("outputo1", port=ctout.ports["o1"])
+        sr.add_port("output", port=ctout.ports["o2"])
+        sr.add_port("outputo1", port=ctout.ports["o1"])
+
     sr.add_port("RingC", port=ring.ports["Input"],
                 center = (np.array(ring.ports["Rcen1"].center) + np.array(ring.ports["Rcen2"].center)) / 2)
     add_labels_to_ports(sr)
@@ -97,15 +131,36 @@ def TCRaceTrackS(
         pos_ring: float = 5000,
         gap_rc: float = 1,
         type_heat:str = 'none',
-        tout: Component =taper_in_DFB_reverse,
-        tin: Component = taper_in_DFB,
+        tout: Component =None,
+        tin: Component = None,
         oplayer: LayerSpec = LAYER.WG,
         **kwargs,
 ) -> Component:
+    """
+    创建一个集成了单个 `RaceTrackS` (直线耦合跑道环) 的完整组件。
+    核心跑道环为双端口（Input/Through）。输入直接连接，输出臂包含较长的直线和弯曲部分。
+    此函数对应原代码中的 `TCRaceTrack2_1`。
+
+    参数:
+        (大部分参数与 TCRaceTrackP 类似，但核心是 RaceTrackS)
+        length_rc (float): 传递给 `RaceTrackS` 的 `LengthCouple` 参数 (µm)。
+        length_run (float): 传递给 `RaceTrackS` 的 `LengthRun` 参数 (µm)。
+        length_updown (float): 输出引出臂中垂直（上下）走向的直线段长度 (µm)。
+        length_horizon (float): 输出引出臂中水平走向的直线段长度 (µm)。
+        type_heat (str): 传递给 `RaceTrackS` 的 `TypeHeater` 参数。
+
+    返回:
+        Component: 生成的集成直线耦合跑道环组件。
+
+    端口:
+        input: 组件的总光学输入端口。
+        output: 组件的总光学输出端口。
+        RingC: 跑道环中心的参考端口。
+    """
     sr = gf.Component("RaceTrack")
     width_near = width_ring
-    ring = sr << RaceTrackStr(
-        WidthRing=width_ring, LengthRun=length_run, GapRun=gap_rc, oplayer=oplayer, RadiusRing=r_ring,
+    ring = sr << RaceTrackS(
+        WidthRing=width_ring, LengthRun=length_run, GapCouple=gap_rc, oplayer=oplayer, RadiusRing=r_ring,
         LengthCouple=length_rc, IsAD=False,TypeHeater=type_heat
     )
     taper_s2n_1 = sr << gf.c.taper(width1=width_single, width2=width_near, length=length_taper, layer=oplayer)
@@ -128,6 +183,7 @@ def TCRaceTrackS(
         ctin.movex(-pos_ring)
         route_in = gf.routing.route_single(sr,ctin.ports["o2"], taper_s2n_1.ports["o1"], layer=oplayer, route_width=width_single)
         # sr.add(route_in.references)
+        sr.add_port("input", port=ctin.ports["o1"])
     # output
     if tout != None:
         ctout = sr << tout
@@ -137,9 +193,10 @@ def TCRaceTrackS(
         ctout.movey(-delta)
         route_out = gf.routing.route_single(sr,ctout.ports["o1"], bend_outsingle_2.ports["o2"], layer=oplayer,
                                          route_width=width_single)
+        sr.add_port("output", port=ctout.ports["o1"])
         # sr.add(route_out.references)
-    sr.add_port("input", port=ctin.ports["o1"])
-    sr.add_port("output", port=ctout.ports["o1"])
+
+
     sr.add_port("RingC", port=ring.ports["Input"],
                 center = (np.array(ring.ports["Rcen1"].center) + np.array(ring.ports["Rcen2"].center)) / 2
                 )
@@ -162,14 +219,31 @@ def TCRaceTrackS2(
         length_total: float = 10000,
         pos_ring: float = 5000,
         gap_rc: float = 1,
-        tout: Component =taper_in_DFB_reverse,
-        tin: Component = taper_in_DFB,
+        tout: Component =None,
+        tin: Component = None,
         oplayer: LayerSpec = LAYER.WG,
 ) -> Component:
+    """
+    创建集成了单个 `RaceTrackS` (直线耦合跑道环) 的完整组件。
+    与 `TCRaceTrackS` (原TCRaceTrack2_1) 的主要区别在于输入端口的引出臂结构，
+    输出端口直接从环的Through端通过Taper引出。
+    此函数对应原代码中的 `TCRaceTrack2_2`。
+
+    参数:
+        (大部分参数与 TCRaceTrackS 类似)
+        length_run (float): 跑道环直线段长度，默认为200µm。
+        length_horizon (float): 输入引出臂的水平段长度 (µm)。
+        length_updown (float): 输入引出臂的垂直段长度 (µm)。
+
+    返回:
+        Component: 生成的集成直线耦合跑道环组件。
+
+    端口: (与TCRaceTrackS类似)
+    """
     sr = gf.Component("RaceTrack")
     width_near = width_ring
-    ring = sr << RaceTrackStr(
-        WidthRing=width_ring, LengthRun=length_run, GapRun=gap_rc, oplayer=oplayer, RadiusRing=r_ring,
+    ring = sr << RaceTrackS(
+        WidthRing=width_ring, LengthRun=length_run, GapCouple=gap_rc, oplayer=oplayer, RadiusRing=r_ring,
         LengthCouple=length_rc, IsAD=False
     )
     taper_s2n_1 = sr << gf.c.taper(width1=width_single, width2=width_near, length=length_taper, layer=oplayer)
@@ -193,6 +267,7 @@ def TCRaceTrackS2(
         route_in = gf.routing.route_single(sr,ctin.ports["o2"], bend_insingle_2.ports["o1"], layer=oplayer,
                                         route_width=width_single)
         # sr.add(route_in.references)
+        sr.add_port("input", port=ctin.ports["o1"])
     # output
     if tout != None:
         ctout = sr << tout
@@ -202,8 +277,7 @@ def TCRaceTrackS2(
         ctout.movey(-delta)
         route_out = gf.routing.route_single(sr,ctout.ports["o1"], taper_s2n_2.ports["o2"], layer=oplayer, route_width=width_single)
         # sr.add(route_out.references)
-    sr.add_port("input", port=ctin.ports["o1"])
-    sr.add_port("output", port=ctout.ports["o1"])
+        sr.add_port("output", port=ctout.ports["o1"])
     sr.add_port("RingC", port=ring.ports["Input"],
                 center = (np.array(ring.ports["Rcen1"].center) + np.array(ring.ports["Rcen2"].center)) / 2)
     add_labels_to_ports(sr)
@@ -223,14 +297,29 @@ def TCRaceTrackS3(
         pos_ring: float = 5000,
         gap_rc: float = 1,
         IsLabels: float = True,
-        tout: Component =taper_in_DFB_reverse,
-        tin: Component = taper_in_DFB,
+        tout: Component =None,
+        tin: Component = None,
         oplayer: LayerSpec = LAYER.WG,
 ) -> Component:
+    """
+    创建集成了单个 `RaceTrackS` (直线耦合跑道环) 的完整组件。
+    此版本具有最简化的输入/输出引出臂，基本上是直接通过锥形波导连接到
+    核心跑道环的Input和Through端口。
+    此函数对应原代码中的 `TCRaceTrack2_3`。
+
+    参数:
+        (大部分参数与 TCRaceTrackS 类似)
+        IsLabels (bool): 是否为最终组件的端口添加标签。
+
+    返回:
+        Component: 生成的集成直线耦合跑道环组件（简化IO）。
+
+    端口: (与TCRaceTrackS类似)
+    """
     sr = gf.Component()
     width_near = width_ring
-    Cring = RaceTrackStr(
-        WidthRing=width_ring, LengthRun=length_run, GapRun=gap_rc, oplayer=oplayer, RadiusRing=r_ring,
+    Cring = RaceTrackS(
+        WidthRing=width_ring, LengthRun=length_run, GapCouple=gap_rc, oplayer=oplayer, RadiusRing=r_ring,
         LengthCouple=length_rc, IsAD=False, IsLabels=False,
     )
     ring = sr << Cring
@@ -275,16 +364,36 @@ def TCRaceTrackS3h(
         gap_rc: float = 1,
         gap_route: float = 100,
         IsLabels: float = True,
-        tout: Component =taper_in_DFB_reverse,
-        tin: Component = taper_in_DFB,
+        tout: Component =None,
+        tin: Component = None,
         oplayer: LayerSpec = LAYER.WG,
         heatlayer: LayerSpec = LAYER.M1,
-) -> [Component]:
+) -> Component:
+    """
+    创建集成了单个 `RaceTrackS` (直线耦合跑道环) 的完整组件，并明确启用加热功能。
+    此版本与 `TCRaceTrackS3` 结构类似，但确保 `RaceTrackS` 内部的加热器被激活，
+    并继承加热器端口。
+
+    参数:
+        (与 TCRaceTrackS3 类似，增加了加热相关参数的明确传递)
+        delta_heat (float): 传递给 `RaceTrackS` 的 `DeltaHeat` 参数 (µm)。
+        gap_route (float): 传递给 `RaceTrackS` 的参数，可能用于加热器引出间距 (µm)。
+                           (注意：`RaceTrackS` 的参数列表可能用 `GapHeat`)
+        type_heat (str): 传递给 `RaceTrackS` 的加热器类型。
+        width_heat (float): 传递给 `RaceTrackS` 的加热器宽度。
+
+    返回:
+        Component: 生成的带加热的集成直线耦合跑道环组件。
+
+    端口:
+        input, output, RingC
+        HeatIn, HeatOut: (如果RaceTrackS正确生成并暴露了它们) 加热器电学端口。
+    """
     sr = gf.Component("RaceTrack")
     sh = gf.Component("RaceTrackHeat")
     width_near = width_ring
-    Cring = RaceTrackStr(
-        WidthRing=width_ring, LengthRun=length_run, GapRun=gap_rc, oplayer=oplayer, RadiusRing=r_ring,
+    Cring = RaceTrackS(
+        WidthRing=width_ring, LengthRun=length_run, GapCouple=gap_rc, oplayer=oplayer, RadiusRing=r_ring,
         GapRoute=gap_route,
         LengthCouple=length_rc, IsAD=False, IsLabels=False, DeltaHeat=delta_heat, heatlayer=heatlayer
     )
@@ -335,17 +444,33 @@ def TCTaperRaceTrackP(
         length_total: float = 10000,
         pos_ring: float = 5000,
         gap_rc: float = 1,
-        tout: Component =taper_in_DFB_reverse,
-        tin: Component = taper_in_DFB,
+        tout: Component =None,
+        tin: Component = None,
         oplayer: LayerSpec = LAYER.WG,
 ) -> Component:
+    """
+    创建一个集成了 `TaperRaceTrackPulley` (带锥形直线段的滑轮耦合跑道环) 的完整组件。
+    包含标准的输入/输出接口，并通过弯曲和锥形波导连接到核心环的端口。
+
+    参数:
+        (大部分参数用于配置内部的 `TaperRaceTrackPulley` 单元及其引出臂)
+        width_ring (float): `TaperRaceTrackPulley` 中环弯曲部分及直线锥形始末端的宽度 (µm)。
+        width_run (float): `TaperRaceTrackPulley` 中跑道直线段（可能是最宽处）的宽度 (µm)。
+        length_racetaper (float): `TaperRaceTrackPulley` 内部直线段单边锥形的长度 (µm)。
+        length_run (float): `TaperRaceTrackPulley` 内部直线段的总长度 (µm)。
+
+    返回:
+        Component: 生成的集成带锥形跑道环的组件。
+
+    端口: (与TCRaceTrackP类似)
+    """
     sr = gf.Component("RaceTrack")
     S_wg = gf.Section(width=width_single, offset=0, layer=oplayer, port_names=("o1", "o2"))
     CS_wg = gf.CrossSection(sections=[S_wg])
     ring = sr << TaperRaceTrackPulley(
         WidthRing=width_ring, WidthNear=width_near, WidthRun=width_run,
         LengthRun=length_run, LengthTaper=length_racetaper,
-        GapRing=gap_rc, oplayer=oplayer, RadiusRing=r_ring,
+        GapCouple=gap_rc, oplayer=oplayer, RadiusRing=r_ring,
         AngleCouple=angle_rc, IsAD=False
     )
     taper_s2n_1 = sr << gf.c.taper(width1=width_single, width2=width_near, length=length_taper, layer=oplayer)
@@ -377,7 +502,7 @@ def TCTaperRaceTrackP(
                                          route_width=width_single, radius=r_bend)
         # sr.add(route_out.references)
         sr.add_port("output", port=ctout.ports["o1"])
-    sr.add_port("RingC", port=ring.ports["Input"], 
+    sr.add_port("RingC", port=ring.ports["Input"],
                 center = (np.array(ring.ports["Rcen1"].center) + np.array(ring.ports["Rcen2"].center)) / 2)
     return sr
 
@@ -399,17 +524,34 @@ def TCTaperRaceTrackS(
         length_total: float = 10000,
         pos_ring: float = 5000,
         gap_rc: float = 1,
-        tout: Component =taper_in_DFB_reverse,
-        tin: Component = taper_in_DFB,
+        tout: Component =None,
+        tin: Component = None,
         oplayer: LayerSpec = LAYER.WG,
 ) -> Component:
+    """
+    创建一个集成了带锥形直线段的跑道环谐振器的完整组件，并采用直线耦合方式。
+    (注意：原函数名 `TCTaperRaceTrack2` 和内部调用的 `TaperRaceTrackPulley` 可能存在命名或类型上的不匹配，
+     因为 `TaperRaceTrackPulley` 是滑轮耦合。这里假设存在一个直线耦合版本的带锥形跑道环，
+     或者 `TaperRaceTrackPulley` 的耦合方式可以被覆盖为直线型，但这不常见。)
+    为清晰起见，假设目标是直线耦合一个带有内部锥形直线段的跑道环。
+
+    参数:
+        (大部分参数与 TCTaperRaceTrackP 类似，但耦合方式应为直线型)
+        gap_rc (float): 直线耦合的间隙 (µm)。
+        width_near (float): (对于直线耦合，此参数可能不直接使用，总线宽度通常等于环宽)
+
+    返回:
+        Component: 生成的集成带锥形跑道环（直线耦合）的组件。
+
+    端口: (与TCRaceTrackP类似)
+    """
     sr = gf.Component("RaceTrack")
     S_wg = gf.Section(width=width_single, offset=0, layer=oplayer, port_names=("o1", "o2"))
     CS_wg = gf.CrossSection(sections=[S_wg])
     ring = sr << TaperRaceTrackPulley(
         WidthRing=width_ring, WidthNear=width_near, WidthRun=width_run,
         LengthRun=length_run, LengthTaper=length_racetaper,
-        GapRing=gap_rc, oplayer=oplayer, RadiusRing=r_ring,
+        GapCouple=gap_rc, oplayer=oplayer, RadiusRing=r_ring,
         AngleCouple=angle_rc, IsAD=False
     )
     taper_s2n_1 = sr << gf.c.taper(width1=width_single, width2=width_near, length=length_taper, layer=oplayer)

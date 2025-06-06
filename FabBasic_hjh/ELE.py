@@ -14,23 +14,26 @@ def OpenPad(
 ) -> Component:
     """
     创建一个开放焊盘组件 (Open Pad Component)。
-    该组件包含一个中心开放区域（通常用于暴露下层结构，如光栅耦合器或测试点）
-    以及围绕该开放区域的金属电极层。
+    该组件通常用于测试点或需要暴露下层结构（如光栅耦合器）的场合。
+    它包含一个中心开放区域（通常为正方形）和围绕该区域的金属电极层。
 
     参数:
-        WidthOpen (float): 中心开放区域的宽度 (单位: um)。默认值为 90um。
-        Enclosure (float): 金属电极层超出中心开放区域的包围宽度 (单位: um)。默认值为 10um。
-        openlayer (LayerSpec): 定义中心开放区域的层。默认为 LAYER.OPEN。
-        elelayer (LayerSpec): 定义金属电极层的层。默认为 LAYER.M1。
+        WidthOpen (float): 中心开放区域的宽度或边长 (单位: um)。默认值为 90.0 um。
+        Enclosure (float): 金属电极层超出中心开放区域的单边包围宽度 (单位: um)。
+                           例如，如果开放区域宽度为W, 则金属宽度为 W + 2*Enclosure。
+                           默认值为 10.0 um。
+        openlayer (LayerSpec): 定义中心开放区域的GDS图层。默认为 `LAYER.OPEN`。
+        elelayer (LayerSpec): 定义金属电极层的GDS图层。默认为 `LAYER.M1`。
 
     返回:
         Component: 生成的开放焊盘组件。
 
     端口:
-        "left": 组件左侧的金属电极端口。
-        "right": 组件右侧的金属电极端口。
-        "up": 组件上方的金属电极端口。
-        "down": 组件下方的金属电极端口。
+        "left": 组件左侧边缘中点的金属电极端口。
+        "right": 组件右侧边缘中点的金属电极端口。
+        "up": 组件上侧边缘中点的金属电极端口。
+        "down": 组件下侧边缘中点的金属电极端口。
+        (所有端口的宽度等于金属焊盘的边长)
     """
     c = gf.Component()  # 创建一个新的组件实例，并指定一个描述性的名称
 
@@ -90,77 +93,6 @@ def OpenPad(
 
     return c
 
-
-# %% OffsetRamp: 定义一个带有偏移的锥形渐变波导组件
-@gf.cell  # 使用 gf.cell 装饰器，使其成为一个可缓存的 gdsfactory 单元
-def OffsetRamp(
-    length: float = 10.0,  # 渐变区域的长度，单位：um
-    width1: float = 5.0,  # 输入端的宽度，单位：um
-    width2: float | None = None,  # 输出端的宽度，单位：um (如果为None，则等于width1)
-    offset: float = 0,  # 输出端中心相对于输入端中心的垂直偏移量，单位：um
-    layer: LayerSpec = LAYER.WG,  # 波导层的定义
-) -> Component:
-    """
-    创建一个带有偏移的锥形渐变波导组件 (Offset Ramp Component)。
-    该组件用于连接两个不同宽度或在垂直方向上有所偏移的波导。
-    它通过一个线性渐变的区域实现宽度的平滑过渡。
-
-    参数:
-        length (float): 渐变区域的长度 (单位: um)。默认值为 10um。
-        width1 (float): 输入端的波导宽度 (单位: um)。默认值为 5um。
-        width2 (float | None): 输出端的波导宽度 (单位: um)。如果为 None，则输出宽度等于输入宽度 (width1)。默认值为 None。
-        offset (float): 输出端中心相对于输入端中心的垂直偏移量 (单位: um)。正值表示向上偏移，负值表示向下偏移。默认值为 0。
-        layer (LayerSpec): 定义波导的层。默认为 LAYER.WG。
-
-    返回:
-        Component: 生成的偏移渐变波导组件。
-
-    端口:
-        "o1": 输入端口，位于渐变区域的起始端。
-        "o2": 输出端口，位于渐变区域的终止端。
-    """
-    # 如果未指定 width2，则使其等于 width1，创建一个等宽但可能有偏移的连接
-    if width2 is None:
-        width2 = width1
-
-    c = gf.Component()  # 创建一个新的组件实例
-
-    # 定义多边形的顶点坐标
-    # (x, y) 坐标点列表，顺序定义了多边形的轮廓
-    # (0, width1/2)          (length, width2/2 + offset)
-    #   ____________________
-    #  /                    \
-    # /______________________\
-    # (0, -width1/2)         (length, -width2/2 + offset)
-    #
-    points = [
-        (0, width1 / 2),
-        (length, width2 / 2 + offset),
-        (length, -width2 / 2 + offset),
-        (0, -width1 / 2),
-    ]
-    c.add_polygon(points, layer=layer)  # 添加多边形到组件中
-
-    # 添加输入端口 "o1"
-    c.add_port(
-        name="o1",
-        center=(0, 0),  # 端口中心位于 (0,0)
-        width=width1,  # 端口宽度
-        orientation=180,  # 端口方向指向左侧 (180度)
-        layer=layer,
-    )
-
-    # 添加输出端口 "o2"
-    c.add_port(
-        name="o2",
-        center=(length, offset),  # 端口中心位于 (length, offset)
-        width=width2,  # 端口宽度
-        orientation=0,  # 端口方向指向右侧 (0度)
-        layer=layer,
-    )
-    return c
-
-
 # %% GSGELE: 定义一个GSG (Ground-Signal-Ground) 电极组件
 @gf.cell
 def GSGELE(
@@ -181,34 +113,36 @@ def GSGELE(
     创建一个 GSG (Ground-Signal-Ground) 电极组件。
     该组件包含一个中心信号电极 (S) 和两侧的接地电极 (G)。
     可以选择在电极的一端或两端添加 GSG 焊盘阵列，用于外部探针测试或连接。
+    焊盘通过 `OffsetRamp` 组件与GSG电极的直线部分平滑连接。
 
     参数:
-        WidthG (float): G (Ground) 电极的宽度 (单位: um)。默认值为 80um。
-        WidthS (float): S (Signal) 电极的宽度 (单位: um)。默认值为 25um。
-        GapGS (float): G 电极与 S 电极之间的间隙宽度 (单位: um)。默认值为 6um。
-        LengthEle (float): 电极的直线部分长度 (单位: um)。默认值为 10000um。
-        LengthToPad (float): 电极连接到焊盘的过渡区域 (OffsetRamp) 的长度 (单位: um)。默认值为 300um。
-        IsPad (bool): 是否在电极的右端添加 GSG 焊盘阵列。默认值为 False。
-        Is2Pad (bool): 是否在电极的左端也添加 GSG 焊盘阵列。如果为 True，则 IsPad 也会被视为 True。默认值为 False。
-        PitchPad (float): GSG 焊盘阵列中相邻焊盘的中心间距 (单位: um)。默认值为 150um。
-        WidthOpen (float): 焊盘的开放区域宽度 (传递给 OpenPad 组件) (单位: um)。默认值为 45um。
-        Enclosure (float): 焊盘的金属包围宽度 (传递给 OpenPad 组件) (单位: um)。默认值为 10um。
-        openlayer (LayerSpec): 焊盘开放区域的层定义。默认为 LAYER.OPEN。
-        elelayer (LayerSpec): 电极和焊盘金属层的定义。默认为 LAYER.M1。
+        WidthG (float): G (Ground) 电极的宽度 (单位: um)。
+        WidthS (float): S (Signal) 电极的宽度 (单位: um)。
+        GapGS (float): G 电极与 S 电极之间的间隙宽度 (单位: um)。
+        LengthEle (float): GSG 电极直线部分的长度 (单位: um)。
+        LengthToPad (float): 从GSG电极连接到焊盘的过渡 `OffsetRamp` 的长度 (单位: um)。
+        IsPad (bool): 是否在GSG电极的右端添加焊盘阵列。
+        Is2Pad (bool): 是否在GSG电极的左端也添加焊盘阵列。如果为 True，则 IsPad 也被视为 True。
+        PitchPad (float): GSG 焊盘阵列中，中心到中心（垂直方向）的间距 (单位: um)。
+        WidthOpen (float): 传递给 `OpenPad` 组件的开放区域宽度 (单位: um)。
+        Enclosure (float): 传递给 `OpenPad` 组件的金属包围宽度 (单位: um)。
+        openlayer (LayerSpec): 焊盘开放区域的GDS图层。
+        elelayer (LayerSpec): 电极和焊盘金属的GDS图层。
 
     返回:
         Component: 生成的 GSG 电极组件。
 
-    端口 (核心电极部分):
-        "Gin1":  上方 G 电极的右侧端口。
-        "Gout1": 上方 G 电极的左侧端口。
-        "Sin":   中心 S 电极的右侧端口。
-        "Sout":  中心 S 电极的左侧端口。
-        "Gin2":  下方 G 电极的右侧端口。
-        "Gout2": 下方 G 电极的左侧端口。
-    端口 (辅助，可能用于连接或标记):
-        "Oin1", "Oout1": 上方 G 和 S 电极间隙的左右端口。
-        "Oin2", "Oout2": 下方 G 和 S 电极间隙的左右端口。
+    端口 (核心电极部分，位于 LengthEle 的两端):
+        "Gout1_ele": 上方 G 电极的左端端口。
+        "Gin1_ele":  上方 G 电极的右端端口。
+        "Sout_ele":  中心 S 电极的左端端口。
+        "Sin_ele":   中心 S 电极的右端端口。
+        "Gout2_ele": 下方 G 电极的左端端口。
+        "Gin2_ele":  下方 G 电极的右端端口。
+    端口 (如果添加了焊盘，则会有焊盘的外部端口，例如):
+        "Pad_R_G1", "Pad_R_S", "Pad_R_G2": 右侧焊盘阵列的G, S, G端口 (通常是最外侧)。
+        "Pad_L_G1", "Pad_L_S", "Pad_L_G2": 左侧焊盘阵列的G, S, G端口。
+    (原代码中的 Oin1, Oout1 等辅助端口已移除，因为它们通常不用于外部连接)
     """
     c = gf.Component()  # 创建一个新的组件实例
 

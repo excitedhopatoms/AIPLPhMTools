@@ -217,7 +217,7 @@ def TCRing1AD(
     sr.add_port("through", port=toutring_th.ports["o2"])
     sr.add_port("drop", port=toutring_dr.ports["o2"])
     sr.add_port("add", port=toutring_ad.ports["o2"])
-    sr.add_port("RingC", port=sr.ports["input"],
+    sr.add_port("RingC", width=width_single,layer=oplayer,
                 center=np.array(ring.ports["RingL"].center) / 2 + np.array(ring.ports["RingR"].center) / 2)
     sr = remove_layer(sr, layer=(512, 8))
     add_labels_to_ports(sr)
@@ -989,9 +989,11 @@ def TCRingT1(
         length_total: float = 10000,
         length_th_horizontal: float = 10,
         length_th_vertical: float = 10,
+        length_busheater: float = 100,
         pos_ring: float = 500,
         gap_rc: float = 1,
         gap_heat: float = 1,
+        gap_heat_bus: float = None,
         delta_heat: float = 1,
         tin: Component = taper_in,
         tout: Component = taper_out,
@@ -1001,7 +1003,8 @@ def TCRingT1(
         heatlayer: LayerSpec = LAYER.M1,
         direction_heater: str = "up",
         position_taper: str = "before_bend",  # 控制锥形波导的位置
-        type_heater: str = "default",  # 控制加热器类型
+        type_heater: str = "none",  # 控制加热器类型
+        type_busheaeter: str = "none",
 ) -> Component:
     """
     创建一个环形波导组件，支持通过 position_taper 参数控制锥形波导的位置，并通过 type_heater 参数控制加热器类型。
@@ -1043,7 +1046,9 @@ def TCRingT1(
         RingR: 环形波导的右侧端口。
     """
     sr = gf.Component()
-    ring = gf.Component("Ring")
+    ring = gf.Component()
+    if type_heater == "none":
+        is_heat=False
     ring0 = ring << RingPulleyT1(
         WidthRing=width_ring, WidthNear=width_near, WidthHeat=width_heat, GapRing=gap_rc, GapHeat=gap_heat,
         RadiusRing=r_ring, AngleCouple=angle_rc, DeltaHeat=delta_heat, DirectionHeater=direction_heater,
@@ -1131,10 +1136,11 @@ def TCRingT1(
     sr.add_port("output", port=toutring.ports["o2"])
 
     # route
-    str_tout2r = gf.routing.route_bundle(sr, [toutring.ports["o1"], Ring.ports["o1"]],
-                                         [Ring.ports["o2"], tinring.ports["o2"]],
+    gf.routing.route_single(sr, toutring.ports["o1"],Ring.ports["o2"],
                                          layer=oplayer, route_width=width_single, radius=r_euler_min)
-    sr.add_port("RingC", port=toutring.ports["o1"],
+    gf.routing.route_single(sr, Ring.ports["o1"],tinring.ports["o2"],
+                                         layer=oplayer, route_width=width_single, radius=r_euler_min)
+    sr.add_port("RingC", width=width_single, layer=oplayer,
                 center=np.array(Ring.ports["RingL"].center) / 2 + np.array(Ring.ports["RingR"].center) / 2)
     for port in Ring.ports:
         if "Heat" in port.name:
@@ -1143,6 +1149,18 @@ def TCRingT1(
             sr.add_port(port.name, port=Ring.ports[port.name])
         if "Drop" in port.name:
             sr.add_port(port.name, port=Ring.ports[port.name])
+    if type_busheaeter is not "None":
+        if gap_heat_bus is None:
+            gap_heat_bus=gap_heat
+        pbusheat = gf.path.straight(length=length_busheater)
+        cbusheat = sr << DifferentHeater(pbusheat,
+           WidthHeat=width_heat,WidthWG=width_single,WidthRoute=20,
+           DeltaHeat=delta_heat,GapHeat=gap_heat,heatlayer=heatlayer,TypeHeater=type_busheaeter
+           )
+        cbusheat.connect("HeatIn",other=Ring.ports["o1"],allow_width_mismatch=True, allow_layer_mismatch=True)
+        for port in cbusheat.ports:
+            if "Heat" in port.name:
+                sr.add_port("Bus"+port.name, port=port)
     sr = remove_layer(sr, layer=(512, 8))
     add_labels_to_ports(sr)
     return sr
@@ -1365,9 +1383,9 @@ def TCRingDCouple(
     str_d2b = ring << GfCStraight(width=width_near, length=length_th_horizontal, layer=oplayer)
     str_i2b.connect("o1", other=ring0.ports["Input"])
     str_d2b.connect("o1", other=ring0.ports["Drop"])
-    bend_input = ring << GfCBendEuler(width=width_near, radius=r_euler_min, layer=oplayer, angle=-90,
+    bend_input = ring << gf.c.bend_euler(width=width_near, radius=r_euler_min, layer=oplayer, angle=-90,
                                       with_arc_floorplan=False)
-    bend_drop = ring << GfCBendEuler(width=width_near, radius=r_euler_min, layer=oplayer, angle=90,
+    bend_drop = ring << gf.c.bend_euler(width=width_near, radius=r_euler_min, layer=oplayer, angle=90,
                                      with_arc_floorplan=False)
     bend_input.connect("o1", other=str_i2b.ports["o2"])
     bend_drop.connect("o1", other=str_d2b.ports["o2"])
@@ -1378,7 +1396,7 @@ def TCRingDCouple(
     heat_near.connect('HeatIn', bend_input.ports['o2'], allow_width_mismatch=True, allow_layer_mismatch=True)
     str_near.connect('o1', bend_input.ports['o2'])
 
-    bend_through = ring << GfCBendEuler(width=width_near, radius=r_euler_min, layer=oplayer, angle=-180,
+    bend_through = ring << gf.c.bend_euler(width=width_near, radius=r_euler_min, layer=oplayer, angle=-180,
                                         with_arc_floorplan=False)
     bend_through.connect("o1", ring0.ports["Through"])
     taper_through = ring << gf.c.taper(width1=width_near, width2=width_single, layer=oplayer, length=length_taper)
@@ -1416,8 +1434,8 @@ def TCRingDCouple(
                                        layer=oplayer, width=width_single, radius=r_euler_min)
     for route in str_tout2r:
         sr.add(route.references)
-    sr.add_port("RingC", port=toutring.ports["o1"],
-                center=Ring.ports["RingL"].center / 2 + ring.ports["RingR"].center / 2)
+    sr.add_port("RingC", width=width_single, layer=oplayer,
+                center=np.array(Ring.ports["RingL"].center) / 2 + np.array(Ring.ports["RingR"].center) / 2)
     for port in Ring.ports:
         if "Heat" in port.name:
             sr.add_port(port.name, port=Ring.ports[port.name])
