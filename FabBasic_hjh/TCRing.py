@@ -1149,7 +1149,7 @@ def TCRingT1(
             sr.add_port(port.name, port=Ring.ports[port.name])
         if "Drop" in port.name:
             sr.add_port(port.name, port=Ring.ports[port.name])
-    if (type_busheaeter is "None") or (type_busheaeter is "none"):
+    if (type_busheaeter == "None") or (type_busheaeter == "none"):
         sr = remove_layer(sr, layer=(512, 8))
         add_labels_to_ports(sr)
         return sr
@@ -1184,9 +1184,12 @@ def TCRingT2(
         length_total: float = 2000,
         length_th_horizontal: float = 10,
         length_th_vertical: float = 10,
+        length_busheater: float = 100,
         pos_ring: float = 500,
         gap_rc: float = 1,
         gap_heat: float = 1,
+        gap_heat_bus: float = None,
+        delta_heat: float = 1,
         tin: Component = taper_in,
         tout: Component = taper_out,
         is_heat: bool = True,
@@ -1195,6 +1198,7 @@ def TCRingT2(
         heatlayer: LayerSpec = LAYER.M1,
         position_taper: str = "before_bend",  # 控制锥形波导的位置
         type_heater: str = "default",  # 控制加热器类型
+        type_busheaeter: str = "none",
 ) -> Component:
     """
     创建一个环形波导组件，支持通过 position_taper 参数控制锥形波导的位置，并通过 type_heater 参数控制加热器类型。
@@ -1236,10 +1240,10 @@ def TCRingT2(
         RingR: 环形波导的右侧端口。
     """
     sr = gf.Component()
-    ring = gf.Component("Ring")
+    ring = gf.Component()
     ring0 = ring << RingPulleyT2(
         WidthRing=width_ring, WidthNear=width_near, WidthHeat=width_heat, GapRing=gap_rc, GapHeat=gap_heat,
-        RadiusRing=r_ring, AngleCouple=angle_rc,
+        RadiusRing=r_ring, AngleCouple=angle_rc,DeltaHeat=delta_heat,
         IsHeat=is_heat, oplayer=oplayer, heatlayer=heatlayer, TypeHeater=type_heater
     )
     taper_s2n1 = ring << gf.c.taper(width1=width_single, width2=width_near, length=length_taper, layer=oplayer)
@@ -1248,7 +1252,7 @@ def TCRingT2(
 
     # 根据 position_taper 参数调整锥形波导的位置
     if position_taper == "before_bend":
-        bend_thr1 = ring << GfCBendEuler(width=width_single, radius=max((1 - angle_rc / 180) * r_ring, r_euler_min),
+        bend_thr1 = ring << GfCBendEuler(width=width_single, radius= r_euler_min,
                                          layer=oplayer, angle=-90, with_arc_floorplan=False)
         str_th_vertical = ring << GfCStraight(width=width_single, length=length_th_vertical, layer=oplayer)
         taper_s2n2.connect("o1", other=ring0.ports["Through"])
@@ -1258,7 +1262,7 @@ def TCRingT2(
         ring.add_port("o2", port=bend_thr1.ports["o2"])
 
     elif position_taper == "after_bend":
-        bend_thr1 = ring << GfCBendEuler(width=width_near, radius=max((1 - angle_rc / 180) * r_ring, r_euler_min),
+        bend_thr1 = ring << GfCBendEuler(width=width_near, radius= r_euler_min,
                                          layer=oplayer, angle=-90, with_arc_floorplan=False)
         str_th_vertical = ring << GfCStraight(width=width_near, length=length_th_vertical, layer=oplayer)
         str_th_vertical.connect("o1", other=ring0.ports["Through"])
@@ -1283,25 +1287,39 @@ def TCRingT2(
     Ring.connect("o1", other=tinring.ports["o2"], allow_width_mismatch=True, mirror=True)
     Ring.movex(pos_ring)
     sr.add_port("input", port=tinring.ports["o1"])
-
+    gf.routing.route_single(sr,tinring.ports["o2"],Ring.ports["o1"],layer=oplayer, route_width=width_single,radius = r_ring)
     # output
     toutring = sr << tout
-    delta = toutring.ports["o2"].center - toutring.ports["o1"].center
+    # delta = toutring.ports["o2"].center - toutring.ports["o1"].center
     toutring.connect("o1", other=Ring.ports["o2"])
     toutring.movex(length_total - toutring.ports["o2"].center[0])
     sr.add_port("output", port=toutring.ports["o2"])
 
     # route
-    str_tout2r = gf.routing.get_bundle([toutring.ports["o1"], Ring.ports["o1"]],
-                                       [Ring.ports["o2"], tinring.ports["o2"]],
-                                       layer=oplayer, width=width_single)
-    for route in str_tout2r:
-        sr.add(route.references)
+    gf.routing.route_single(sr,toutring.ports["o1"],Ring.ports["o2"],
+                                       layer=oplayer, route_width=width_single,radius = r_ring)
     sr.add_port("RingC", port=Ring.ports["RingC"])
     sr.add_port("RingInput", port=Ring.ports["o1"])
     for port in Ring.ports:
         if "Heat" in port.name:
             sr.add_port(port.name, port=Ring.ports[port.name])
+    if (type_busheaeter == "None") or (type_busheaeter == "none"):
+        sr = remove_layer(sr, layer=(512, 8))
+        add_labels_to_ports(sr)
+        return sr
+    else:
+        if gap_heat_bus is None:
+            gap_heat_bus = gap_heat
+        pbusheat = gf.path.straight(length=length_busheater)
+        cbusheat = sr << DifferentHeater(pbusheat,
+                                         WidthHeat=width_heat, WidthWG=width_single, WidthRoute=20,
+                                         DeltaHeat=delta_heat, GapHeat=gap_heat, heatlayer=heatlayer,
+                                         TypeHeater=type_busheaeter
+                                         )
+        cbusheat.connect("HeatIn", other=Ring.ports["o1"], allow_width_mismatch=True, allow_layer_mismatch=True)
+        for port in cbusheat.ports:
+            if "Heat" in port.name:
+                sr.add_port("Bus" + port.name, port=port)
     sr = remove_layer(sr,layer=(512,8))
     add_labels_to_ports(sr)
     return sr
