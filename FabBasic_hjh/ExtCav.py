@@ -356,9 +356,9 @@ def ExternalCavitySiN(
     str_output = list(range(30))
     bend_output = list(range(30))
     path_bend_output = euler_Bend_Half(angle=-90, radius=r_mzi)
-    bend_output[0] = ec_ref << gf.path.extrude(path_bend_output, layer=oplayer, width=width_near)
+    bend_output[0] = ec_ref << gf.path.extrude(path_bend_output, layer=oplayer, width=width_mzi_ring)
     bend_output[0].connect("o1", coupler2x2.ports["Input1"])
-    str_output[0] = ec_ref << gf.c.taper(width1=width_near, width2=width_single, length=min(length_taper,abs(width_near-width_single)*200,50), layer=oplayer)
+    str_output[0] = ec_ref << gf.c.taper(width1=width_mzi_ring, width2=width_single, length=min(length_taper,abs(width_near-width_single)*200,50), layer=oplayer)
     str_output[0].connect("o1", bend_output[0].ports["o2"])
     # input heater
     str_input[1] = ec_ref << GfCStraight(width=width_single, length=length_input, layer=oplayer)
