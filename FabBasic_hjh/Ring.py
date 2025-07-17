@@ -682,7 +682,7 @@ def RingPulleyT1(
         ring_tr = c << gf.c.ring(width=WidthTrench, layer=trelayer,
                                  radius=RadiusRing - WidthRing / 2 - WidthTrench / 2 - GapTrench)
         ring_tr.movey(RadiusRing)
-    c=snap_all_polygons_iteratively(c)
+    # c=snap_all_polygons_iteratively(c)
     add_labels_to_ports(c)
     return c
 
@@ -1012,7 +1012,7 @@ def DifferentHeater_local(
         c.add_port(name="HeatOut", port=heater.ports["HeatL"])  # 添加加热输入端口
         c.add_port(name="HeatIn", port=heater.ports["HeatR"])  # 添加加热输出端口
     h.flatten()
-    h=snap_all_polygons_iteratively(h,grid_size=0.0001)
+    h=snap_all_polygons_iteratively(h)
     return h
 
 

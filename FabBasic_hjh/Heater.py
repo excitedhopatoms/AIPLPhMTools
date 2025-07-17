@@ -210,7 +210,7 @@ def DifferentHeater(
         )
     h.add_port(name="o1", port=h.ports["HeatIn"])  # 添加加热输入端口
     h.add_port(name="o2", port=h.ports["HeatOut"])  # 添加加热输入端口
-    h = snap_all_polygons_iteratively(h,grid_size=0.001)
+    # h = snap_all_polygons_iteratively(h)
     return h
 
 
