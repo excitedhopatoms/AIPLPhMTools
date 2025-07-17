@@ -261,7 +261,6 @@ def ExternalCavitySiN(
         direction_rh: str = "down",
         oplayer: LayerSpec = LAYER.WG,
         heatlayer: LayerSpec = LAYER.M1,
-        trelayer: LayerSpec = LAYER.DT,
 ) -> Component:
     """
     为氮化硅（SiN）平台设计的外腔激光器核心组件。

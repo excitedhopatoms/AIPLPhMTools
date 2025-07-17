@@ -2,8 +2,8 @@ from .BasicDefine import *
 from .Heater import *
 from .Ring import *
 
-r_euler_false = 60
-
+r_euler_false = 300
+r_euler_true = 200
 
 # %% defult in out taper
 def create_taper(name, width1, width2, lengthleft=100, lengthtaper=100, lengthright=100, layer: LayerSpec = (1, 0)):
@@ -26,7 +26,7 @@ taper_out = create_taper("taper_out", width1=1, width2=0.2, layer=LAYER.WG)
 @gf.cell
 def TCRing(
         r_ring: float = 120,
-        r_euler_true: float = 150,
+        r_euler_true: float = r_euler_true,
         width_ring: float = 1,
         width_near: float = 2,
         width_heat: float = 5,
@@ -292,7 +292,7 @@ def TCRing1_3(
 @gf.cell
 def TCRing1DC(
         r_ring: float = 120,
-        r_euler_false: float = 70,
+        r_euler_false: float = r_euler_false,
         width_ring: float = 1,
         width_near1: float = 2,
         width_near2: float = 3,
@@ -869,7 +869,7 @@ def TCRing4(
 def TCFingerRing1(
         r_ring: float = 120,
         r_side: float = 120,
-        r_euler_true: float = 150,
+        r_euler_true: float = r_euler_true,
         width_ring: float = 1,
         width_near: float = 2,
         width_single: float = 1,
@@ -979,7 +979,7 @@ def TCFingerRing1(
 @gf.cell
 def TCRingT1(
         r_ring: float = 120,
-        r_euler_min: float = 100,
+        r_euler_min: float = r_euler_true,
         width_ring: float = 1,
         width_near: float = 2,
         width_heat: float = 5,
@@ -1003,8 +1003,8 @@ def TCRingT1(
         heatlayer: LayerSpec = LAYER.M1,
         direction_heater: str = "up",
         position_taper: str = "before_bend",  # 控制锥形波导的位置
-        type_heater: str = "none",  # 控制加热器类型
-        type_busheaeter: str = "none",
+        type_heater: str = "None",  # 控制加热器类型
+        type_busheaeter: str = "None",
 ) -> Component:
     """
     创建一个环形波导组件，支持通过 position_taper 参数控制锥形波导的位置，并通过 type_heater 参数控制加热器类型。
@@ -1047,7 +1047,7 @@ def TCRingT1(
     """
     sr = gf.Component()
     ring = gf.Component()
-    if type_heater == "none":
+    if type_heater == "none" or "None":
         is_heat=False
     ring0 = ring << RingPulleyT1(
         WidthRing=width_ring, WidthNear=width_near, WidthHeat=width_heat, GapRing=gap_rc, GapHeat=gap_heat,
@@ -1149,7 +1149,11 @@ def TCRingT1(
             sr.add_port(port.name, port=Ring.ports[port.name])
         if "Drop" in port.name:
             sr.add_port(port.name, port=Ring.ports[port.name])
-    if type_busheaeter is not "None":
+    if (type_busheaeter is "None") or (type_busheaeter is "none"):
+        sr = remove_layer(sr, layer=(512, 8))
+        add_labels_to_ports(sr)
+        return sr
+    else:
         if gap_heat_bus is None:
             gap_heat_bus=gap_heat
         pbusheat = gf.path.straight(length=length_busheater)
@@ -1170,7 +1174,7 @@ def TCRingT1(
 @gf.cell
 def TCRingT2(
         r_ring: float = 120,
-        r_euler_min: float = 100,
+        r_euler_min: float = r_euler_true,
         width_ring: float = 1,
         width_near: float = 10,
         width_heat: float = 5,
@@ -1306,7 +1310,7 @@ def TCRingT2(
 @gf.cell
 def TCRingDCouple(
         r_ring: float = 120,
-        r_euler_min: float = 50,
+        r_euler_min: float = r_euler_true,
         width_ring: float = 1,
         width_near: float = 2,
         width_heat: float = 5,
