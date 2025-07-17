@@ -756,7 +756,7 @@ def RingPulleyT2(
     upcouple_comp2 = c << gf.path.extrude(couple_path, width=WidthNear, layer=oplayer)
     upcouple_comp2.connect("o1", other=ring_comp.ports["o1"], allow_width_mismatch=True)
     upcouple_comp2.movey(2 * RadiusRing + GapRing + WidthNear / 2 + WidthRing / 2)
-    upcouple_comp2.rotate(center="o1", angle=180).mirror_y(upcouple_comp2.ports["o1"].center[1])
+    upcouple_comp2.rotate(center=upcouple_comp2.ports["o1"].center, angle=180).mirror_y(upcouple_comp2.ports["o1"].center[1])
 
     # 添加光学端口
     c.add_port(name="Input", port=upcouple_comp2.ports["o2"])
