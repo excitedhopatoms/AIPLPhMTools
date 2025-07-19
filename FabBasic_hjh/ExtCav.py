@@ -315,11 +315,11 @@ def ExternalCavitySiN(
     str_cr1_1.connect("o1", other=coupler2x2.ports["Output1"])
     bend_cr1_1.connect("o1", other=str_cr1_1.ports["o2"])
     tapercoupler1 = ec_ref << gf.c.taper(width1=width_mzi_near, width2=width_near,
-                                         length=min(length_t_s2n, 300 * abs(width_mzi_near - width_near) + 1),
+                                         length=min(length_t_s2n, 500 * abs(width_mzi_near - width_near) + 1),
                                          layer=oplayer)
     tapercoupler1.connect("o1", other=bend_cr1_1.ports["o2"])
     tapercoupler2 = ec_ref << gf.c.taper(width1=width_mzi_ring, width2=width_near,
-                                         length=min(length_t_s2n, 300 * abs(width_mzi_ring - width_near) + 1),
+                                         length=min(length_t_s2n, 500 * abs(width_mzi_ring - width_near) + 1),
                                          layer=oplayer)
     bend_c2r_path = euler_Bend_Half(angle=-90, radius=r_mzi)
     bend_c2r = ec_ref << gf.path.extrude(bend_c2r_path, width=width_mzi_ring, layer=oplayer)
@@ -350,7 +350,7 @@ def ExternalCavitySiN(
     ## left
     str_input = list(range(30))
     bend_input = list(range(30))
-    str_input[0] = ec_ref << gf.c.taper(width1=width_mzi_near, width2=width_single, length=min(length_taper,abs(width_near-width_single)*200,50), layer=oplayer)
+    str_input[0] = ec_ref << gf.c.taper(width1=width_mzi_near, width2=width_single, length=min(length_taper,abs(width_near-width_single)*500,50), layer=oplayer)
     str_input[0].connect("o1", coupler2x2.ports["Input2"], mirror=True)
     ## right
     str_output = list(range(30))
@@ -358,7 +358,7 @@ def ExternalCavitySiN(
     path_bend_output = euler_Bend_Half(angle=-90, radius=r_mzi)
     bend_output[0] = ec_ref << gf.path.extrude(path_bend_output, layer=oplayer, width=width_mzi_ring)
     bend_output[0].connect("o1", coupler2x2.ports["Input1"])
-    str_output[0] = ec_ref << gf.c.taper(width1=width_mzi_ring, width2=width_single, length=min(length_taper,abs(width_near-width_single)*200,50), layer=oplayer)
+    str_output[0] = ec_ref << gf.c.taper(width1=width_mzi_ring, width2=width_single, length=min(length_taper,abs(width_near-width_single)*500,50), layer=oplayer)
     str_output[0].connect("o1", bend_output[0].ports["o2"])
     # input heater
     str_input[1] = ec_ref << GfCStraight(width=width_single, length=length_input, layer=oplayer)
