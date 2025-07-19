@@ -87,9 +87,10 @@ def DoubleRingPulley(
     elif TypeR2R == "bend":
         if RadiusR2R is None:
             RadiusR2R = RadiusRing - 10
-        str_R2R = c << GfCStraight(width=WidthNear, length=LengthR2R, layer=oplayer)
-        str_R2R.connect("o1", ring1.ports["Drop"])
-        ring2.connect("Drop", str_R2R.ports["o2"], allow_width_mismatch=True)
+        # str_R2R = c << GfCStraight(width=WidthNear, length=LengthR2R, layer=oplayer)
+        # str_R2R.connect("o1", ring1.ports["Drop"])
+        ring2.connect("Drop", ring1.ports["Drop"], allow_width_mismatch=True)
+        ring2.movex(LengthR2R)
         # Add circular bends for ring-to-ring connection
         bendl1 = c << gf.c.bend_euler(width=WidthNear, radius=RadiusR2R, angle=90, layer=oplayer)
         bendr1 = c << gf.c.bend_euler(width=WidthNear, radius=RadiusR2R, angle=90, layer=oplayer)
@@ -101,7 +102,7 @@ def DoubleRingPulley(
         bendr2.connect("o2", bendr1.ports["o1"])
         route = gf.routing.route_single(c, bendl2.ports["o2"], bendr2.ports["o1"], route_width=WidthNear, layer=oplayer)
         # c.add(route.references)
-        c.remove(str_R2R)
+        # c.remove(str_R2R)
 
     if DirectionsRing[0] == "down":
         ring1.mirror_y(ring1.ports["Drop"].center[1])
