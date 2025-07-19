@@ -568,7 +568,7 @@ def TCCoupleDouRingT1(
         (以及从 `CoupleRingDRT1` 继承的加热器端口)
     """
     sr = gf.Component()
-    ring = gf.Component("Ring")
+    ring = gf.Component()
     if width_ring2 is None:
         width_ring2 = width_ring1
     if width_heat2 is None:
@@ -666,12 +666,12 @@ def TCCoupleDouRingT1(
     ring.add_port("Ring1C", port=ring0.ports["Ring1C"])
     ring.add_port("Ring2C", port=ring0.ports["Ring2C"])
     for port in ring0.ports:
-        if "Heat" in port:
-            ring.add_port(port, port=ring0.ports[port])
-        if "Add" in port:
-            ring.add_port(port, port=ring0.ports[port])
-        if "Drop" in port:
-            ring.add_port(port, port=ring0.ports[port])
+        if "Heat" in port.name:
+            ring.add_port(port.name, port=port)
+        if "Add" in port.name:
+            ring.add_port(port.name, port=port)
+        if "Drop" in port.name:
+            ring.add_port(port.name, port=port)
     # add_labels_to_ports(ring,(412,8))
     CCRing = sr << ring
 
@@ -698,22 +698,20 @@ def TCCoupleDouRingT1(
     bend_s_dp.connect("o1", other=CCRing.ports["o3"])
     sr.add_port("drop", port=tdpring.ports["o2"])
     ## route
-    str_tout2r = gf.routing.get_bundle(
+    str_tout2r = gf.routing.route_bundle(sr,
         [toutring.ports["o1"], CCRing.ports["o1"], tdpring.ports['o1'], CCRing.ports["o4"]],
         [CCRing.ports["o2"], tinring.ports["o2"], bend_s_dp.ports["o2"], tadring.ports['o2']],
-        layer=oplayer, width=width_single, radius=r_euler_min)
-    for route in str_tout2r:
-        sr.add(route.references)
+        layer=oplayer, route_width=width_single, radius=r_euler_min)
     sr.add_port("Ring1C", port=CCRing.ports["Ring1C"])
     sr.add_port("Ring2C", port=CCRing.ports["Ring2C"])
 
     for port in CCRing.ports:
-        if "Heat" in port:
-            sr.add_port(port, port=CCRing.ports[port])
-        if "Add" in port:
-            sr.add_port(port, port=CCRing.ports[port])
-        if "Drop" in port:
-            sr.add_port(port, port=CCRing.ports[port])
+        if "Heat" in port.name:
+            sr.add_port(port.name, port=port)
+        if "Add" in port.name:
+            sr.add_port(port.name, port=port)
+        if "Drop" in port.name:
+            sr.add_port(port.name, port=port)
     # add_labels_to_ports(ring, (612, 8))
     return sr
 # TCCoupleDouRaceTrackST1: Total component Coupled racetrack cavity use Coupled RaceTrack

@@ -420,17 +420,19 @@ def CoupleRingDRT1(
         oplayer=oplayer, heatlayer=heatlayer, TypeHeater=TypeHeaterR1, IsHeat=IsHeat,
         DirectionHeater=DirectionsHeater[0]
     )
-    ring2_c = gf.Component('ring2_c')
+    ring2_c = gf.Component()
     ring2_c << gf.c.ring(width=WidthRing2, radius=RadiusRing2, layer=oplayer)
     ring2_c.add_port("RingC", center=[0, 0], layer=oplayer, width=1)
     ring2 = c << ring2_c
-    ring2.move(
-        ring1.ports['RingC'].center + [0, -(RadiusRing1 + RadiusRing2 + WidthRing1 / 2 + WidthRing2 / 2 + GapRR)])
+    ring2.move(ring1.ports['RingC'].center)
+    ring2.move((0, -(RadiusRing1 + RadiusRing2 + WidthRing1 / 2 + WidthRing2 / 2 + GapRR)))
     ring2.rotate(AngleR12, ring1.ports['RingC'].center)
     str_ring2_1 = c << GfCStraight(width=WidthNear2, length=LengthNear2 / 2, layer=oplayer)
-    str_ring2_1.move(ring2.ports["RingC"].center + [0, -WidthRing2 / 2 - WidthNear2 / 2 - RadiusRing2 - GapRB2])
+    str_ring2_1.move(ring2.ports["RingC"].center)
+    str_ring2_1.move((0, -WidthRing2 / 2 - WidthNear2 / 2 - RadiusRing2 - GapRB2))
     str_ring2_2 = c << GfCStraight(width=WidthNear2, length=LengthNear2 / 2, layer=oplayer)
     str_ring2_2.connect('o2', str_ring2_1.ports['o1'])
+
     ring2_hc = RingPulleyT1(
         WidthRing=WidthRing2, WidthNear=WidthNear2, WidthHeat=WidthHeat2,
         RadiusRing=RadiusRing2, GapRing=GapRB2, GapHeat=GapHeat2, DeltaHeat=DeltaHeat2,
@@ -438,8 +440,9 @@ def CoupleRingDRT1(
         oplayer=oplayer, heatlayer=heatlayer, TypeHeater=TypeHeaterR2, IsHeat=IsHeat,
         DirectionHeater=DirectionsHeater[1]
     )
+
     ring2h = c << GetFromLayer(ring2_hc, OLayer=heatlayer)
-    ring2h.move(ring2.ports["RingC"].center - ring2h.ports["RingC"].center)
+    ring2h.move(np.array(ring2.ports["RingC"].center) - np.array(ring2h.ports["RingC"].center))
 
     # c.add_port(name="R1Add", port=ring1.ports["Add"])
     # c.add_port(name="R1Drop", port=ring1.ports["Drop"])
@@ -455,11 +458,12 @@ def CoupleRingDRT1(
     if IsHeat:
         for port in ring1.ports:
             if "Heat" in port:
-                c.add_port(name="R1" + port, port=ring1.ports[port])
+                c.add_port(name="R1" + port.name, port=port)
         for port in ring2h.ports:
             if "Heat" in port:
-                c.add_port(name="R2" + port, port=ring2h.ports[port])
+                c.add_port(name="R2" + port.name, port=port)
     # add_labels_to_ports(c,label_layer=(412,8))
+    c.flatten()
     return c
 
 
