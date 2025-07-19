@@ -485,7 +485,7 @@ def cir2end(
         (注意：原代码没有明确定义输出端口，最后一个圆弧的o2端口未导出。
          如果需要输出端口，应在最后一个圆弧后添加。)
     """
-    c = gf.Component(Name)
+    c = gf.Component()
     taper = c << gf.c.taper(width1=WidthNear, width2=WidthEnd, length=LengthTaper, layer=oplayer)
     if RadiusBend0 - Period * Pitch < 10:
         Period = (2 * RadiusBend0 - 10) // Pitch / 2  # avoid minus radius
