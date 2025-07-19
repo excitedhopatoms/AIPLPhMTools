@@ -644,24 +644,25 @@ def TCCoupleDouRingT1(
         ring.add_port("o2", port=taper_s2n2.ports["o2"])
     else:
         raise ValueError("position_taper 必须是 'before_bend' 或 'after_bend' 或 'between_bend' 或 'no_bend'")
-    # add drop
-    taper_s2n3 = ring << gf.c.taper(width1=width_single, width2=width_near2, length=length_taper, layer=oplayer)
-    taper_s2n4 = ring << gf.c.taper(width1=width_near2, width2=width_single, length=length_taper, layer=oplayer)
-    taper_s2n4.connect("o1", ring0.ports["Add"])
-    ## add drop bend out
-    bend_ad1 = ring << gf.c.bend_euler(width=width_near2, radius=r_euler_min, layer=oplayer, angle=-90,
-                                       with_arc_floorplan=False)
-    bend_ad2 = ring << gf.c.bend_euler(width=width_single, radius=r_euler_min, layer=oplayer, angle=90,
-                                       with_arc_floorplan=False)
-    str_ad = ring << GfCStraight(width=width_single, length=length_ad_vertical, layer=oplayer)
-    str_ad0 = ring << GfCStraight(width=width_near2, length=length_ad_horizontal, layer=oplayer)
-    str_ad0.connect("o2", other=ring0.ports["Drop"])
-    bend_ad1.connect("o2", other=str_ad0.ports["o1"])
-    taper_s2n3.connect("o2", other=bend_ad1.ports["o1"])
-    str_ad.connect("o2", other=taper_s2n3.ports["o1"])
-    bend_ad2.connect("o2", other=str_ad.ports["o1"])
-    ring.add_port("o3", port=taper_s2n4.ports["o2"])
-    ring.add_port("o4", port=bend_ad2.ports["o1"])
+    if is_ad:
+        # add drop
+        taper_s2n3 = ring << gf.c.taper(width1=width_single, width2=width_near2, length=length_taper, layer=oplayer)
+        taper_s2n4 = ring << gf.c.taper(width1=width_near2, width2=width_single, length=length_taper, layer=oplayer)
+        taper_s2n4.connect("o1", ring0.ports["Add"])
+        ## add drop bend out
+        bend_ad1 = ring << gf.c.bend_euler(width=width_near2, radius=r_euler_min, layer=oplayer, angle=-90,
+                                           with_arc_floorplan=False)
+        bend_ad2 = ring << gf.c.bend_euler(width=width_single, radius=r_euler_min, layer=oplayer, angle=90,
+                                           with_arc_floorplan=False)
+        str_ad = ring << GfCStraight(width=width_single, length=length_ad_vertical, layer=oplayer)
+        str_ad0 = ring << GfCStraight(width=width_near2, length=length_ad_horizontal, layer=oplayer)
+        str_ad0.connect("o2", other=ring0.ports["Drop"])
+        bend_ad1.connect("o2", other=str_ad0.ports["o1"])
+        taper_s2n3.connect("o2", other=bend_ad1.ports["o1"])
+        str_ad.connect("o2", other=taper_s2n3.ports["o1"])
+        bend_ad2.connect("o2", other=str_ad.ports["o1"])
+        ring.add_port("o3", port=taper_s2n4.ports["o2"])
+        ring.add_port("o4", port=bend_ad2.ports["o1"])
     ring.add_port("RingInput", port=ring0.ports["Input"])
     ring.add_port("Ring1C", port=ring0.ports["Ring1C"])
     ring.add_port("Ring2C", port=ring0.ports["Ring2C"])
@@ -680,28 +681,42 @@ def TCCoupleDouRingT1(
     CCRing.connect("o1", other=tinring.ports["o2"], allow_width_mismatch=True, mirror=True)
     CCRing.movex(pos_ring)
     sr.add_port("input", port=tinring.ports["o1"])
-    ## add
-    tadring = sr << tin
-    tadring.connect('o2', CCRing.ports['o4'])
-    tadring.movex(tinring.ports['o1'].center[0] - tadring.ports['o1'].center[0])
-    sr.add_port("add", port=tadring.ports["o1"])
     ## output
     toutring = sr << tout
     toutring.connect("o1", other=CCRing.ports["o2"])
     toutring.movex(length_total - toutring.ports["o2"].center[0])
     sr.add_port("output", port=toutring.ports["o2"])
-    ## drop
-    tdpring = sr << tout
-    tdpring.movey(-tdpring.ports['o1'].center[1] + CCRing.ports["o3"].center[1])
-    tdpring.movex(length_total - tdpring.ports["o2"].center[0])
-    bend_s_dp = sr << gf.c.bend_s(cross_section=X_single, size=[10, 0])
-    bend_s_dp.connect("o1", other=CCRing.ports["o3"])
-    sr.add_port("drop", port=tdpring.ports["o2"])
-    ## route
-    str_tout2r = gf.routing.route_bundle(sr,
-        [toutring.ports["o1"], CCRing.ports["o1"], tdpring.ports['o1'], CCRing.ports["o4"]],
-        [CCRing.ports["o2"], tinring.ports["o2"], bend_s_dp.ports["o2"], tadring.ports['o2']],
+    gf.routing.route_bundle(sr,
+        [toutring.ports["o1"]], #
+        [CCRing.ports["o2"]], #
         layer=oplayer, route_width=width_single, radius=r_euler_min)
+    gf.routing.route_bundle(sr,
+        [CCRing.ports["o1"]], #
+        [tinring.ports["o2"]], #
+        layer=oplayer, route_width=width_single, radius=r_euler_min)
+    if is_ad:
+    ## add
+        tadring = sr << tin
+        tadring.connect('o2', CCRing.ports['o4'])
+        tadring.movex(tinring.ports['o1'].center[0] - tadring.ports['o1'].center[0])
+        sr.add_port("add", port=tadring.ports["o1"])
+        ## drop
+        tdpring = sr << tout
+        tdpring.connect("o1", CCRing.ports['o2'])
+        tdpring.movey(-tdpring.ports['o1'].center[1] + CCRing.ports["o3"].center[1])
+        tdpring.movex(length_total - tdpring.ports["o2"].center[0])
+        bend_s_dp = sr << gf.c.bend_s(cross_section=X_single, size=[100, 0])
+        bend_s_dp.connect("o1", other=CCRing.ports["o3"])
+        sr.add_port("drop", port=tdpring.ports["o2"])
+        ## route
+        gf.routing.route_bundle(sr,
+            [tdpring.ports['o1']],
+            [bend_s_dp.ports["o2"]],
+            layer=oplayer, route_width=width_single, radius=r_euler_min)
+        gf.routing.route_bundle(sr,
+            [CCRing.ports["o4"]],
+            [tadring.ports['o2']],
+            layer=oplayer, route_width=width_single, radius=r_euler_min)
     sr.add_port("Ring1C", port=CCRing.ports["Ring1C"])
     sr.add_port("Ring2C", port=CCRing.ports["Ring2C"])
 
