@@ -110,6 +110,8 @@ def DBRFromCsv(
         WidthHeat: float = 4,  # 加热器宽度 (µm)
         WidthRoute: float = 10,  # 加热器路由宽度 (µm)
         IsHeat: bool = False,  # 是否包含加热器
+        Wcol = [1,3],
+        Lcol = [2,4],
         oplayer: LayerSpec = LAYER.WG,
         heatlayer: LayerSpec = LAYER.M1,
 ) -> Component:
@@ -149,10 +151,10 @@ def DBRFromCsv(
     r2 = []
 
     for i, length in enumerate(lengthrows):
-        length0 = float(length[1])  # 第一部分长度 (µm)
-        width0 = float(length[0])
-        length1 = float(length[3])  # 第二部分长度 (µm)
-        width1 = float(length[2])  # 第二部分长度 (µm)
+        length0 = float(length[Lcol[0]-1])  # 第一部分长度 (µm)
+        width0 = float(length[Wcol[0]-1])
+        length1 = float(length[Lcol[1]-1])  # 第二部分长度 (µm)
+        width1 = float(length[Wcol[1]-1])  # 第二部分长度 (µm)
         if length0 < 1e-5:
             length0 = length0 * 1e6
         if length1 < 1e-5:
@@ -206,6 +208,8 @@ def DBRFromCsvOffset(
         WidthRoute: float = 10,  # 加热器路由宽度 (µm)
         Offset: float = 0.5,
         IsHeat: bool = False,  # 是否包含加热器
+        Wcol=[1, 3],
+        Lcol=[2, 4],
         oplayer: LayerSpec = LAYER.WG,
         heatlayer: LayerSpec = LAYER.M1,
         routelayer: LayerSpec = LAYER.M2,
@@ -239,10 +243,10 @@ def DBRFromCsvOffset(
     r2 = []
 
     for i, length in enumerate(lengthrows):
-        length0 = float(length[1])  # 第一部分长度 (µm)
-        width0 = float(length[0])
-        length1 = float(length[3])  # 第二部分长度 (µm)
-        width1 = float(length[2])  # 第二部分长度 (µm)
+        length0 = float(length[Lcol[0]-1])  # 第一部分长度 (µm)
+        width0 = float(length[Wcol[0]-1])
+        length1 = float(length[Lcol[1]-1])  # 第二部分长度 (µm)
+        width1 = float(length[Wcol[1]-1])  # 第二部分长度 (µm)
         if length0 < 1e-5:
             length0 = length0 * 1e6
         if length1 < 1e-5:
@@ -285,7 +289,7 @@ def DBRFromCsvOffset(
         heattaper2.connect("o1", other=heater.ports["o2"])
         c.add_port(name="h1", port=heattaper1.ports["o2"])
         c.add_port(name="h2", port=heattaper2.ports["o2"])
-    c = snap_all_polygons_iteratively(c)
+    c = snap_all_polygons_iteratively(c,Flag=True)
     return c
 # %% DBRFromCsv: 从 CSV 文件创建 DBR
 @gf.cell
@@ -297,6 +301,8 @@ def SGDBRFromCsvOffset(
         NumSampled:float = 4,
         Offset: float = 0.5,
         IsHeat: bool = False,  # 是否包含加热器
+        Wcol=[1, 3],
+        Lcol=[2, 4],
         oplayer: LayerSpec = LAYER.WG,
         heatlayer: LayerSpec = LAYER.M1,
         routelayer: LayerSpec = LAYER.M2,
@@ -330,10 +336,10 @@ def SGDBRFromCsvOffset(
     r2 = []
 
     for i, length in enumerate(lengthrows):
-        length0 = float(length[1])  # 第一部分长度 (µm)
-        width0 = float(length[0])
-        length1 = float(length[3])  # 第二部分长度 (µm)
-        width1 = float(length[2])  # 第二部分长度 (µm)
+        length0 = float(length[Lcol[0]-1])  # 第一部分长度 (µm)
+        width0 = float(length[Wcol[0]-1])
+        length1 = float(length[Lcol[1]-1])  # 第二部分长度 (µm)
+        width1 = float(length[Wcol[1]-1])  # 第二部分长度 (µm)
         if length0 < 1e-5:
             length0 = length0 * 1e6
         if length1 < 1e-5:
@@ -376,6 +382,97 @@ def SGDBRFromCsvOffset(
         c.add_port(name="h2", port=heattaper2.ports["o2"])
     c = snap_all_polygons_iteratively(c)
     return c
+# %% DBRFromCsv: 从 CSV 文件创建 DBR
+@gf.cell
+def EstrDBRFromCsvOffset(
+        CSVName: str = "D:/Mask Download/Temp202311_LN_ZJ/单_D01.5e-25_k0.5_1500-1600.csv",  # CSV 文件路径
+        WidthMidWG: float = 0.8,
+        GapMidSide: float = 0.2,
+        WidthHeat: float = 4,  # 加热器宽度 (µm)
+        WidthRoute: float = 10,  # 加热器路由宽度 (µm)
+        Offset: float = 0.5,
+        IsHeat: bool = False,  # 是否包含加热器
+        Wcol=[1, 3],
+        Lcol=[2, 4],
+        oplayer: LayerSpec = LAYER.WG,
+        heatlayer: LayerSpec = LAYER.M1,
+        routelayer: LayerSpec = LAYER.M2,
+        vialayer: LayerSpec = LAYER.VIA,
+) -> Component:
+    """
+    从 CSV 文件创建extend 分布式布拉格反射器（E-DBR），并对周期中较宽的波导段应用一个宽度偏移 (Offset)。
+    宽度表示扩展区域的方块宽度
+    CSV文件的格式和单位转换与 `DBRFromCsv` 函数中的预期相同。
+    偏移量 `Offset` 会加到每周期两段波导中较宽的那一段上。
 
+    参数:
+        CSVName (str): CSV文件的完整路径。
+        WidthHeat (float): 如果添加加热器，加热条的宽度 (单位: µm)。
+        WidthRoute (float): 如果添加加热器，加热器引出金属的宽度 (单位: µm)。
+        Offset (float): 应用于周期中较宽波导段的宽度增加值 (单位: µm)。默认为 0.5 µm。
+        IsHeat (bool): 是否在DBR上方添加一个简单的直线型加热器。
+        oplayer (LayerSpec): 定义光学波导的GDS图层。
+        heatlayer (LayerSpec): 定义加热器的GDS图层。
+
+    返回:
+        Component: 生成的带宽度偏移的DBR组件。
+
+    端口及注意同 `DBRFromCsv`。
+    """
+    c = gf.Component()
+    lengthrows = csv.reader(open(CSVName))
+    Period = len(list(lengthrows))
+    lengthrows = csv.reader(open(CSVName))
+    width_min = 5
+    r1 = []
+    r2 = []
+    r2u = []
+    r2d = []
+    for i, length in enumerate(lengthrows):
+        length0 = float(length[Lcol[0]-1])  # 第一部分长度 (µm)
+        width0 = float(length[Wcol[0]-1])
+        length1 = float(length[Lcol[1]-1])  # 第二部分长度 (µm)
+        width1 = float(length[Wcol[1]-1])  # 第二部分长度 (µm)
+        if width0 > width1:
+            width1 = width0 + Offset
+            width0 = 0
+        else:
+            width1 = width1 + Offset
+        width0 = round(width0 * 1000 / 2) / 500  # 结果: 2.0
+        width1 = round(width1 * 1000 / 2) / 500  # 结果: 2.0
+        r1.append(c << GfCStraight(length=length0, width=WidthMidWG, layer=oplayer))
+        r2.append(c << GfCStraight(length=length1, width=WidthMidWG, layer=oplayer))
+        if i == 0:
+            r2[0].connect(port="o1", other=r1[0].ports["o2"],allow_width_mismatch=True)
+        else:
+            r1[i].connect(port="o1", other=r2[i - 1].ports["o2"],allow_width_mismatch=True)
+            r2[i].connect(port="o1", other=r1[i].ports["o2"],allow_width_mismatch=True)
+        if width1 > 0:
+            r2u.append(c << GfCStraight(length=length1, width=width1, layer=oplayer))
+            r2d.append(c << GfCStraight(length=length1, width=width1, layer=oplayer))
+            r2u[-1].connect(port="o1", other=r1[i].ports["o2"],allow_width_mismatch=True)
+            r2d[-1].connect(port="o1", other=r1[i].ports["o2"],allow_width_mismatch=True)
+            r2u[-1].movey(GapMidSide)
+            r2d[-1].movey(-GapMidSide)
+    # c << GfCStraight(length=-r1[0].ports["o1"].center[0] + r2[-1].ports["o2"].center[0], width=width_min, layer=oplayer)
+    c.add_port("o1", port=r1[0].ports["o1"])
+    c.add_port("o2", port=r2[-1].ports["o2"])
+
+    if IsHeat:
+        # 添加加热器
+        length_dbr = c.ports["o2"].center - c.ports["o1"].center
+        heater = c << GfCStraight(width=WidthHeat, length=length_dbr[0], layer=heatlayer)
+        heater.connect("o1", c.ports["o1"]).rotate(180, heater.ports["o1"].center)
+        heattaper1 = c << gf.c.taper(width1=WidthHeat, width2=WidthRoute, length=WidthRoute / 2 - WidthHeat / 2,
+                                     layer=heatlayer)
+        heattaper2 = c << gf.c.taper(width1=WidthHeat, width2=WidthRoute, length=WidthRoute / 2 - WidthHeat / 2,
+                                     layer=heatlayer)
+        heattaper1.connect("o1", other=heater.ports["o1"])
+        heattaper2.connect("o1", other=heater.ports["o2"])
+        c.add_port(name="h1", port=heattaper1.ports["o2"])
+        c.add_port(name="h2", port=heattaper2.ports["o2"])
+    # c = snap_all_polygons_iteratively(c,Flag=True)
+    c.flatten()
+    return c
 # %% 导出所有函数
-__all__ = ['DBR', 'DBRFromCsv', 'DBRFromCsvOffset','SGDBRFromCsvOffset']
+__all__ = ['DBR', 'DBRFromCsv', 'DBRFromCsvOffset','SGDBRFromCsvOffset','EstrDBRFromCsvOffset']
