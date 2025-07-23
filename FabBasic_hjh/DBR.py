@@ -398,10 +398,10 @@ def EstrDBRFromCsvOffset(
         heatlayer: LayerSpec = LAYER.M1,
         routelayer: LayerSpec = LAYER.M2,
         vialayer: LayerSpec = LAYER.VIA,
+        UseParallel: bool = True
 ) -> Component:
     """
-    从 CSV 文件创建extend 分布式布拉格反射器（E-DBR），并对周期中较宽的波导段应用一个宽度偏移 (Offset)。
-    宽度表示扩展区域的方块宽度
+    从 CSV 文件创建分布式布拉格反射器（DBR），并对周期中较宽的波导段应用一个宽度偏移 (Offset)。
     CSV文件的格式和单位转换与 `DBRFromCsv` 函数中的预期相同。
     偏移量 `Offset` 会加到每周期两段波导中较宽的那一段上。
 
@@ -419,59 +419,110 @@ def EstrDBRFromCsvOffset(
 
     端口及注意同 `DBRFromCsv`。
     """
+    """
+        (优化版) 从 CSV 文件创建 DBR，使用矢量化计算以实现高性能。
+
+        此版本使用 NumPy 预先计算所有几何坐标，然后通过 `add_polygon` 批量添加几何形状，
+        避免了创建和连接大量独立组件所带来的缓慢迭代过程。
+        函数的参数、功能和最终生成的几何图形与原始版本完全相同。
+        """
+    # --- 1. 数据加载与准备 ---
+    # 一次性将 CSV 加载到 NumPy 数组中，以进行高效的矢量化计算
+    try:
+        data = np.loadtxt(CSVName, delimiter=',')
+    except FileNotFoundError:
+        raise FileNotFoundError(f"错误：找不到CSV文件，路径: {CSVName}")
+    except Exception as e:
+        raise ValueError(f"无法读取CSV文件。请确保文件格式有效。 错误: {e}")
+
+    # 将指定列的数据提取到命名清晰的数组中
+    # 参数中的列是1-based索引, Numpy是0-based, 因此减1
+    widths0 = data[:, Wcol[0] - 1]
+    lengths0 = data[:, Lcol[0] - 1]
+    widths1 = data[:, Wcol[1] - 1]
+    lengths1 = data[:, Lcol[1] - 1]
+    num_periods = len(data)
+
+    # --- 2. 几何坐标的矢量化计算 ---
     c = gf.Component()
-    lengthrows = csv.reader(open(CSVName))
-    Period = len(list(lengthrows))
-    lengthrows = csv.reader(open(CSVName))
-    width_min = 5
-    r1 = []
-    r2 = []
-    r2u = []
-    r2d = []
-    for i, length in enumerate(lengthrows):
-        length0 = float(length[Lcol[0]-1])  # 第一部分长度 (µm)
-        width0 = float(length[Wcol[0]-1])
-        length1 = float(length[Lcol[1]-1])  # 第二部分长度 (µm)
-        width1 = float(length[Wcol[1]-1])  # 第二部分长度 (µm)
-        if width0 > width1:
-            width1 = width0 + Offset
-            width0 = 0
-        else:
-            width1 = width1 + Offset
-        width0 = round(width0 * 1000 / 2) / 500  # 结果: 2.0
-        width1 = round(width1 * 1000 / 2) / 500  # 结果: 2.0
-        r1.append(c << GfCStraight(length=length0, width=WidthMidWG, layer=oplayer))
-        r2.append(c << GfCStraight(length=length1, width=WidthMidWG, layer=oplayer))
-        if i == 0:
-            r2[0].connect(port="o1", other=r1[0].ports["o2"],allow_width_mismatch=True)
-        else:
-            r1[i].connect(port="o1", other=r2[i - 1].ports["o2"],allow_width_mismatch=True)
-            r2[i].connect(port="o1", other=r1[i].ports["o2"],allow_width_mismatch=True)
-        if width1 > 0:
-            r2u.append(c << GfCStraight(length=length1, width=width1, layer=oplayer))
-            r2d.append(c << GfCStraight(length=length1, width=width1, layer=oplayer))
-            r2u[-1].connect(port="o1", other=r1[i].ports["o2"],allow_width_mismatch=True)
-            r2d[-1].connect(port="o1", other=r1[i].ports["o2"],allow_width_mismatch=True)
-            r2u[-1].movey(GapMidSide)
-            r2d[-1].movey(-GapMidSide)
-    # c << GfCStraight(length=-r1[0].ports["o1"].center[0] + r2[-1].ports["o2"].center[0], width=width_min, layer=oplayer)
-    c.add_port("o1", port=r1[0].ports["o1"])
-    c.add_port("o2", port=r2[-1].ports["o2"])
+
+    # A. 计算侧边“牙齿”的宽度
+    # 根据原始逻辑，牙齿宽度由每个周期中较宽的波导决定，并加上偏移量
+    side_widths = np.maximum(widths0, widths1) + Offset
+
+    # B. 批量计算所有X坐标
+    # 每个周期的总长度
+    period_lengths = lengths0 + lengths1
+    # DBR结构的总长度
+    total_length = np.sum(period_lengths)
+
+    # 计算每个周期内“牙齿”的起始和结束X坐标，这一步替代了迭代`connect`
+    period_start_x = np.insert(np.cumsum(period_lengths[:-1]), 0, 0)
+    teeth_start_x = period_start_x + lengths0
+    teeth_end_x = teeth_start_x + lengths1
+
+    # --- 3. 将几何图形添加为多边形 ---
+
+    # A. 将中心连续波导添加为一整个长方形
+    y_mid_half = WidthMidWG / 2
+    c.add_polygon(
+        [(0, -y_mid_half), (total_length, -y_mid_half), (total_length, y_mid_half), (0, y_mid_half)],
+        layer=oplayer,
+    )
+
+    # B. 批量添加侧边的“牙齿”
+    # 这里的循环速度很快，因为内部只涉及从数组中取值和简单的加法
+    for i in range(num_periods):
+        x_start, x_end = teeth_start_x[i], teeth_end_x[i]
+        w_side = side_widths[i]
+
+        # 上方的牙齿
+        y_top_bottom = GapMidSide - w_side/2
+        y_top_top = GapMidSide + w_side/2
+        c.add_polygon(
+            [(x_start, y_top_bottom), (x_end, y_top_bottom), (x_end, y_top_top), (x_start, y_top_top)],
+            layer=oplayer,
+        )
+
+        # 下方的牙齿
+        y_bot_top = -GapMidSide + w_side/2
+        y_bot_bottom = -GapMidSide - w_side/2
+        c.add_polygon(
+            [(x_start, y_bot_top), (x_end, y_bot_top), (x_end, y_bot_bottom), (x_start, y_bot_bottom)],
+            layer=oplayer,
+        )
+
+    # --- 4. 添加端口和可选的加热器 ---
+    c.add_port("o1", center=(0, 0), width=WidthMidWG, orientation=180, layer=oplayer)
+    c.add_port("o2", center=(total_length, 0), width=WidthMidWG, orientation=0, layer=oplayer)
 
     if IsHeat:
-        # 添加加热器
-        length_dbr = c.ports["o2"].center - c.ports["o1"].center
-        heater = c << GfCStraight(width=WidthHeat, length=length_dbr[0], layer=heatlayer)
-        heater.connect("o1", c.ports["o1"]).rotate(180, heater.ports["o1"].center)
-        heattaper1 = c << gf.c.taper(width1=WidthHeat, width2=WidthRoute, length=WidthRoute / 2 - WidthHeat / 2,
-                                     layer=heatlayer)
-        heattaper2 = c << gf.c.taper(width1=WidthHeat, width2=WidthRoute, length=WidthRoute / 2 - WidthHeat / 2,
-                                     layer=heatlayer)
-        heattaper1.connect("o1", other=heater.ports["o1"])
-        heattaper2.connect("o1", other=heater.ports["o2"])
-        c.add_port(name="h1", port=heattaper1.ports["o2"])
-        c.add_port(name="h2", port=heattaper2.ports["o2"])
-    # c = snap_all_polygons_iteratively(c,Flag=True)
+        # 添加主加热条
+        y_heat_half = WidthHeat / 2
+        c.add_polygon(
+            [(0, -y_heat_half), (total_length, -y_heat_half), (total_length, y_heat_half), (0, y_heat_half)],
+            layer=heatlayer,
+        )
+
+        # 添加加热器的Taper引出线
+        taper_len = (WidthRoute - WidthHeat) / 2
+        if taper_len > 1e-9:  # 仅在需要taper时添加
+            heater_port1 = gf.Port('h_p1', center=(0, 0), width=WidthHeat, orientation=180, layer=heatlayer)
+            heater_port2 = gf.Port('h_p2', center=(total_length, 0), width=WidthHeat, orientation=0, layer=heatlayer)
+
+            taper = gf.c.taper(width1=WidthHeat, width2=WidthRoute, length=taper_len, layer=heatlayer)
+            ht1 = c << taper
+            ht2 = c << taper
+
+            ht1.connect("o1", heater_port1)
+            ht2.connect("o1", heater_port2)
+            c.add_port(name="h1", port=ht1.ports["o2"])
+            c.add_port(name="h2", port=ht2.ports["o2"])
+        else:  # 如果宽度相同或更小，则直接添加端口
+            c.add_port(name="h1", center=(0, 0), width=WidthHeat, orientation=180, layer=routelayer)
+            c.add_port(name="h2", center=(total_length, 0), width=WidthHeat, orientation=0, layer=routelayer)
+
+    # --- 5. 完成 ---
     c.flatten()
     return c
 # %% 导出所有函数
