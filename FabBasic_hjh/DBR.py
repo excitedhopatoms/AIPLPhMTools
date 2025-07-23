@@ -309,78 +309,125 @@ def SGDBRFromCsvOffset(
         vialayer: LayerSpec = LAYER.VIA,
 ) -> Component:
     """
-    从 CSV 文件创建分布式布拉格反射器（DBR），并对周期中较宽的波导段应用一个宽度偏移 (Offset)。
-    CSV文件的格式和单位转换与 `DBRFromCsv` 函数中的预期相同。
-    偏移量 `Offset` 会加到每周期两段波导中较宽的那一段上。
+        (优化版) 使用矢量化计算从CSV文件创建采样DBR。
 
-    参数:
-        CSVName (str): CSV文件的完整路径。
-        WidthHeat (float): 如果添加加热器，加热条的宽度 (单位: µm)。
-        WidthRoute (float): 如果添加加热器，加热器引出金属的宽度 (单位: µm)。
-        Offset (float): 应用于周期中较宽波导段的宽度增加值 (单位: µm)。默认为 0.5 µm。
-        IsHeat (bool): 是否在DBR上方添加一个简单的直线型加热器。
-        oplayer (LayerSpec): 定义光学波导的GDS图层。
-        heatlayer (LayerSpec): 定义加热器的GDS图层。
+        本函数使用NumPy高效地实现了单位转换、条件偏移和周期采样等复杂逻辑，
+        并随后直接生成多边形，以达到最优性能。
 
-    返回:
-        Component: 生成的带宽度偏移的DBR组件。
+        参数:
+            CSVName (str): CSV文件的完整路径。
+            Offset (float): 应用于每周期中较宽部分的宽度偏移量。
+            PeirdSampled (int): 一个采样超周期（super-period）内的总周期数。
+            NumSampled (int): 在一个超周期末尾，宽度需要被修改的周期数。
+            IsHeat (bool): 如果为True，则在DBR上方添加一个加热器。
+            WidthHeat (float): 加热条的宽度。
+            WidthRoute (float): 加热器引出金属的宽度。
+            Wcol (list): CSV文件中宽度所在列的索引（1-based）。
+            Lcol (list): CSV文件中长度所在列的索引（1-based）。
+            oplayer (LayerSpec): 光学波导的GDS图层。
+            heatlayer (LayerSpec): 加热器的GDS图层。
+            routelayer (LayerSpec): 加热器引出金属的GDS图层。
 
-    端口及注意同 `DBRFromCsv`。
-    """
+        返回:
+            Component: 生成的采样DBR的gdsfactory组件。
+        """
+    # --- 1. 数据加载与准备 ---
+    try:
+        data = np.loadtxt(CSVName, delimiter=',')
+    except Exception as e:
+        raise IOError(f"无法读取或解析CSV文件，路径: {CSVName}。错误: {e}")
+
+    num_periods = len(data)
+    indices = np.arange(num_periods)
+
+    # 将指定列的数据提取到命名清晰的数组中
+    lengths0 = data[:, Lcol[0] - 1]
+    lengths1 = data[:, Lcol[1] - 1]
+    widths0 = data[:, Wcol[0] - 1]
+    widths1 = data[:, Wcol[1] - 1]
+
+    # --- 2. 矢量化逻辑应用 ---
+
+    # A. 单位转换：如果数值很小（比如单位是米），则将其转换为微米
+    # lengths0[lengths0 < 1e-5] *= 1e6
+    # lengths1[lengths1 < 1e-5] *= 1e6
+    # widths0[widths0 < 1e-5] *= 1e6
+    # widths1[widths1 < 1e-5] *= 1e6
+
+    # B. 条件偏移：为每个周期中较宽的部分增加偏移量
+    # 使用 np.where 实现矢量化的 if/else 语句，效率极高。
+    is_w0_wider = widths0 > widths1
+    w0_after_offset = np.where(is_w0_wider, widths0 + Offset, widths0)
+    w1_after_offset = np.where(~is_w0_wider, widths1 + Offset, widths1)
+
+    # C. 周期采样：对指定的周期，将 width0 设置为与 width1 相等
+    # 为需要被采样的周期创建一个布尔掩码（boolean mask）。
+    sampling_mask = (indices % PeirdSampled) > (PeirdSampled - NumSampled - 1)  # 为适应0-based索引进行调整
+    w0_after_sampling = np.where(sampling_mask, w1_after_offset, w0_after_offset)
+
+    # D. 网格捕捉/取整：将宽度取整到最接近的2nm (0.002µm)
+    # round(val * 500) / 500 的效果等同于取整到最接近的 1/500。
+    final_widths0 = np.round(w0_after_sampling * 500) / 500
+    final_widths1 = np.round(w1_after_offset * 500) / 500
+
+    # --- 3. 几何生成 ---
     c = gf.Component()
-    lengthrows = csv.reader(open(CSVName))
-    Period = len(list(lengthrows))
-    lengthrows = csv.reader(open(CSVName))
-    width_min = 5
-    r1 = []
-    r2 = []
 
-    for i, length in enumerate(lengthrows):
-        length0 = float(length[Lcol[0]-1])  # 第一部分长度 (µm)
-        width0 = float(length[Wcol[0]-1])
-        length1 = float(length[Lcol[1]-1])  # 第二部分长度 (µm)
-        width1 = float(length[Wcol[1]-1])  # 第二部分长度 (µm)
-        if length0 < 1e-5:
-            length0 = length0 * 1e6
-        if length1 < 1e-5:
-            length1 = length1 * 1e6
-        if width0 < 1e-5:
-            width0 = width0 * 1e6
-        if width1 < 1e-5:
-            width1 = width1 * 1e6
-        if width0 > width1:
-            width0 = width0 + Offset
-        else:
-            width1 = width1 + Offset
-        if i%PeirdSampled > PeirdSampled-NumSampled:
-            width0 = width1
-        width0 = round(width0 * 1000 / 2) / 500  # 结果: 2.0
-        width1 = round(width1 * 1000 / 2) / 500  # 结果: 2.0
-        r1.append(c << GfCStraight(length=length0, width=width0, layer=oplayer))
-        r2.append(c << GfCStraight(length=length1, width=width1, layer=oplayer))
-        if i == 0:
-            r2[0].connect(port="o1", other=r1[0].ports["o2"],allow_width_mismatch=True)
-        else:
-            r1[i].connect(port="o1", other=r2[i - 1].ports["o2"],allow_width_mismatch=True)
-            r2[i].connect(port="o1", other=r1[i].ports["o2"],allow_width_mismatch=True)
-    # c << GfCStraight(length=-r1[0].ports["o1"].center[0] + r2[-1].ports["o2"].center[0], width=width_min, layer=oplayer)
-    c.add_port("o1", port=r1[0].ports["o1"])
-    c.add_port("o2", port=r2[-1].ports["o2"])
+    # 将所有波导段的长度和宽度交错排列到一个数组中
+    all_lengths = np.empty(num_periods * 2)
+    all_lengths[0::2] = lengths0
+    all_lengths[1::2] = lengths1
 
+    all_widths = np.empty(num_periods * 2)
+    all_widths[0::2] = final_widths0
+    all_widths[1::2] = final_widths1
+
+    # 用一条命令计算出所有连接点的x坐标
+    junction_x = np.cumsum(all_lengths)
+    # 计算所有波导段的起始x坐标
+    start_x = np.insert(junction_x[:-1], 0, 0)
+
+    # 将所有波导段直接添加为多边形
+    for i in range(len(start_x)):
+        x0, x1 = start_x[i], junction_x[i]
+        w_half = all_widths[i] / 2
+        c.add_polygon([(x0, -w_half), (x1, -w_half), (x1, w_half), (x0, w_half)], layer=oplayer)
+
+    # --- 4. 添加端口和加热器 ---
+    total_length = junction_x[-1]
+
+    # 添加光学端口
+    c.add_port("o1", center=(0, 0), width=final_widths0[0], orientation=180, layer=oplayer)
+    c.add_port("o2", center=(total_length, 0), width=final_widths1[-1], orientation=0, layer=oplayer)
+
+    # 添加可选的加热器
     if IsHeat:
-        # 添加加热器
-        length_dbr = c.ports["o2"].center - c.ports["o1"].center
-        heater = c << GfCStraight(width=WidthHeat, length=length_dbr[0], layer=heatlayer)
-        heater.connect("o1", c.ports["o1"]).rotate(180, heater.ports["o1"].center)
-        heattaper1 = c << gf.c.taper(width1=WidthHeat, width2=WidthRoute, length=WidthRoute / 2 - WidthHeat / 2,
-                                     layer=heatlayer)
-        heattaper2 = c << gf.c.taper(width1=WidthHeat, width2=WidthRoute, length=WidthRoute / 2 - WidthHeat / 2,
-                                     layer=heatlayer)
-        heattaper1.connect("o1", other=heater.ports["o1"])
-        heattaper2.connect("o1", other=heater.ports["o2"])
-        c.add_port(name="h1", port=heattaper1.ports["o2"])
-        c.add_port(name="h2", port=heattaper2.ports["o2"])
-    c = snap_all_polygons_iteratively(c)
+        c.add_polygon(
+            [(0, -WidthHeat / 2), (total_length, -WidthHeat / 2), (total_length, WidthHeat / 2), (0, WidthHeat / 2)],
+            layer=heatlayer
+        )
+        taper_len = (WidthRoute - WidthHeat) / 2
+        # 仅在需要时才添加Taper（即引出线比加热条宽）
+        if taper_len > 1e-9:
+            heater_port1 = gf.Port('h_p1', center=(0, 0), width=WidthHeat, orientation=180, layer=heatlayer)
+            heater_port2 = gf.Port('h_p2', center=(total_length, 0), width=WidthHeat, orientation=0, layer=heatlayer)
+
+            taper = gf.c.taper(width1=WidthHeat, width2=WidthRoute, length=taper_len, layer=heatlayer)
+            ht1 = c << taper
+            ht2 = c << taper
+
+            ht1.connect("o1", heater_port1)
+            ht2.connect("o1", heater_port2)
+            c.add_port(name="h1", port=ht1.ports["o2"])
+            c.add_port(name="h2", port=ht2.ports["o2"])
+        else:
+            c.add_port(name="h1", center=(0, 0), width=WidthHeat, orientation=180, layer=routelayer)
+            c.add_port(name="h2", center=(total_length, 0), width=WidthHeat, orientation=0, layer=routelayer)
+
+    # --- 5. 完成 ---
+    # 如果定义了自定义的捕捉函数，则应用它
+    c.flatten()
+    c = snap_all_polygons_iteratively(c, Flag=True)
     return c
 # %% DBRFromCsv: 从 CSV 文件创建 DBR
 @gf.cell
