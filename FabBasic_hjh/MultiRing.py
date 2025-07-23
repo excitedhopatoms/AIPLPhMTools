@@ -335,6 +335,144 @@ def ADRAPRADR(
     add_labels_to_ports(TriRing)
     return TriRing
 
+@gf.cell
+def TriRingPulley(
+        WidthRing: float = 1,
+        WidthNear: float = 0.9,
+        WidthHeat: float = 2,
+        LengthR2R: float = 300,
+        RadiusRing: float = 100,
+        RadiusR2R: float = None,
+        DeltaRadius: float = 1,
+        GapRing: float = 1,
+        GapHeat: float = 10,
+        DeltaHeat: float = 0,
+        AngleCouple: float = 20,
+        IsHeat: bool = False,
+        TypeHeater: str = "default",
+        TypeR2R: str = "straight",
+        DirectionsHeater: [str] = ["up", "up"],
+        DirectionsRing: [str] = ["up", "up"],
+        oplayer: LayerSpec = LAYER.WG,
+        heatlayer: LayerSpec = LAYER.M1,
+        routelayer: LayerSpec = LAYER.M2,
+        vialayer: LayerSpec = LAYER.VIA,
+        RadiusRing3:float=100,
+        GapRing3:float=1,
+        WidthNear3:float=1 ,
+        WidthRing3:float=1,
+        AngleCouple3:float=15
+) -> Component:
+    """
+    2025/07/23
+    创建一个三环滑轮型（Pulley）谐振器组件。
+    该组件由两个 `RingPulleyT1` 单元串联而成，第二个环的半径可以与第一个不同。
+    第三个环耦合在两个环之间，是all-pass类型
+    支持为每个环独立配置加热器方向和环的几何朝向。
+
+    参数:
+        WidthRing (float): 环的波导宽度 (µm)。
+        WidthNear (float): 耦合到环的总线波导宽度 (µm)。
+        WidthHeat (float): 加热器的宽度 (µm)。
+        LengthR2R (float): 当 `TypeR2R`="straight"时，连接两个环的直波导长度 (µm)。
+        RadiusRing (float): 第一个环的弯曲半径 (µm)。
+        RadiusR2R (float | None): 当 `TypeR2R`="bend"时，连接两个环的弯曲半径 (µm)。
+                                  若为None，则设为 `RadiusRing - 10`。
+        DeltaRadius (float): 第二个环的半径相对于第一个环的半径增量 (µm)。
+                             `RadiusRing2 = RadiusRing + DeltaRadius`。
+        GapRing (float): 环与其耦合总线之间的间隙 (µm)。
+        GapHeat (float): 波导与加热器之间的间隙 (µm)。
+        DeltaHeat (float): 传递给 `RingPulleyT1` 的加热器几何参数 (µm)。
+        AngleCouple (float): `RingPulleyT1` 组件的耦合角度 (度)。
+        IsHeat (bool): 是否为两个环都启用加热器。
+        TypeHeater (str): 加热器的类型，传递给 `RingPulleyT1`。
+        TypeR2R (str): 两个环之间的连接方式。"straight" 或 "bend"。
+        DirectionsHeater (list[str]): 长度为2的列表，分别指定第一个和第二个环加热器的方向。
+        DirectionsRing (list[str]): 长度为2的列表，分别指定第一个和第二个环的几何朝向或镜像状态。
+        oplayer (LayerSpec): 光学波导层。
+        heatlayer (LayerSpec): 加热器层。
+        routelayer (LayerSpec): (当前函数未直接使用) 加热器布线层。
+        vialayer (LayerSpec): (当前函数未直接使用) 过孔层。
+
+    返回:
+        Component: 生成的双环滑轮型谐振器组件。
+
+    端口:
+        o1: 第一个环的 "Input" 端口。
+        o2: 第二个环的 "Input" 端口。 (注意：如果环是串联的，此端口可能不是外部输入)
+        R2Ro1: 第一个环的 "Drop" 端口，用作环间连接的起点。
+        R1Add, R1Drop, R1Input, R1Through: 第一个环的四个标准端口。
+        R2Add, R2Drop, R2Input, R2Through: 第二个环的四个标准端口。
+        (如果 IsHeat=True，还会添加如 R1HeatIn, R2HeatOut 等加热器端口)
+    """
+    c = gf.Component()
+    ring1 = c << RingPulleyT1(
+        WidthRing=WidthRing, WidthNear=WidthNear, WidthHeat=WidthHeat,
+        RadiusRing=RadiusRing, GapRing=GapRing, GapHeat=GapHeat, DeltaHeat=DeltaHeat,
+        AngleCouple=AngleCouple,
+        oplayer=oplayer, heatlayer=heatlayer, TypeHeater=TypeHeater, IsHeat=IsHeat, DirectionHeater=DirectionsHeater[0]
+    )
+    ring2 = c << RingPulleyT1(
+        WidthRing=WidthRing, WidthNear=WidthNear, WidthHeat=WidthHeat,
+        RadiusRing=RadiusRing + DeltaRadius, GapRing=GapRing, GapHeat=GapHeat, DeltaHeat=DeltaHeat,
+        AngleCouple=AngleCouple,
+        oplayer=oplayer, heatlayer=heatlayer, TypeHeater=TypeHeater, IsHeat=IsHeat, DirectionHeater=DirectionsHeater[1]
+    )
+    if TypeR2R == "straight":
+        str_R2R = c << GfCStraight(width=WidthNear, length=LengthR2R, layer=oplayer)
+        str_R2R.connect("o1", ring1.ports["Drop"])
+        ring2.connect("Drop", str_R2R.ports["o2"], allow_width_mismatch=True)
+    elif TypeR2R == "bend":
+        if RadiusR2R is None:
+            RadiusR2R = RadiusRing - 10
+        # str_R2R = c << GfCStraight(width=WidthNear, length=LengthR2R, layer=oplayer)
+        # str_R2R.connect("o1", ring1.ports["Drop"])
+        ring2.connect("Drop", ring1.ports["Drop"], allow_width_mismatch=True)
+        ring2.movex(LengthR2R)
+        # Add circular bends for ring-to-ring connection
+        bendl1 = c << gf.c.bend_euler(width=WidthNear, radius=RadiusR2R, angle=90, layer=oplayer)
+        bendr1 = c << gf.c.bend_euler(width=WidthNear, radius=RadiusR2R, angle=90, layer=oplayer)
+        bendl2 = c << gf.c.bend_euler(width=WidthNear, radius=RadiusR2R, angle=-90, layer=oplayer)
+        bendr2 = c << gf.c.bend_euler(width=WidthNear, radius=RadiusR2R, angle=-90, layer=oplayer)
+        bendl1.connect("o1", ring1.ports["Drop"])
+        bendl2.connect("o1", bendl1.ports["o2"])
+        bendr1.connect("o2", ring2.ports["Drop"])
+        bendr2.connect("o2", bendr1.ports["o1"])
+
+        ring3= c << RingPulleyT1(IsAD=False,RadiusRing=RadiusRing3,WidthRing=WidthRing3,WidthNear=WidthNear3,DirectionHeater="down",AngleCouple=AngleCouple3,GapRing=GapRing3)
+        #ring3.mirror_y(ring3.center[1])
+        ring3.connect("Through",bendl2.ports["o2"],allow_width_mismatch=True)
+
+        delta=bendr2.ports["o1"].center[0]-ring3.ports["Input"].center[0]
+        con= c << GfCStraight(width=WidthNear,length=max(delta,0))
+        con.connect("o1", ring3["Input"], allow_width_mismatch=True)
+
+    if DirectionsRing[0] == "down":
+        ring1.mirror_y(ring1.ports["Drop"].center[1])
+    if DirectionsRing[1] == "up":
+        ring2.mirror_y(ring2.ports["Drop"].center[1])
+    c.add_port(name="o1", port=ring1.ports["Input"])
+    c.add_port(name="o2", port=ring2.ports["Input"])
+    c.add_port(name="R2Ro1", port=ring1.ports["Drop"])
+    c.add_port(name="R1Add", port=ring1.ports["Add"])
+    c.add_port(name="R1Drop", port=ring1.ports["Drop"])
+    c.add_port(name="R1Input", port=ring1.ports["Input"])
+    c.add_port(name="R1Through", port=ring1.ports["Through"])
+    c.add_port(name="R2Add", port=ring2.ports["Add"])
+    c.add_port(name="R2Drop", port=ring2.ports["Drop"])
+    c.add_port(name="R2Input", port=ring2.ports["Input"])
+    c.add_port(name="R2Through", port=ring2.ports["Through"])
+
+    if IsHeat:
+        for port in ring1.ports:
+            if "Heat" in port.name:
+                c.add_port(name="R1" + port.name, port=ring1.ports[port.name])
+        for port in ring2.ports:
+            if "Heat" in port.name:
+                c.add_port(name="R2" + port.name, port=ring2.ports[port.name])
+    add_labels_to_ports(c, label_layer=(512, 8))
+    return c
+
 # %% CoupleCavity
 @gf.cell
 def CoupleRingDRT1(
@@ -468,4 +606,4 @@ def CoupleRingDRT1(
 
 
 __all__ = ['DoubleRingPulley', 'DoubleRingPulley2HSn', 'ADRAPRADR', 'DoubleRingPulley2_1HSn',
-           'CoupleRingDRT1']
+           'CoupleRingDRT1','TriRingPulley']
