@@ -1,5 +1,7 @@
 import csv
 
+from PIL.ImageChops import offset
+
 from .BasicDefine import *
 from .SnapMerge import *
 
@@ -14,7 +16,7 @@ def DBR(
         Length2: float = 0.5,  # 第二部分波导长度 (µm)
         Length1E: float = 0.6,  # 第一部分波导结束长度 (µm)
         Length2E: float = 0.7,  # 第二部分波导结束长度 (µm)
-        Period: float = 100,  # 周期数
+        NumPeriod: float = 100,  # 周期数
         IsSG: bool = False,  # 是否使用渐变长度
         IsHeat: bool = False,  # 是否包含加热器
         oplayer: LayerSpec = LAYER.WG,
@@ -58,10 +60,10 @@ def DBR(
     c = gf.Component()
     if IsSG:
         # 渐变长度模式
-        deltap1 = (Length1E - Length1) / (Period - 1)  # 第一部分长度增量 (µm)
-        deltap2 = (Length2E - Length2) / (Period - 1)  # 第二部分长度增量 (µm)
+        deltap1 = (Length1E - Length1) / (NumPeriod - 1)  # 第一部分长度增量 (µm)
+        deltap2 = (Length2E - Length2) / (NumPeriod - 1)  # 第二部分长度增量 (µm)
         XBegin = 0  # 起始位置 (µm)
-        for i in range(Period):
+        for i in range(NumPeriod):
             r1 = c << GfCStraight(length=Length1 + i * deltap1, width=Width1, layer=oplayer)
             r2 = c << GfCStraight(length=Length2 + i * deltap2, width=Width2, layer=oplayer)
             r1.movex(XBegin)
@@ -69,7 +71,7 @@ def DBR(
             XBegin += Length1 + i * deltap1 + Length2 + i * deltap2
             if i == 0:  # 第一个周期
                 c.add_port(name="o1", port=r1.ports["o1"], orientation=180)
-            elif i == Period - 1:  # 最后一个周期
+            elif i == NumPeriod - 1:  # 最后一个周期
                 c.add_port(name="o2", port=r2.ports["o2"], orientation=0)
     else:
         # 固定长度模式
@@ -79,9 +81,9 @@ def DBR(
         r2.connect(port="o1", other=r1.ports["o2"], allow_width_mismatch=True)
         op.add_port("o1", port=r1.ports["o1"])
         op.add_port("o2", port=r2.ports["o2"])
-        c.add_array(op, columns=Period, rows=1, spacing=(Length2 + Length1, 100))
+        c.add_array(op, columns=NumPeriod, rows=1, spacing=(Length2 + Length1, 100))
         c.add_port(name="o1", port=r1.ports["o1"])
-        c.add_port(name="o2", port=r2.ports["o2"], center=[(Length1 + Length2) * Period, 0])
+        c.add_port(name="o2", port=r2.ports["o2"], center=[(Length1 + Length2) * NumPeriod, 0])
 
     if IsHeat:
         # 添加加热器
@@ -572,5 +574,86 @@ def EstrDBRFromCsvOffset(
     # --- 5. 完成 ---
     c.flatten()
     return c
+# %% EDBR structure Repeat
+@gf.cell()
+def EDBRStrRep(
+        Structure:Component = None,
+        WidthMidWG: float = 0.8,
+        WidthSide:float = 0.2,
+        GapMidSide: float = 0.2,
+        DutyCycle: float = 0.35,  # 占空比
+        NumPeriod: int = 100,
+        LengthPeriod: float = 1.1,
+        WidthHeat: float = 4,  # 加热器宽度 (µm)
+        WidthRoute: float = 10,  # 加热器路由宽度 (µm)
+        Offset: float = 0.5,
+        IsHeat: bool = False,  # 是否包含加热器
+        oplayer: LayerSpec = LAYER.WG,
+        heatlayer: LayerSpec = LAYER.M1,
+        routelayer: LayerSpec = LAYER.M2,
+        vialayer: LayerSpec = LAYER.VIA,
+        UseParallel: bool = True
+)->Component:
+    c = gf.Component()
+    if Structure is not None:
+        ybbox = Structure.bbox_np()
+        xmin = ybbox[0][0]
+        xmax = ybbox[1][0]
+        LengthPeriod = xmax - xmin
+        for i in range(NumPeriod):
+            structi = c << Structure
+            structi.movex(LengthPeriod * i)
+            if i == 0:
+                c.add_port('o1',port=structi.ports['o1'])
+            if i == NumPeriod-1:
+                c.add_port('o2', port=structi.ports['o2'])
+    else:
+        Structure = gf.Component()
+        Cmid = gf.Section(width=WidthMidWG,layer=oplayer,port_names=('o1','o2'))
+        Cu = gf.Section(width=WidthSide+Offset,layer=oplayer,port_names=('o1u','o2u'),offset=GapMidSide)
+        Cd = gf.Section(width=WidthSide+Offset,layer=oplayer,port_names=('o1d','o2d'),offset=-GapMidSide)
+        X1 = gf.CrossSection(sections=(Cmid,))
+        X2 = gf.CrossSection(sections=(Cmid,Cd,Cu))
+        p1 = gf.path.straight(length=LengthPeriod*(1-DutyCycle))
+        p2 = gf.path.straight(length=LengthPeriod*DutyCycle)
+        S1 = Structure << gf.path.extrude(p1,cross_section=X1)
+        S2 = Structure << gf.path.extrude(p2,cross_section=X2)
+        S2.connect('o1',S1.ports['o2'])
+        Structure.add_port('o1',port=S1.ports['o1'])
+        Structure.add_port('o2',port=S2.ports['o2'])
+        for i in range(NumPeriod):
+            structi = c << Structure
+            structi.movex(LengthPeriod *i)
+            if i == 0:
+                c.add_port('o1',port=structi.ports['o1'])
+            if i == NumPeriod-1:
+                c.add_port('o2', port=structi.ports['o2'])
+    if IsHeat:
+        # 添加主加热条
+        total_length = NumPeriod*LengthPeriod
+        y_heat_half = WidthHeat / 2
+        c.add_polygon(
+            [(0, -y_heat_half), (total_length, -y_heat_half), (total_length, y_heat_half), (0, y_heat_half)],
+            layer=heatlayer,
+        )
+
+        # 添加加热器的Taper引出线
+        taper_len = (WidthRoute - WidthHeat) / 2
+        if taper_len > 1e-9:  # 仅在需要taper时添加
+            heater_port1 = gf.Port('h_p1', center=(0, 0), width=WidthHeat, orientation=180, layer=heatlayer)
+            heater_port2 = gf.Port('h_p2', center=(total_length, 0), width=WidthHeat, orientation=0, layer=heatlayer)
+
+            taper = gf.c.taper(width1=WidthHeat, width2=WidthRoute, length=taper_len, layer=heatlayer)
+            ht1 = c << taper
+            ht2 = c << taper
+
+            ht1.connect("o1", heater_port1)
+            ht2.connect("o1", heater_port2)
+            c.add_port(name="h1", port=ht1.ports["o2"])
+            c.add_port(name="h2", port=ht2.ports["o2"])
+        else:  # 如果宽度相同或更小，则直接添加端口
+            c.add_port(name="h1", center=(0, 0), width=WidthHeat, orientation=180, layer=routelayer)
+            c.add_port(name="h2", center=(total_length, 0), width=WidthHeat, orientation=0, layer=routelayer)
+    return c
 # %% 导出所有函数
-__all__ = ['DBR', 'DBRFromCsv', 'DBRFromCsvOffset','SGDBRFromCsvOffset','EstrDBRFromCsvOffset']
+__all__ = ['DBR', 'DBRFromCsv', 'DBRFromCsvOffset','SGDBRFromCsvOffset','EstrDBRFromCsvOffset','EDBRStrRep']
