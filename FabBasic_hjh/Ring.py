@@ -761,11 +761,11 @@ def RingPulleyT2(
     # 添加光学端口
     c.add_port(name="Input", port=upcouple_comp2.ports["o2"])
     c.add_port(name="Through", port=upcouple_comp1.ports["o2"])
-    c.add_port(name="RingL", port=ring_comp.ports["o1"], center=[-RadiusRing, RadiusRing], orientation=90)
-    c.add_port(name="RingR", port=ring_comp.ports["o1"], center=[RadiusRing, RadiusRing], orientation=90)
-    c.add_port(name="RingD", port=ring_comp.ports["o1"], orientation=0)
-    c.add_port(name="RingU", port=ring_comp.ports["o1"], center=[0, 2 * RadiusRing])
-    c.add_port(name="RingC", port=ring_comp.ports["o1"], center=[0, RadiusRing])
+    c.add_port(name="RingL", width=1, center=[-RadiusRing, RadiusRing], orientation=90,layer=oplayer)
+    c.add_port(name="RingR", width=1, center=[RadiusRing, RadiusRing], orientation=90,layer=oplayer)
+    c.add_port(name="RingD", width=1, center=[0, 0],orientation=0,layer=oplayer)
+    c.add_port(name="RingU", width=1, center=[0, 2 * RadiusRing],layer=oplayer)
+    c.add_port(name="RingC", width=1, center=[0, RadiusRing],layer=oplayer)
     # 添加加热电极
     if IsHeat:
         DifferentHeater_local(c, WidthHeat, WidthRing, DeltaHeat, GapHeat, RadiusRing, heatlayer, TypeHeater,
