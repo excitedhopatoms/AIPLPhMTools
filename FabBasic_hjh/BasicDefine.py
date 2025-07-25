@@ -25,7 +25,7 @@ class LayerMapUserDef(LayerMap):
     P2:Layer = (31 , 0)
     NONP2:Layer = (31 , 100)
     CPF:Layer = (130 , 0)# 氮化硅波导层
-    WG:Layer = (1,0)
+    WG:Layer = (1,1)
     CAA:Layer = (196 , 0)# 离子注入保护层
     TN:Layer = (24 , 0)
     TP:Layer = (15 , 0)
@@ -41,12 +41,12 @@ class LayerMapUserDef(LayerMap):
     V0:Layer = (219 , 0)
     CT:Layer = (50 , 0)
     DT:Layer = (51 , 0)
-    M1:Layer = (11 , 0)
+    M1:Layer = (3, 1)# 高频电极
     LM1:Layer = (125 , 0)
     SINEC:Layer = (89 , 100)
     V1:Layer = (70 , 0)
     VIA:Layer=(70,0)
-    M2:Layer = (62 , 0)
+    M2:Layer = (4 , 1) # 加热电极
     TSW:Layer = (159 , 100)
     V2:Layer = (71 , 0)
     M6:Layer = (66 , 0)
@@ -57,7 +57,7 @@ class LayerMapUserDef(LayerMap):
     PA:Layer = (80 , 0)
     DO1:Layer = (55 , 100)
     HVO:Layer = (111 , 0)
-    OPEN:Layer = (80 , 0)
+    OPEN:Layer = (5 , 1)
     DUMBA:Layer = (120,0)
     DUMBN:Layer = (130,2)
     DUMBM:Layer = (121,0)
