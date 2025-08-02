@@ -429,11 +429,11 @@ def SagnacRing(
     bendpath_ring2out = euler_Bend_Half(angle=AngleIn, radius=RadiusBend, p=1, use_eff=False)
     bend_ring2out = c << gf.path.extrude(bendpath_ring2out, width=WidthIn, layer=oplayer)
     bend_ring2out.connect("o1", other=PC.ports["in1"],mirror=True)
-    gf.routing.route_single(c,bend_ring2coup.ports["o2"], taper_coup2ring.ports["o2"], route_width=WidthIn,radius=150,
+    gf.routing.route_single(c,bend_ring2coup.ports["o2"], taper_coup2ring.ports["o2"], route_width=WidthIn,radius=RadiusBend*1.5,
                                       layer=oplayer)
     # for route in routering:
     #     c.add(route.references)
-    bend = c << GfCBendEuler(angle=90, width=WidthIn, layer=oplayer, radius=RadiusBend, with_arc_floorplan=False, p=1)
+    bend = c << GfCBendEuler(angle=90, width=WidthIn, layer=oplayer, radius=RadiusBend, p=1,with_arc_floorplan=False)
     bend.connect("o1", bend_ring2out.ports["o2"],mirror=True)
     if IsTaperIn:
         taper_in = c << gf.c.taper(width1=WidthSingle, width2=WidthOut, length=LengthTaper, layer=oplayer)
