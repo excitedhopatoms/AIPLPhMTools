@@ -146,11 +146,14 @@ def DifferentHeater(
     elif TypeHeater == "side":
         # 侧边加热电极
         section1 = gf.Section(width=WidthHeat, offset=DeltaHeat, layer=heatlayer, port_names=("Uo1", "Uo2"))
-        section2 = gf.Section(width=WidthHeat, offset=-DeltaHeat, layer=heatlayer, port_names=("Do1", "Do2"))
-        CrossSection = gf.CrossSection(sections=[section1])
+        section2 = gf.Section(width=0.01, offset=0, layer=vialayer, port_names=("o1", "o2"))
+        CrossSection = gf.CrossSection(sections=(section1,section2))
         HPart = h << gf.path.extrude(PathHeat, cross_section=CrossSection)  # 创建左侧加热电极
-        h.add_port(name="HeatIn", port=HPart.ports["Uo1"])  # 添加加热输入端口
-        h.add_port(name="HeatOut", port=HPart.ports["Uo2"])  # 添加加热输出端口
+        h.add_port(name="HeatIn", port=HPart.ports["o1"])  # 添加加热输入端口
+        h.add_port(name="HeatOut", port=HPart.ports["o2"])  # 添加加热输出端口
+        h.add_port(name="HeatSIn", port=HPart.ports["Uo1"])  # 添加加热输入端口
+        h.add_port(name="HeatSOut", port=HPart.ports["Uo2"])  # 添加加热输出端口
+        h.remove_layers(layers=[vialayer,])
     elif TypeHeater == "bothside":
         DeltaHeat = abs(DeltaHeat)
         # 两侧边加热电极
@@ -162,9 +165,9 @@ def DifferentHeater(
         h.add_port(name="HeatLOut", port=HPart.ports["Uo2"])  # 添加加热输出端口
         h.add_port(name="HeatRIn", port=HPart.ports["Do1"])  # 添加加热输入端口
         h.add_port(name="HeatROut", port=HPart.ports["Do2"])  # 添加加热输出端口
-        h.add_port(name="HeatIn", port=HPart.ports["o1"],
+        h.add_port(name="HeatIn", width=WidthWG, layer=heatlayer,
                    center=np.array(h.ports["HeatLIn"].center) / 2 + np.array(h.ports["HeatRIn"].center / 2))  # 添加加热输入端口
-        h.add_port(name="HeatOut", port=HPart.ports["o2"],
+        h.add_port(name="HeatOut", width=WidthWG, layer=heatlayer,
                    center=np.array(h.ports["HeatLOut"].center) / 2 + np.array(h.ports["HeatROut"].center / 2))  # 添加加热输出端口
     elif TypeHeater == "spilt":
         # section and crosssection
