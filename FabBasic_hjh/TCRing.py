@@ -1199,6 +1199,7 @@ def TCRingT2(
         position_taper: str = "before_bend",  # 控制锥形波导的位置
         type_heater: str = "default",  # 控制加热器类型
         type_busheaeter: str = "none",
+        direction_heater: str = "up",
 ) -> Component:
     """
     创建一个环形波导组件，支持通过 position_taper 参数控制锥形波导的位置，并通过 type_heater 参数控制加热器类型。
@@ -1244,7 +1245,7 @@ def TCRingT2(
     ring0 = ring << RingPulleyT2(
         WidthRing=width_ring, WidthNear=width_near, WidthHeat=width_heat, GapRing=gap_rc, GapHeat=gap_heat,
         RadiusRing=r_ring, AngleCouple=angle_rc,DeltaHeat=delta_heat,
-        IsHeat=is_heat, oplayer=oplayer, heatlayer=heatlayer, TypeHeater=type_heater
+        IsHeat=is_heat, oplayer=oplayer, heatlayer=heatlayer, TypeHeater=type_heater,DirectionHeater=direction_heater,
     )
     taper_s2n1 = ring << gf.c.taper(width1=width_single, width2=width_near, length=length_taper, layer=oplayer)
     taper_s2n1.connect("o2", ring0.ports["Input"])
