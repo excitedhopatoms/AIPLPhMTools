@@ -376,7 +376,7 @@ def ExtCavDouRing(
         ec_ref.add_port("o1", port=str_input[0].ports["o2"])
         ec_ref.add_port("o2", port=str_input[1].ports["o2"])
     if (type_busheater != "None") and (type_busheater != "none"):
-        inputh.connect("HeatIn", ec_ref.ports["o1"], allow_width_mismatch=True, allow_layer_mismatch=True,
+        inputh.connect("HeatIn", str_input[1].ports["o1"], allow_width_mismatch=True, allow_layer_mismatch=True,
                        allow_type_mismatch=True)
         inputh.mirror_x(inputh.ports["HeatIn"].center[0])
     # add drop
