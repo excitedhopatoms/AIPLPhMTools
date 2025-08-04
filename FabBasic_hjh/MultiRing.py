@@ -501,6 +501,7 @@ def CoupleRingDRT1(
         TypeR2R: str = "strsight",
         DirectionsHeater: [str] = ["up", "down"],
         Name: str = "Ring_Pulley",
+        IsAD: bool = False,
         oplayer: LayerSpec = LAYER.WG,
         heatlayer: LayerSpec = LAYER.M1,
         routelayer: LayerSpec = LAYER.M2,
@@ -565,12 +566,14 @@ def CoupleRingDRT1(
     ring2.move(ring1.ports['RingC'].center)
     ring2.move((0, -(RadiusRing1 + RadiusRing2 + WidthRing1 / 2 + WidthRing2 / 2 + GapRR)))
     ring2.rotate(AngleR12, ring1.ports['RingC'].center)
-    str_ring2_1 = c << GfCStraight(width=WidthNear2, length=LengthNear2 / 2, layer=oplayer)
-    str_ring2_1.move(ring2.ports["RingC"].center)
-    str_ring2_1.move((0, -WidthRing2 / 2 - WidthNear2 / 2 - RadiusRing2 - GapRB2))
-    str_ring2_2 = c << GfCStraight(width=WidthNear2, length=LengthNear2 / 2, layer=oplayer)
-    str_ring2_2.connect('o2', str_ring2_1.ports['o1'])
-
+    if IsAD:
+        str_ring2_1 = c << GfCStraight(width=WidthNear2, length=LengthNear2 / 2, layer=oplayer)
+        str_ring2_1.move(ring2.ports["RingC"].center)
+        str_ring2_1.move((0, -WidthRing2 / 2 - WidthNear2 / 2 - RadiusRing2 - GapRB2))
+        str_ring2_2 = c << GfCStraight(width=WidthNear2, length=LengthNear2 / 2, layer=oplayer)
+        str_ring2_2.connect('o2', str_ring2_1.ports['o1'])
+        c.add_port(name="Add", port=str_ring2_2.ports["o1"])
+        c.add_port(name="Drop", port=str_ring2_1.ports["o2"])
     ring2_hc = RingPulleyT1(
         WidthRing=WidthRing2, WidthNear=WidthNear2, WidthHeat=WidthHeat2,
         RadiusRing=RadiusRing2, GapRing=GapRB2, GapHeat=GapHeat2, DeltaHeat=DeltaHeat2,
@@ -586,8 +589,6 @@ def CoupleRingDRT1(
     # c.add_port(name="R1Drop", port=ring1.ports["Drop"])
     c.add_port(name="Input", port=ring1.ports["Input"])
     c.add_port(name="Through", port=ring1.ports["Through"])
-    c.add_port(name="Add", port=str_ring2_2.ports["o1"])
-    c.add_port(name="Drop", port=str_ring2_1.ports["o2"])
     c.add_port(name="Ring1C", port=ring1.ports["RingC"])
     c.add_port(name="Ring2C", port=ring2.ports["RingC"])
     # c.add_port(name="R2Input", port=ring2.ports["Input"])
@@ -595,10 +596,10 @@ def CoupleRingDRT1(
 
     if IsHeat:
         for port in ring1.ports:
-            if "Heat" in port:
+            if "Heat" in port.name:
                 c.add_port(name="R1" + port.name, port=port)
         for port in ring2h.ports:
-            if "Heat" in port:
+            if "Heat" in port.name:
                 c.add_port(name="R2" + port.name, port=port)
     # add_labels_to_ports(c,label_layer=(412,8))
     c.flatten()
