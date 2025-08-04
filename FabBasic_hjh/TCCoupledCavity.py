@@ -585,7 +585,7 @@ def TCCoupleDouRingT1(
         AngleCouple1=angle_rc1,
         RadiusRing2=r_ring2, WidthRing2=width_ring2, WidthNear2=width_near2, WidthHeat2=width_heat2, GapRB2=gap_rc2,
         DeltaHeat2=delta_heat2, LengthNear2=length_near2,
-        GapRR=gap_rr, AngleR12=angle_rr,
+        GapRR=gap_rr, AngleR12=angle_rr,IsAD=is_ad,
         TypeHeaterR1=type_heater1, TypeHeaterR2=type_heater2, GapHeat1=gap_heat1,
         IsHeat=is_heat, oplayer=oplayer, heatlayer=heatlayer, DirectionsHeater=['down', 'down']
     )
@@ -673,7 +673,7 @@ def TCCoupleDouRingT1(
             ring.add_port(port.name, port=port)
         if "Drop" in port.name:
             ring.add_port(port.name, port=port)
-    # add_labels_to_ports(ring,(412,8))
+    add_labels_to_ports(ring,(512,8))
     CCRing = sr << ring
 
     ## input
