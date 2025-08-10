@@ -42,7 +42,8 @@ package: Gdsfactory-v9 joblib
     - `"spilt"`：分裂型加热器，支持复杂电学连接。  
 - **底层工具**：  
   - `SnakeHeater`：蛇形加热器核心实现。  
-  - `ViaArray`：生成过孔阵列，实现金属层电学连接。  
+  - `ViaArray`：生成过孔阵列，实现金属层电学连接。
+  - `ViaArrayParallel`：优化的并行生成过孔阵列，实现金属层电学连接。
 
 #### 3. ELE.py  
 定义射频（RF）/直流（DC）测试的电极结构。  
