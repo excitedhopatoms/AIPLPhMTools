@@ -130,7 +130,7 @@ def RaceTrackP(
                                          DeltaHeat=DeltaHeat, GapHeat=GapHeat,
                                heatlayer=heatlayer,routelayer=routelayer,vialayer=vialayer,TypeHeater=TypeHeater)
         RHP2 = heater << DifferentHeater(PathHeat=HeatPath2, WidthHeat=WidthHeat, WidthRoute=WidthRoute, WidthWG=WidthRing,
-                                         DeltaHeat=DeltaHeat, GapHeat=GapHeat,
+                                         DeltaHeat=-DeltaHeat, GapHeat=GapHeat,
                                heatlayer=heatlayer, routelayer=routelayer, vialayer=vialayer, TypeHeater=TypeHeater)
         RHP3 = heater << DifferentHeater(PathHeat=HeatPath3, WidthHeat=WidthHeat, WidthRoute=WidthRoute, WidthWG=WidthRing,
                                          DeltaHeat=DeltaHeat, GapHeat=GapHeat,
@@ -151,7 +151,8 @@ def RaceTrackP(
         h.connect("HeatBmid1",c.ports["RingBmid1"],allow_width_mismatch=True,allow_layer_mismatch=True)
         # h.mirror_x(h.ports["HeatBmid1"].center[0])
         if TypeHeater == "side":
-            h.movey(-DeltaHeat)
+            heater.add_port("HeatSIn", port=RHP3.ports["HeatSIn"])
+            heater.add_port("HeatSOut", port=RHP1.ports["HeatSOut"])
         for port in h.ports:
             c.add_port(port.name, port=port)
     return c

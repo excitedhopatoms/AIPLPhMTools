@@ -23,7 +23,8 @@ def snap_polygon_vertices(polygon_points: np.ndarray, grid_size: float):
 
 def snap_all_polygons_iteratively(
         component_in: ComponentSpec,
-        grid_size: float = 0.001,
+        grid_size: float = 0.00001,
+        Flag: bool = False,
 ) -> Component:
     """
     Snaps all polygons in a component to the grid by iterating through
@@ -41,108 +42,110 @@ def snap_all_polygons_iteratively(
         and label positions snapped to the grid. Returns an empty component
         with a modified name if flattening fails.
     """
-    # 获取 Component 对象
-    c_in_orig = gf.get_component(component_in)
+    if Flag:
+        # 获取 Component 对象
+        c_in_orig = gf.get_component(component_in)
 
-    if c_in_orig is None:
-        print(f"错误: 输入 '{component_in}' 无法解析为有效组件。将返回一个空组件。")
-        # 尝试生成一个基于输入（如果它是字符串）的名称，否则使用默认名称
-        base_name = str(component_in) if isinstance(component_in, str) else "invalid_input"
-        safe_base_name = "".join(
-            char if char.isalnum() or char in ['_', '-'] else '_' for char in base_name
+        if c_in_orig is None:
+            print(f"错误: 输入 '{component_in}' 无法解析为有效组件。将返回一个空组件。")
+            # 尝试生成一个基于输入（如果它是字符串）的名称，否则使用默认名称
+            base_name = str(component_in) if isinstance(component_in, str) else "invalid_input"
+            safe_base_name = "".join(
+                char if char.isalnum() or char in ['_', '-'] else '_' for char in base_name
+            )
+            return gf.Component(name=f"{safe_base_name}_snap_failed_no_input_component")
+
+        # 1. 扁平化组件以访问顶层所有多边形
+        # flatten() 返回一个新的扁平化组件，原始组件不受影响
+        c_in_orig.flatten()
+        c_flat = c_in_orig
+        # 检查 flatten() 是否返回了 None
+        if c_flat is None:
+            print(f"错误: 组件 '{c_in_orig.name}' 的 flatten() 操作返回了 None。将返回一个空组件。")
+            # 为输出组件创建一个描述性的名称，即使 c_flat 为 None
+            safe_original_name_fallback = "".join(
+                char if char.isalnum() or char in ['_', '-'] else '_' for char in c_in_orig.name
+            )
+            return gf.Component(name=f"{safe_original_name_fallback}_iter_snapped_flatten_returned_none")
+
+        # 为输出组件创建一个描述性的名称
+        # 此时 c_flat 不应该是 None，所以 c_flat.name 应该是可访问的
+        safe_original_name = "".join(
+            char if char.isalnum() or char in ['_', '-'] else '_' for char in c_flat.name
         )
-        return gf.Component(name=f"{safe_base_name}_snap_failed_no_input_component")
+        component_out = gf.Component(name=f"{safe_original_name}_iter_snapped")
 
-    # 1. 扁平化组件以访问顶层所有多边形
-    # flatten() 返回一个新的扁平化组件，原始组件不受影响
-    c_in_orig.flatten()
-    c_flat = c_in_orig
-    # 检查 flatten() 是否返回了 None
-    if c_flat is None:
-        print(f"错误: 组件 '{c_in_orig.name}' 的 flatten() 操作返回了 None。将返回一个空组件。")
-        # 为输出组件创建一个描述性的名称，即使 c_flat 为 None
-        safe_original_name_fallback = "".join(
-            char if char.isalnum() or char in ['_', '-'] else '_' for char in c_in_orig.name
-        )
-        return gf.Component(name=f"{safe_original_name_fallback}_iter_snapped_flatten_returned_none")
+        # 2. 获取扁平化组件中的所有图层
+        active_layers: LayerSpecs = c_flat.layers
 
-    # 为输出组件创建一个描述性的名称
-    # 此时 c_flat 不应该是 None，所以 c_flat.name 应该是可访问的
-    safe_original_name = "".join(
-        char if char.isalnum() or char in ['_', '-'] else '_' for char in c_flat.name
-    )
-    component_out = gf.Component(name=f"{safe_original_name}_iter_snapped")
+        if not active_layers:
+            # gf.logger.warning(f"组件 '{c_flat.name}' 中没有带多边形的图层可处理。")
+            print(f"警告: 组件 '{c_flat.name}' 中没有带多边形的图层可处理。")
+            # 即使没有多边形，仍然处理端口和标签
+        c_sized = gf.Component(name=f"{safe_original_name}_iter_snapped_sized")
+        c_sized1 = gf.Component(name=f"{safe_original_name}_iter_snapped_sized1")
+        c_sized2 = gf.Component(name=f"{safe_original_name}_iter_snapped_sized2")
+        # 3. 遍历每一个图层,对所有图层都扩大一点点，然后进行合并
+        for layer_spec in active_layers:
+            c_in_sized_from_layer = c_in_orig.get_region(layer_spec)
+            c_in_sized_from_layer = c_in_sized_from_layer.size(-30)
+            c_sized.add_polygon(c_in_sized_from_layer,layer=layer_spec)
+        c_sized = merge_polygons_in_each_layer(c_sized)
+        c_sized.flatten()
+        for layer_spec in active_layers:
+            c_in_sized_from_layer = c_sized.get_region(layer_spec)
+            c_in_sized_from_layer = c_in_sized_from_layer.size(60)
+            c_sized1.add_polygon(c_in_sized_from_layer,layer=layer_spec)
+        c_sized1 = merge_polygons_in_each_layer(c_sized1)
+        c_sized1.flatten()
+        for layer_spec in active_layers:
+            c_in_sized_from_layer = c_sized1.get_region(layer_spec)
+            c_in_sized_from_layer = c_in_sized_from_layer.size(-30)
+            c_sized2.add_polygon(c_in_sized_from_layer,layer=layer_spec)
+        c_sized2 = merge_polygons_in_each_layer(c_sized2)
+        c_sized2.flatten()
+        # 4. 遍历每一个图层,对所有图层都snap到格点上
+        for layer_spec in active_layers:
+            # 获取当前图层上的所有多边形
+            polygons_on_layer = c_sized2.get_polygons_points(merge=True,by="tuple",layers=[layer_spec])
 
-    # 2. 获取扁平化组件中的所有图层
-    active_layers: LayerSpecs = c_flat.layers
+            if polygons_on_layer:
+                # 遍历该图层上的每一个多边形
+                for single_polygon_points in polygons_on_layer[layer_spec]:
+                    snapped_polygon_points = snap_polygon_vertices(
+                        single_polygon_points, grid_size
+                    )
+                    component_out.add_polygon(snapped_polygon_points, layer=layer_spec)
 
-    if not active_layers:
-        # gf.logger.warning(f"组件 '{c_flat.name}' 中没有带多边形的图层可处理。")
-        print(f"警告: 组件 '{c_flat.name}' 中没有带多边形的图层可处理。")
-        # 即使没有多边形，仍然处理端口和标签
-    c_sized = gf.Component(name=f"{safe_original_name}_iter_snapped_sized")
-    c_sized1 = gf.Component(name=f"{safe_original_name}_iter_snapped_sized1")
-    c_sized2 = gf.Component(name=f"{safe_original_name}_iter_snapped_sized2")
-    # 3. 遍历每一个图层,对所有图层都扩大一点点，然后进行合并
-    for layer_spec in active_layers:
-        c_in_sized_from_layer = c_in_orig.get_region(layer_spec)
-        c_in_sized_from_layer = c_in_sized_from_layer.size(-30)
-        c_sized.add_polygon(c_in_sized_from_layer,layer=layer_spec)
-    c_sized = merge_polygons_in_each_layer(c_sized)
-    c_sized.flatten()
-    for layer_spec in active_layers:
-        c_in_sized_from_layer = c_sized.get_region(layer_spec)
-        c_in_sized_from_layer = c_in_sized_from_layer.size(60)
-        c_sized1.add_polygon(c_in_sized_from_layer,layer=layer_spec)
-    c_sized1 = merge_polygons_in_each_layer(c_sized1)
-    c_sized1.flatten()
-    for layer_spec in active_layers:
-        c_in_sized_from_layer = c_sized1.get_region(layer_spec)
-        c_in_sized_from_layer = c_in_sized_from_layer.size(-30)
-        c_sized2.add_polygon(c_in_sized_from_layer,layer=layer_spec)
-    c_sized2 = merge_polygons_in_each_layer(c_sized2)
-    c_sized2.flatten()
-    # 4. 遍历每一个图层,对所有图层都snap到格点上
-    for layer_spec in active_layers:
-        # 获取当前图层上的所有多边形
-        polygons_on_layer = c_sized2.get_polygons_points(merge=True,by="tuple",layers=[layer_spec])
+        # 处理端口：复制、对齐位置，并添加到新组件
+        for port in c_flat.ports:
+            new_port = port
+            snapped_center = snap_polygon_vertices(
+                np.array(new_port.center), grid_size
+            )
+            new_port.center = snapped_center
+            if abs(np.round(new_port.orientation/90)-new_port.orientation/90)<0.001:
+                new_port.orientation = np.round(new_port.orientation/90)*90
+            component_out.add_port(name=new_port.name, port=new_port)
 
-        if polygons_on_layer:
-            # 遍历该图层上的每一个多边形
-            for single_polygon_points in polygons_on_layer[layer_spec]:
-                snapped_polygon_points = snap_polygon_vertices(
-                    single_polygon_points, grid_size
-                )
-                component_out.add_polygon(snapped_polygon_points, layer=layer_spec)
+        # # 处理标签：复制、对齐位置，并添加到新组件
+        # for label_obj in c_flat.labels:
+        #     snapped_position = snap_polygon_vertices(
+        #         np.array(label_obj.origin), grid_size
+        #     ).tolist()
+        #     component_out.add_label(
+        #         text=label_obj.text,
+        #         position=snapped_position,
+        #         layer=label_obj.layer,
+        #         magnification=label_obj.magnification,
+        #         rotation=label_obj.rotation,
+        #         anchor=label_obj.anchor
+        #     )
 
-    # 处理端口：复制、对齐位置，并添加到新组件
-    for port in c_flat.ports:
-        new_port = port
-        snapped_center = snap_polygon_vertices(
-            np.array(new_port.center), grid_size
-        )
-        new_port.center = snapped_center
-        if abs(np.round(new_port.orientation/90)-new_port.orientation/90)<0.001:
-            new_port.orientation = np.round(new_port.orientation/90)*90
-        component_out.add_port(name=new_port.name, port=new_port)
-
-    # # 处理标签：复制、对齐位置，并添加到新组件
-    # for label_obj in c_flat.labels:
-    #     snapped_position = snap_polygon_vertices(
-    #         np.array(label_obj.origin), grid_size
-    #     ).tolist()
-    #     component_out.add_label(
-    #         text=label_obj.text,
-    #         position=snapped_position,
-    #         layer=label_obj.layer,
-    #         magnification=label_obj.magnification,
-    #         rotation=label_obj.rotation,
-    #         anchor=label_obj.anchor
-    #     )
-
-    # component_out.info.update(c_flat.info)
-
-    return component_out
+        # component_out.info.update(c_flat.info)
+        return component_out
+    else:
+        return gf.get_component(component_in)
 
 
 def merge_polygons_in_each_layer(

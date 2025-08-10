@@ -422,21 +422,19 @@ def SagnacRing(
     PC = c << PulleyCoupler2X2(WidthIn=WidthIn, WidthOut=WidthOut, AngleCouple=AngleCouple, RadiusIn=RadiusIn,
                                GapCoup=GapCoup, oplayer=oplayer, IsParallel=False, AngleIn=AngleIn)
     taper_coup2ring = c << gf.c.taper(width1=WidthOut, width2=WidthIn, length=LengthTaper, layer=oplayer)
-    taper_coup2ring.connect("o1", other=PC.ports["out2"])
+    taper_coup2ring.connect("o1", other=PC.ports["out2"],mirror=True)
     bendpath_ring2coup = euler_Bend_Half(angle=-AngleIn, radius=RadiusBend, p=1, use_eff=False)
     bend_ring2coup = c << gf.path.extrude(bendpath_ring2coup, width=WidthIn, layer=oplayer)
-    bend_ring2coup.connect("o1", other=PC.ports["out1"])
+    bend_ring2coup.connect("o1", other=PC.ports["out1"],mirror=True)
     bendpath_ring2out = euler_Bend_Half(angle=AngleIn, radius=RadiusBend, p=1, use_eff=False)
     bend_ring2out = c << gf.path.extrude(bendpath_ring2out, width=WidthIn, layer=oplayer)
-    bend_ring2out.connect("o1", other=PC.ports["in1"])
-    routering = gf.routing.get_bundle([bend_ring2coup.ports["o2"]], [taper_coup2ring.ports["o2"]], width=WidthIn,
-                                      layer=oplayer
-                                      , bend=GfCBendEuler(width=WidthIn, radius=RadiusBend, with_arc_floorplan=False,
-                                                          p=0.8), )
-    for route in routering:
-        c.add(route.references)
-    bend = c << GfCBendEuler(angle=90, width=WidthIn, layer=oplayer, radius=RadiusBend, with_arc_floorplan=False, p=1)
-    bend.connect("o1", bend_ring2out.ports["o2"])
+    bend_ring2out.connect("o1", other=PC.ports["in1"],mirror=True)
+    gf.routing.route_single(c,bend_ring2coup.ports["o2"], taper_coup2ring.ports["o2"], route_width=WidthIn,radius=RadiusBend*1.5,
+                                      layer=oplayer)
+    # for route in routering:
+    #     c.add(route.references)
+    bend = c << GfCBendEuler(angle=90, width=WidthIn, layer=oplayer, radius=RadiusBend, p=1,with_arc_floorplan=False)
+    bend.connect("o1", bend_ring2out.ports["o2"],mirror=True)
     if IsTaperIn:
         taper_in = c << gf.c.taper(width1=WidthSingle, width2=WidthOut, length=LengthTaper, layer=oplayer)
         taper_in.connect("o2", PC.ports["in2"])
@@ -446,6 +444,7 @@ def SagnacRing(
     c.add_port("output", port=bend.ports["o2"])
     c.add_port("o1", port=c.ports["input"])
     c.add_port("o2", port=bend.ports["o2"])
+    c.flatten()
     return c
 
 

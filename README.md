@@ -1,7 +1,7 @@
 
 # PKU-AIPL 光子器件设计代码库  
 version: Gdsfactory-v9, Tools-v1o  
-
+package: Gdsfactory-v9 joblib 
 
 ## 概述  
 本代码库是基于 gdsfactory 的光子集成电路（PIC）组件PDK（Process Design Kit）。

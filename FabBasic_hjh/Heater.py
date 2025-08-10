@@ -1,8 +1,10 @@
-from shapely.geometry import Polygon, box
-from shapely.ops import unary_union
 from .BasicDefine import *
 from .SnapMerge import *
-
+from shapely.ops import unary_union
+from shapely.affinity import translate
+import numpy as np
+from shapely.geometry import Polygon, MultiPoint, box
+from joblib import Parallel, delayed,cpu_count
 def SnakeHeater(
         WidthHeat: float = 8,
         WidthWG: float = 2,
@@ -144,11 +146,14 @@ def DifferentHeater(
     elif TypeHeater == "side":
         # 侧边加热电极
         section1 = gf.Section(width=WidthHeat, offset=DeltaHeat, layer=heatlayer, port_names=("Uo1", "Uo2"))
-        section2 = gf.Section(width=WidthHeat, offset=-DeltaHeat, layer=heatlayer, port_names=("Do1", "Do2"))
-        CrossSection = gf.CrossSection(sections=[section1])
+        section2 = gf.Section(width=0.01, offset=0, layer=vialayer, port_names=("o1", "o2"))
+        CrossSection = gf.CrossSection(sections=(section1,section2))
         HPart = h << gf.path.extrude(PathHeat, cross_section=CrossSection)  # 创建左侧加热电极
-        h.add_port(name="HeatIn", port=HPart.ports["Uo1"])  # 添加加热输入端口
-        h.add_port(name="HeatOut", port=HPart.ports["Uo2"])  # 添加加热输出端口
+        h.add_port(name="HeatIn", port=HPart.ports["o1"])  # 添加加热输入端口
+        h.add_port(name="HeatOut", port=HPart.ports["o2"])  # 添加加热输出端口
+        h.add_port(name="HeatSIn", port=HPart.ports["Uo1"])  # 添加加热输入端口
+        h.add_port(name="HeatSOut", port=HPart.ports["Uo2"])  # 添加加热输出端口
+        h.remove_layers(layers=[vialayer,])
     elif TypeHeater == "bothside":
         DeltaHeat = abs(DeltaHeat)
         # 两侧边加热电极
@@ -160,9 +165,9 @@ def DifferentHeater(
         h.add_port(name="HeatLOut", port=HPart.ports["Uo2"])  # 添加加热输出端口
         h.add_port(name="HeatRIn", port=HPart.ports["Do1"])  # 添加加热输入端口
         h.add_port(name="HeatROut", port=HPart.ports["Do2"])  # 添加加热输出端口
-        h.add_port(name="HeatIn", port=HPart.ports["o1"],
+        h.add_port(name="HeatIn", width=WidthWG, layer=heatlayer,
                    center=np.array(h.ports["HeatLIn"].center) / 2 + np.array(h.ports["HeatRIn"].center / 2))  # 添加加热输入端口
-        h.add_port(name="HeatOut", port=HPart.ports["o2"],
+        h.add_port(name="HeatOut", width=WidthWG, layer=heatlayer,
                    center=np.array(h.ports["HeatLOut"].center) / 2 + np.array(h.ports["HeatROut"].center / 2))  # 添加加热输出端口
     elif TypeHeater == "spilt":
         # section and crosssection
@@ -210,7 +215,7 @@ def DifferentHeater(
         )
     h.add_port(name="o1", port=h.ports["HeatIn"])  # 添加加热输入端口
     h.add_port(name="o2", port=h.ports["HeatOut"])  # 添加加热输入端口
-    h = snap_all_polygons_iteratively(h,grid_size=0.001)
+    # h = snap_all_polygons_iteratively(h)
     return h
 
 
@@ -260,7 +265,7 @@ def ViaArray(
     B.add_polygon(Br, layer=arraylayer)
     # B.show()
     # B.offset(layer=arraylayer,distance=-Enclosure)
-    b_polys = B.get_polygons_points(merge=True)
+    b_polys = B.get_polygons_points(by='tuple')
     for poly in b_polys[arraylayer]:
         # shape=Polygon(poly)
         # b_shapely = poly
@@ -291,5 +296,278 @@ def ViaArray(
                     via_ref.movey(y)
     return via_array
 
+# 并行优化版本的ViaArray
+@gf.cell
+def ViaArrayParallel(
+        CompEn: Component,
+        WidthVia: float = 0.5,
+        Spacing: float = 1.1,
+        Enclosure: float = 2,
+        arraylayer: LayerSpec = None,
+        vialayer: LayerSpec = LAYER.VIA,
+) -> Component:
+    """
+    在给定组件 (`CompEn`) 的指定图层 (`arraylayer`) 形成的区域内，
+    根据内缩值 (`Enclosure`)，高效地生成一个过孔阵列（并行优化版）。
 
-__all__ = ['SnakeHeater', 'ViaArray', 'DifferentHeater']
+    参数说明见原始文档。
+    """
+
+    via_array = gf.Component()
+    B = gf.Component()
+    Cw = gf.Section(width=WidthVia,layer=vialayer)
+    Xw = gf.CrossSection(sections=(Cw,))
+    via = gf.components.straight(length=WidthVia,cross_section=Xw)
+    viabox = via.bbox()
+
+    # ========== 关键优化1：预处理目标区域 ==========
+    B0 = CompEn.copy()
+    Br = B0.get_region(layer=arraylayer)
+    Br.size(-Enclosure * 1000)
+    B.add_polygon(Br, layer=arraylayer)
+    b_polys = B.get_polygons_points(by='tuple')
+
+    if arraylayer not in b_polys or not b_polys[arraylayer]:
+        return via_array
+
+
+    # 合并所有 polygon 为 shapely 区域
+    b_shapely = unary_union([Polygon(poly) for poly in b_polys[arraylayer]])
+    if b_shapely.is_empty:
+        return via_array
+
+    # 预生成单个 via 形状（基于 0 原点）
+    via_shape = box(viabox.left, viabox.bottom, viabox.right, viabox.top)
+
+    # 计算布孔区域边界 + 网格坐标
+    min_x, min_y, max_x, max_y = b_shapely.bounds
+    cols = int((max_x - min_x - WidthVia) // Spacing) + 5
+    rows = int((max_y - min_y - WidthVia) // Spacing) + 5
+    x_centers = min_x + WidthVia / 2 + Spacing * np.arange(cols)
+    y_centers = min_y + WidthVia / 2 + Spacing * np.arange(rows)
+
+    # 将 candidate 点转换为 numpy 坐标对
+    candidates = np.array(np.meshgrid(x_centers, y_centers)).reshape(2, -1).T
+
+    # 提取目标区域 bounding box，用于快速预筛
+    bminx, bminy, bmaxx, bmaxy = b_shapely.bounds
+
+    def is_inside_fast(x, y):
+        # 粗筛：如果完全在 bounding box 外，则跳过
+        if not (bminx <= x <= bmaxx and bminy <= y <= bmaxy):
+            return None
+        # 精筛：实际形状是否包含该 via
+        via_moved = translate(via_shape, xoff=x, yoff=y)
+        if b_shapely.contains(via_moved):
+            return (x, y)
+        return None
+
+    # 并行判断 + 筛选合法位置
+    # valid_coords = Parallel(n_jobs=-1, backend="threading")(
+    #     delayed(is_inside_fast)(x, y) for x, y in candidates
+    # )
+    # valid_coords = [c for c in valid_coords if c is not None]
+    # =================== 优化后的批处理并行计算 ===================
+
+    # 1. 定义一个处理“一批”候选点的函数
+    def process_batch(candidate_batch, b_shapely, via_shape):
+        """
+        处理一个批次的候选点，返回该批次中所有有效的坐标。
+        这个函数将在并行进程中执行。
+        """
+        # 预提取目标区域的边界，避免在循环中重复调用
+        bminx, bminy, bmaxx, bmaxy = b_shapely.bounds
+
+        # 预提取 via 形状的相对边界
+        via_b_left, via_b_bottom, via_b_right, via_b_top = via_shape.bounds
+
+        valid_coords_in_batch = []
+        for x, y in candidate_batch:
+            # 2. 快速边界框预筛选 (Coarse Bounding Box Check)
+            # 检查移动后的 via 的边界框是否完全在目标区域的边界框内部
+            # 这比原来的点检查更精确，能过滤掉更多无效情况
+            if not (
+                    x + via_b_left >= bminx and
+                    y + via_b_bottom >= bminy and
+                    x + via_b_right <= bmaxx and
+                    y + via_b_top <= bmaxy
+            ):
+                continue
+
+            # 3. 精确几何包含检查 (Precise Containment Check)
+            # 只有通过了快速筛选的点，才进行昂贵的几何操作
+            via_moved = translate(via_shape, xoff=x, yoff=y)
+            if b_shapely.contains(via_moved):
+                valid_coords_in_batch.append((x, y))
+
+        return valid_coords_in_batch
+
+    # 4. 准备批处理任务
+    # 动态计算一个合理的批大小。这个值可以根据机器性能和数据规模调整。
+    # 一个经验法则是让每个核心至少能分到几个任务。
+    num_cores = 6
+    batch_size = max(1, len(candidates) // (num_cores * 4))
+
+    # 将所有候选点分割成多个批次
+    candidate_batches = [
+        candidates[i:i + batch_size] for i in range(0, len(candidates), batch_size)
+    ]
+
+    # 5. 并行执行批处理任务
+    # backend='loky' 或 'multiprocessing' 通常比 'threading' 更适合CPU密集型任务
+    # 因为它可以绕开Python的全局解释器锁 (GIL)。
+    results = Parallel(n_jobs=num_cores, backend="loky")(
+        delayed(process_batch)(batch, b_shapely, via_shape) for batch in candidate_batches
+    )
+
+    # 6. 收集并合并所有结果
+    # results 将是一个列表的列表，例如 [[(x1,y1)], [(x2,y2), (x3,y3)], ...]
+    # 我们需要将其展平为一个单一的坐标列表
+    valid_coords = [coord for batch_result in results for coord in batch_result]
+
+    # =============================================================
+    # 插入 via
+    for x, y in valid_coords:
+        via_ref = via_array << via
+        via_ref.move((x, y))
+
+    return via_array
+
+@gf.cell
+def ViaArray_optimized(
+        CompEn: Component,
+        WidthVia: float = 0.5,
+        Spacing: float = 1.1,
+        Enclosure: float = 2.0,
+        arraylayer: LayerSpec = (1,0),
+        vialayer: LayerSpec = (2,0),
+) -> Component:
+    """
+    在给定组件 (`CompEn`) 的指定图层 (`arraylayer`) 形成的区域内，
+    根据内缩值 (`Enclosure`)，高效地生成一个过孔阵列（并行优化版）。
+
+    参数说明见原始文档。
+    """
+
+    via_array = gf.Component()
+    B = gf.Component()
+    Cw = gf.Section(width=WidthVia,layer=vialayer)
+    Xw = gf.CrossSection(sections=(Cw,))
+    via = gf.components.straight(length=WidthVia,cross_section=Xw)
+    viabox = via.bbox()
+
+    # ========== 关键优化1：预处理目标区域 ==========
+    B0 = CompEn.copy()
+    Br = B0.get_region(layer=arraylayer)
+    Br.size(-Enclosure * 1000)
+    B.add_polygon(Br, layer=arraylayer)
+    b_polys = B.get_polygons_points(by='tuple')
+
+    if arraylayer not in b_polys or not b_polys[arraylayer]:
+        return via_array
+
+
+    # 合并所有 polygon 为 shapely 区域
+    b_shapely = unary_union([Polygon(poly) for poly in b_polys[arraylayer]])
+    if b_shapely.is_empty:
+        return via_array
+
+    # 预生成单个 via 形状（基于 0 原点）
+    via_shape = box(viabox.left, viabox.bottom, viabox.right, viabox.top)
+
+    # 计算布孔区域边界 + 网格坐标
+    min_x, min_y, max_x, max_y = b_shapely.bounds
+    cols = int((max_x - min_x - WidthVia) // Spacing) + 5
+    rows = int((max_y - min_y - WidthVia) // Spacing) + 5
+    x_centers = min_x + WidthVia / 2 + Spacing * np.arange(cols)
+    y_centers = min_y + WidthVia / 2 + Spacing * np.arange(rows)
+
+    # 将 candidate 点转换为 numpy 坐标对
+    candidates = np.array(np.meshgrid(x_centers, y_centers)).reshape(2, -1).T
+
+    # 提取目标区域 bounding box，用于快速预筛
+    bminx, bminy, bmaxx, bmaxy = b_shapely.bounds
+
+    def is_inside_fast(x, y):
+        # 粗筛：如果完全在 bounding box 外，则跳过
+        if not (bminx <= x <= bmaxx and bminy <= y <= bmaxy):
+            return None
+        # 精筛：实际形状是否包含该 via
+        via_moved = translate(via_shape, xoff=x, yoff=y)
+        if b_shapely.contains(via_moved):
+            return (x, y)
+        return None
+
+    # =================== 优化方案：并行批处理 + 内部矢量化 (混合方案) ===================
+    # 确保你安装了最新版的 shapely: pip install shapely --upgrade
+
+    def process_batch_vectorized(candidate_batch, b_shapely, via_half_width):
+        """
+        一个并行的工作函数，它使用矢量化操作处理一个批次的候选点。
+
+        参数:
+        - candidate_batch: 一个Numpy数组，形状为 (N, 2)，包含 [x, y] 坐标。
+        - b_shapely: 目标区域的Shapely几何对象。
+        - via_half_width: 过孔宽度的一半。
+        """
+        # 如果收到的批次是空的，直接返回
+        if candidate_batch.shape[0] == 0:
+            return []
+
+        # 1. 矢量化创建几何对象 (仅针对当前批次)
+        # 对批次内的所有坐标点，一次性创建出对应的过孔方块(box)的几何对象。
+        # 这是内存开销最大的部分，但由于我们是按批处理，所以内存是可控的。
+        via_boxes_in_batch = [
+            box(x - via_half_width, y - via_half_width, x + via_half_width, y + via_half_width)
+            for x, y in candidate_batch
+        ]
+
+        # 2. 关键的矢量化判断
+        # 对当前批次的所有 via_boxes，进行一次性的、高效的“包含”判断。
+        # b_shapely.contains() 会返回一个布尔值的列表或数组。
+        contains_mask = b_shapely.contains(via_boxes_in_batch)
+
+        # 3. 使用布尔掩码过滤
+        # 从原始的坐标批次中，根据上面的判断结果，筛选出有效的坐标。
+        valid_coords_in_batch = candidate_batch[contains_mask]
+
+        # 以列表形式返回有效的坐标
+        return valid_coords_in_batch.tolist()
+
+    # -------------------- 在你的主函数中调用 --------------------
+
+    # a. 预先计算过孔的半宽，避免在循环中重复计算
+    via_half_width = WidthVia / 2.0
+
+    # b. 设定批处理参数 (与之前相同)
+    # 经验值：让每个核心至少能分到 8~16 个任务，以实现最佳负载均衡
+    num_cores = 6
+    batch_size = max(1, len(candidates) // (num_cores * 16))
+
+    # 将所有候选点分割成多个批次
+    # 确保 candidates 是一个 numpy array 以支持高级索引
+    candidates = np.array(candidates)
+    candidate_batches = [
+        candidates[i:i + batch_size] for i in range(0, len(candidates), batch_size)
+    ]
+
+    # c. 并行执行新的、内部矢量化的批处理任务
+    # backend='loky' 是最稳定和推荐的CPU密集型任务后端
+    results = Parallel(n_jobs=num_cores, backend="loky")(
+        delayed(process_batch_vectorized)(batch, b_shapely, via_half_width) for batch in candidate_batches
+    )
+
+    # d. 收集并合并所有结果
+    valid_coords = [coord for sublist in results for coord in sublist]
+
+    # =================================================================================
+
+    # 插入 via
+    for x, y in valid_coords:
+        via_ref = via_array << via
+        via_ref.move((x, y))
+
+    return via_array
+
+
+__all__ = ['SnakeHeater', 'ViaArray', 'DifferentHeater','ViaArrayParallel','ViaArray_optimized']

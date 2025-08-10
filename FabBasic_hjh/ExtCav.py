@@ -6,7 +6,7 @@ from .MultiRaceTrack import *
 
 # %% ExternalCavity:Proven design
 @gf.cell
-def ExternalCavitySOI(
+def ExtCavDouRingSOI(
         r_ring: float = 200,
         radius_delta: float = 4,
         width_ring: float = 1,
@@ -225,7 +225,7 @@ def ExternalCavitySOI(
 
 
 # %% ExternalCavitySiN1:Proven design for SiN+Heater
-def ExternalCavitySiN(
+def ExtCavDouRing(
         r_ring: float = 200,
         r_euler_false: float = 100,
         r_mzi: float = 100,
@@ -261,7 +261,6 @@ def ExternalCavitySiN(
         direction_rh: str = "down",
         oplayer: LayerSpec = LAYER.WG,
         heatlayer: LayerSpec = LAYER.M1,
-        trelayer: LayerSpec = LAYER.DT,
 ) -> Component:
     """
     为氮化硅（SiN）平台设计的外腔激光器核心组件。
@@ -316,11 +315,11 @@ def ExternalCavitySiN(
     str_cr1_1.connect("o1", other=coupler2x2.ports["Output1"])
     bend_cr1_1.connect("o1", other=str_cr1_1.ports["o2"])
     tapercoupler1 = ec_ref << gf.c.taper(width1=width_mzi_near, width2=width_near,
-                                         length=min(length_t_s2n, 300 * abs(width_mzi_near - width_near) + 1),
+                                         length=min(length_t_s2n, 500 * abs(width_mzi_near - width_near) + 1),
                                          layer=oplayer)
     tapercoupler1.connect("o1", other=bend_cr1_1.ports["o2"])
     tapercoupler2 = ec_ref << gf.c.taper(width1=width_mzi_ring, width2=width_near,
-                                         length=min(length_t_s2n, 300 * abs(width_mzi_ring - width_near) + 1),
+                                         length=min(length_t_s2n, 500 * abs(width_mzi_ring - width_near) + 1),
                                          layer=oplayer)
     bend_c2r_path = euler_Bend_Half(angle=-90, radius=r_mzi)
     bend_c2r = ec_ref << gf.path.extrude(bend_c2r_path, width=width_mzi_ring, layer=oplayer)
@@ -351,15 +350,203 @@ def ExternalCavitySiN(
     ## left
     str_input = list(range(30))
     bend_input = list(range(30))
-    str_input[0] = ec_ref << gf.c.taper(width1=width_mzi_near, width2=width_single, length=min(length_taper,abs(width_near-width_single)*200,50), layer=oplayer)
+    str_input[0] = ec_ref << gf.c.taper(width1=width_mzi_near, width2=width_single, length=min(length_taper,abs(width_near-width_single)*500,50), layer=oplayer)
     str_input[0].connect("o1", coupler2x2.ports["Input2"], mirror=True)
     ## right
     str_output = list(range(30))
     bend_output = list(range(30))
     path_bend_output = euler_Bend_Half(angle=-90, radius=r_mzi)
-    bend_output[0] = ec_ref << gf.path.extrude(path_bend_output, layer=oplayer, width=width_near)
+    bend_output[0] = ec_ref << gf.path.extrude(path_bend_output, layer=oplayer, width=width_mzi_ring)
     bend_output[0].connect("o1", coupler2x2.ports["Input1"])
-    str_output[0] = ec_ref << gf.c.taper(width1=width_near, width2=width_single, length=min(length_taper,abs(width_near-width_single)*200,50), layer=oplayer)
+    str_output[0] = ec_ref << gf.c.taper(width1=width_mzi_ring, width2=width_single, length=min(length_taper,abs(width_near-width_single)*500,50), layer=oplayer)
+    str_output[0].connect("o1", bend_output[0].ports["o2"])
+    # input heater
+    str_input[1] = ec_ref << GfCStraight(width=width_single, length=length_input, layer=oplayer)
+    path_input = gf.path.straight(length=length_input)
+    inputh = ec_ref << DifferentHeater(PathHeat=path_input, WidthHeat=width_heat, WidthWG=width_single,
+                                       DeltaHeat=delta_heat, GapHeat=gap_heat2 * length_input / length_bridge,
+                                       WidthRoute=20,
+                                       heatlayer=heatlayer, TypeHeater=type_busheater)
+    if direction_io == "LR":
+        str_input[1].connect("o1", str_input[0].ports["o2"])
+        ec_ref.add_port("o1", port=str_input[1].ports["o2"])
+        ec_ref.add_port("o2", port=str_output[0].ports["o2"])
+    elif direction_io == "RL":
+        str_input[1].connect("o1", str_output[0].ports["o2"])
+        ec_ref.add_port("o1", port=str_input[0].ports["o2"])
+        ec_ref.add_port("o2", port=str_input[1].ports["o2"])
+    if (type_busheater != "None") and (type_busheater != "none"):
+        inputh.connect("HeatIn", str_input[1].ports["o1"], allow_width_mismatch=True, allow_layer_mismatch=True,
+                       allow_type_mismatch=True)
+        inputh.mirror_x(inputh.ports["HeatIn"].center[0])
+    # add drop
+    ## optics
+
+    ec_ref.add_port("Ro1", port=doublering.ports["R1Through"])
+    ec_ref.add_port("Ro2", port=doublering.ports["R1Add"])
+    ec_ref.add_port("Ro3", port=doublering.ports["R2Through"])
+    ec_ref.add_port("Ro4", port=doublering.ports["R2Add"])
+    ## heat and optics
+    for port in doublering.ports:
+        if "Heat" in port.name:
+            ec_ref.add_port("Ring" + port.name, port=doublering.ports[port.name])
+    for port in coupler2x2.ports:
+        if "Heat" in port.name:
+            ec_ref.add_port("PMZI" + port.name, port=coupler2x2.ports[port.name])
+    for port in inputh.ports:
+        if "Heat" in port.name:
+            ec_ref.add_port("Bus" + port.name, port=inputh.ports[port.name])
+    # print(ec_ref.ports)
+    ## heat
+    # test2 = gf.Component()
+    # test2 << ec_ref
+    # test2 << ec_ref
+    # test2.show()
+    ec_ref = remove_layer(ec_ref, layer=(512, 8))
+    add_labels_to_ports(ec_ref)
+    return ec_ref
+
+
+def ExtCavTriRing(
+        r_ring: float = 200,
+        r_euler_false: float = 100,
+        r_mzi: float = 100,
+        r_r2r: float = None,
+        radius_delta: float = 4,
+        width_ring: float = 1,
+        width_mzi_ring: float = 2,
+        width_single: float = 1,
+        width_near: float = 0.91,
+        width_mzi_near: float = 1.2,
+        width_heat: float = 5,
+        delta_heat: float = 1,
+        angle_rc: float = 20,
+        angle_pmzi: float = 20,
+        angle_m2r: float = 45,
+        length_bend: float = 50,
+        length_t_s2n: float = 200,
+        length_taper: float = 200,
+        length_r2r: float = 700,
+        length_bridge: float = 300,
+        length_input: float = 230,
+        length_cr2: float = 20,
+        length_cr1: float = 1,
+        gap_rc: float = 0.3,
+        gap_mzi: float = 0.5,
+        gap_heat: float = 2,
+        gap_heat2: float = 75,
+        type_ringheater: str = "default",
+        type_mziheater: str = "default",
+        type_busheater: str = "default",
+        type_r2r: str = "straight",
+        direction_io: str = "LR",
+        direction_rh: str = "down",
+        oplayer: LayerSpec = LAYER.WG,
+        heatlayer: LayerSpec = LAYER.M1,
+        RadiusRing3:float=100,
+        GapRing3:float=1,
+        WidthNear3:float=1 ,
+        WidthRing3:float=1,
+        AngleCouple3:float=15
+) -> Component:
+    """
+    ExtCavTriRing
+    为氮化硅（SiN）平台设计的外腔激光器核心组件。
+    此设计集成了一个PMZI（基于Pulley耦合器的MZI）和带有加热器的双环谐振器。
+    组件参数允许对各个部分进行详细配置。
+
+    参数:
+        (各项参数含义请参考上面各子组件或类似组件的文档)
+        r_ring, r_euler_false, r_mzi, r_r2r, radius_delta: 半径相关参数 (µm)。
+        width_ring, width_mzi_ring, width_single, width_near, width_mzi_near, width_heat: 宽度相关参数 (µm)。
+        delta_heat: 加热器几何参数 (µm)。
+        angle_rc, angle_pmzi, angle_m2r: 角度相关参数 (度)。
+        length_bend, length_t_s2n, length_taper, length_r2r, length_bridge, length_input, length_cr2, length_cr1: 长度相关参数 (µm)。
+        gap_rc, gap_mzi, gap_heat, gap_heat2: 间隙相关参数 (µm)。
+        type_ringheater, type_mziheater, type_busheater: 不同部分加热器的类型。
+        type_r2r: 双环连接方式。
+        direction_io: 组件整体输入输出方向。
+        direction_rh: 环加热器的相对位置。
+        oplayer, heatlayer, trelayer: GDS图层定义。
+
+    返回:
+        Component: 生成的SiN外腔激光器核心组件。
+
+    端口:
+        o1, o2: 组件的主光学输入和输出端口。
+        Ro1, Ro2, Ro3, Ro4: 从双环引出的附加光学端口。
+        Ring1HeatIn, Ring1HeatOut, Ring2HeatIn, Ring2HeatOut: 双环加热器的电学端口。
+        PMZIHeatLIn, PMZIHeatLOut, PMZIHeatRIn, PMZIHeatROut: PMZI加热器的电学端口。
+        BusHeatLIn, BusHeatLOut, BusHeatRIn, BusHeatROut: 输入总线加热器的电学端口。
+        (实际端口名称可能因内部加热器组件的具体实现而略有不同)
+    """
+    ec_ref = gf.Component()
+    # section and cross section
+    S_near = gf.Section(width=width_near, offset=0, layer=oplayer, port_names=("o1", "o2"))
+    CS_near = gf.CrossSection(sections=(S_near,))
+    S_NM = gf.Section(width=width_mzi_near, layer=oplayer, port_names=("o1", "o2"))
+    S_N = gf.Section(width=width_near, layer=oplayer, port_names=("o1", "o2"))
+    X_NM = gf.CrossSection(sections=(S_NM,))
+    X_N = gf.CrossSection(sections=(S_N,))
+    # ring ref
+    coupler2x2 = ec_ref << PMZI(WidthNear=width_mzi_near, WidthRing=width_mzi_ring, Radius=r_mzi,
+                                AngleCouple=angle_pmzi, LengthTaper=length_taper, LengthBend=length_bend,
+                                LengthBridge=length_bridge,
+                                GapCoup=gap_mzi, IsHeat=True,
+                                oplayer=oplayer, heatlayer=heatlayer,
+                                WidthHeat=width_heat, GapHeat=gap_heat2, TypeHeater=type_mziheater, DeltaHeat=delta_heat
+                                )
+    # coupler2x2.mirror_y()
+    bend_cr1_1 = ec_ref << GfCBendEuler(radius=r_euler_false, angle=-angle_m2r, cross_section=X_NM)
+    bend_cr1_2 = ec_ref << GfCBendEuler(radius=r_euler_false, angle=angle_m2r, cross_section=X_N)
+    str_cr1_1 = ec_ref << GfCStraight(width=width_mzi_near, length=length_cr1, layer=oplayer)
+    str_cr1_1.connect("o1", other=coupler2x2.ports["Output1"])
+    bend_cr1_1.connect("o1", other=str_cr1_1.ports["o2"])
+    tapercoupler1 = ec_ref << gf.c.taper(width1=width_mzi_near, width2=width_near,
+                                         length=min(length_t_s2n, 500 * abs(width_mzi_near - width_near) + 1),
+                                         layer=oplayer)
+    tapercoupler1.connect("o1", other=bend_cr1_1.ports["o2"])
+    tapercoupler2 = ec_ref << gf.c.taper(width1=width_mzi_ring, width2=width_near,
+                                         length=min(length_t_s2n, 500 * abs(width_mzi_ring - width_near) + 1),
+                                         layer=oplayer)
+    bend_c2r_path = euler_Bend_Half(angle=-90, radius=r_mzi)
+    bend_c2r = ec_ref << gf.path.extrude(bend_c2r_path, width=width_mzi_ring, layer=oplayer)
+    bend_c2r.connect("o1", coupler2x2.ports["Output2"])
+    tapercoupler2.connect("o1", bend_c2r.ports["o2"])
+    ring_ref = TriRingPulley(
+        WidthRing=width_ring, WidthNear=width_near, WidthHeat=width_heat,
+        LengthR2R=length_r2r, DeltaRadius=-radius_delta,
+        RadiusRing=r_ring + radius_delta, GapRing=gap_rc, GapHeat=gap_heat, RadiusR2R=r_r2r,
+        AngleCouple=angle_rc,
+        oplayer=oplayer, heatlayer=heatlayer, IsHeat=True, TypeHeater=type_ringheater, DeltaHeat=delta_heat,
+        TypeR2R=type_r2r,DirectionsHeater=[direction_rh,direction_rh],RadiusRing3=RadiusRing3,WidthNear3=WidthNear3,WidthRing3=WidthRing3,AngleCouple3=AngleCouple3
+    )
+    doublering = ec_ref << ring_ref
+    doublering.connect("o1", tapercoupler2.ports["o2"])
+    doublering.movex(length_cr2)
+    str_cr2_1 = ec_ref << GfCStraight(width=width_near, length=length_cr2, layer=oplayer)
+    str_cr2_1.connect("o1", tapercoupler2.ports["o2"])
+    delta1 = np.array(bend_cr1_1.ports["o1"].center) - np.array(bend_cr1_1.ports["o2"].center)
+    delta2 = np.array(tapercoupler1.ports["o2"].center) - np.array(doublering.ports["o2"].center)
+    addlength = abs(delta1[1] - delta2[1]) / np.sin(angle_m2r * np.pi / 180)
+    str_tapercoupler = ec_ref << GfCStraight(width=width_near, length=addlength, layer=oplayer)
+    str_tapercoupler.connect("o1", other=tapercoupler1.ports["o2"])
+    bend_cr1_2.connect("o1", other=str_tapercoupler.ports["o2"])
+    str_cr1_2 = ec_ref << GfCStraight(width=width_near, layer=oplayer,
+                                      length=max(-doublering.ports["o2"].center[0] + bend_cr1_2.ports["o2"].center[0],0))
+    str_cr1_2.connect("o1", bend_cr1_2.ports["o2"])
+    ## left
+    str_input = list(range(30))
+    bend_input = list(range(30))
+    str_input[0] = ec_ref << gf.c.taper(width1=width_mzi_near, width2=width_single, length=min(length_taper,abs(width_near-width_single)*500,50), layer=oplayer)
+    str_input[0].connect("o1", coupler2x2.ports["Input2"], mirror=True)
+    ## right
+    str_output = list(range(30))
+    bend_output = list(range(30))
+    path_bend_output = euler_Bend_Half(angle=-90, radius=r_mzi)
+    bend_output[0] = ec_ref << gf.path.extrude(path_bend_output, layer=oplayer, width=width_mzi_ring)
+    bend_output[0].connect("o1", coupler2x2.ports["Input1"])
+    str_output[0] = ec_ref << gf.c.taper(width1=width_mzi_ring, width2=width_single, length=min(length_taper,abs(width_near-width_single)*500,50), layer=oplayer)
     str_output[0].connect("o1", bend_output[0].ports["o2"])
     # input heater
     str_input[1] = ec_ref << GfCStraight(width=width_single, length=length_input, layer=oplayer)
@@ -407,9 +594,8 @@ def ExternalCavitySiN(
     add_labels_to_ports(ec_ref)
     return ec_ref
 
-
 # %% ExternalCavity1SiNH:Proven design for SiN+Heater
-def ExternalCavitySiNH2(
+def ExtCavDouRing2(
         r_ring: float = 200,
         r_euler_false: float = 100,
         r_mzi: float = 100,
@@ -439,7 +625,7 @@ def ExternalCavitySiNH2(
         trelayer: LayerSpec = LAYER.DT,
 ) -> Component:
     """
-    `ExternalCavitySiN` 的一个特定配置版本。
+    `ExtCavDouRing` 的一个特定配置版本。
     主要区别在于 `width_mzi_ring` 被设置为等于 `width_near` (环耦合总线宽度)，
     以及 `length_input` 参数被用于 `ExternalCavitySiN` 内部的 `length_busheater`。
 
@@ -453,7 +639,7 @@ def ExternalCavitySiNH2(
     返回:
         Component: 生成的特定配置的外腔激光器核心组件。
     """
-    return ExternalCavitySiN(
+    return ExtCavDouRing(
         r_ring=r_ring,
         r_euler_false=r_euler_false,
         r_mzi=r_mzi,
@@ -486,7 +672,7 @@ def ExternalCavitySiNH2(
 
 # %% ExternalCavity1SiNH:Proven design for SiN+Heater
 # Ring to ring is bend
-def ExternalCavitySiNH2_1(
+def ExtCavDouRing3(
         r_ring: float = 200,
         r_euler_false: float = 100,
         r_mzi: float = 100,
@@ -514,7 +700,7 @@ def ExternalCavitySiNH2_1(
         heatlayer: LayerSpec = LAYER.M1,
 ) -> Component:
     """
-    `ExternalCavitySiN` 的又一个特定配置版本，此版本在其原始代码中
+    `ExtCavDouRing` 的又一个特定配置版本，此版本在其原始代码中
     明确调用了 `PMZIHSn` (带蛇形加热器的PMZI) 和 `DoubleRingPulley2_1HSn` (可能是特定版本的双环)。
     这里的实现将基于这些假设，并尽量保持与 `ExternalCavitySiN` 结构的一致性，
     同时反映这些特定组件的调用。
@@ -634,7 +820,7 @@ def ExternalCavitySiNH2_1(
 
 # %% ExternalCavity2: tri ring ecl
 @gf.cell
-def ExternalCavity2(
+def ExtCavTriRing2(
         r_ring: float = 200,
         radius_delta: float = 4,
         width_single: float = 1,
@@ -747,7 +933,7 @@ def ExternalCavity2(
 
 # %% ExternalCavity3: risky design2
 @gf.cell
-def ExternalCavity3(
+def ExtCavTriRing2_2(
         r_ring: float = 200,
         radius_delta: float = 4,
         width_single: float = 1,
@@ -831,7 +1017,7 @@ def ExternalCavity3(
     add_labels_to_ports(ec3_ref)
     return ec3_ref
 
-def ExternalCavityRaceTrack(
+def ExtCavDouRaceTrack(
         r_ring: float = 200,
         r_euler_false: float = 100,
         r_mzi: float = 100,
@@ -1056,12 +1242,13 @@ def ExternalCavityRaceTrack(
 
 
 __all__ = [
-    'ExternalCavitySOI',
-    'ExternalCavitySiN',
-    'ExternalCavitySiNH2',
-    'ExternalCavitySiNH2_1',
-    'ExternalCavity2',
-    'ExternalCavity3',
-    'ExternalCavityRaceTrack'
+    'ExtCavDouRing',
+    'ExtCavTriRing',
+    'ExtCavDouRingSOI',
+    'ExtCavDouRing2',
+    'ExtCavDouRing3',
+    'ExtCavTriRing2',
+    'ExtCavTriRing2_2',
+    'ExtCavDouRaceTrack'
 ]
 
