@@ -455,12 +455,15 @@ def RingFinger(
         WidthRing: float = 1,
         WidthNear: float = 0.9,
         WidthHeat: float = 2,
+        WidthRoute:float = 20,
         RadiusCouple: float = 150,
         RadiusSide: float = 100,
         LengthCouple: float = 100,
         LengthSide: float = 100,
         LengthConnect: float = 180,
         GapRing: float = 1,
+        GapHeat: float = 2,
+        DeltaHeat: float = 1,
         AngleCouple: float = 20,
         AngleSide: float = 180,
         IsHeat: bool = False,
@@ -539,6 +542,22 @@ def RingFinger(
     c.add_port(name="Through", port=CcoupleR.ports["o2"])
     c.add_port(name="Con1", port=str_connect.ports["o1"])
     c.add_port(name="Con2", port=str_connect.ports["o2"])
+    if IsHeat:
+        path_half_heat = path_side + path_side2 + path_connect
+        HeatL = c << DifferentHeater(path_half_heat,WidthHeat=WidthHeat,WidthWG=WidthRing,WidthRoute=WidthRoute,GapHeat=GapHeat,
+                                     DeltaHeat=DeltaHeat,heatlayer=heatlayer,routelayer=routelayer)
+        HeatR = c << DifferentHeater(path_half_heat,WidthHeat=WidthHeat,WidthWG=WidthRing,WidthRoute=WidthRoute,GapHeat=GapHeat,
+                                     DeltaHeat=DeltaHeat,heatlayer=heatlayer,routelayer=routelayer)
+        HeatL.connect('HeatOut',ChalfL.ports["o2"],allow_width_mismatch=True,allow_layer_mismatch=True)
+        HeatL.mirror_x(ChalfL.ports["o2"].center[0])
+        HeatR.connect('HeatOut',ChalfR.ports["o2"],allow_width_mismatch=True,allow_layer_mismatch=True)
+        HeatR.rotate(180,ChalfR.ports["o2"].center)
+        path_con_heat = gf.path.straight(length_con)
+        HeatCon = c << DifferentHeater(path_con_heat,WidthHeat=WidthHeat,WidthWG=WidthRing,WidthRoute=WidthRoute,GapHeat=GapHeat,
+                                     DeltaHeat=DeltaHeat,heatlayer=heatlayer,routelayer=routelayer)
+        HeatCon.connect('HeatIn',HeatL.ports["HeatOut"],allow_width_mismatch=True,allow_layer_mismatch=True)
+        c.add_port(name="HeatIn", port=HeatL.ports["HeatIn"])
+        c.add_port(name="HeatOut", port=HeatR.ports["HeatIn"])
     return c
 
 
