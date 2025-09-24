@@ -847,8 +847,8 @@ def GetFromLayer(
     """
     if FLayer is None:
         FLayer = OLayer
-    CompFinal = gf.Component(CompOriginal.name + "Layer=" + str(OLayer))
-    pols = CompOriginal.get_polygons_points(layers=[OLayer])
+    CompFinal = gf.Component()
+    pols = CompOriginal.get_polygons_points(layers=[OLayer],by="tuple")
     for pol in pols[OLayer]:
         CompFinal.add_polygon(points=pol, layer=FLayer)
     for port in CompOriginal.ports:
