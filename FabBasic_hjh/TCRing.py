@@ -873,6 +873,8 @@ def TCFingerRing1(
         width_ring: float = 1,
         width_near: float = 2,
         width_single: float = 1,
+        width_heat:float = 5,
+        width_route: float = 20,
         angle_rc: float = 20,
         angle_side: float = 190,
         length_taper: float = 150,
@@ -883,6 +885,9 @@ def TCFingerRing1(
         length_connect: float = 120,
         pos_ring: float = 500,
         gap_rc: float = 1,
+        gap_heat:float = 2,
+        delta_heat:float = 2,
+        is_heat: bool= False,
         tin: Component = taper_in,
         tout: Component = taper_out,
         oplayer: LayerSpec = LAYER.WG,
@@ -930,7 +935,8 @@ def TCFingerRing1(
     ## ring
     ring0 = ring << RingFinger(
         WidthRing=width_ring, WidthNear=width_near, LengthSide=length_side, LengthCouple=length_couple,
-        LengthConnect=length_connect,
+        LengthConnect=length_connect,IsHeat = is_heat,WidthHeat=width_heat,WidthRoute=width_route,
+        GapHeat=gap_heat,DeltaHeat=delta_heat,
         GapRing=gap_rc, AngleCouple=angle_rc, AngleSide=angle_side, RadiusCouple=r_ring, RadiusSide=r_side,
         oplayer=oplayer,
     )
@@ -951,28 +957,35 @@ def TCFingerRing1(
     ring.add_port("Con2", port=ring0.ports["Con2"])
     ring.add_port("Ts2n1_o1", port=taper_s2n1.ports["o1"])
     ring.add_port("Ts2n2_o2", port=bend_thr2.ports["o2"])
+    for port in ring0.ports:
+        if "Heat" in port.name:
+            ring.add_port(port.name, port=port)
     Ring = sr << ring
     if tin != None:
         tinring = sr << tin
         Ring.connect("Input", other=tinring.ports["o2"], allow_width_mismatch=True, mirror=True)
         Ring.movex(pos_ring)
-        delta = Ring.ports["Ts2n1_o1"].center - tinring.ports["o2"].center
-        str_tin2r = sr << GfCStraight(length=delta[0], layer=oplayer, width=width_single)
+        delta = Ring.ports["Ts2n1_o1"].center[0] - tinring.ports["o2"].center[0]
+        str_tin2r = sr << GfCStraight(length=delta, layer=oplayer, width=width_single)
         str_tin2r.connect("o1", tinring.ports["o2"])
         sr.add_port("input", port=tinring.ports["o1"])
     if tout != None:
         toutring = sr << tout
-        toutring.connect("o2", other=Ring.ports["Ts2n2_o2"], allow_width_mismatch=True, mirror=True)
-        toutring.movex(length_total - Ring.ports["Ts2n2_o2"].center[0])
-        str_tout2r = gf.routing.get_bundle(toutring.ports["o1"], Ring.ports["Ts2n2_o2"], layer=oplayer,
-                                           width=width_single, radius=r_euler_true)
-        for route in str_tout2r:
-            sr.add(route.references)
+        toutring.connect("o1", other=Ring.ports["Ts2n2_o2"], allow_width_mismatch=True, mirror=True)
+        toutring.movex(length_total - toutring.ports["o2"].center[0])
+        str_tout2r = gf.routing.route_single(sr,toutring.ports["o1"], Ring.ports["Ts2n2_o2"], layer=oplayer,
+                                           route_width=width_single, radius=r_euler_true)
         sr.add_port("output", port=toutring.ports["o2"])
 
-    sr.add_port("RingC", port=toutring.ports["o1"],
-                center=Ring.ports["Con1"].center / 2 + ring.ports["Con2"].center / 2)
+    sr.add_port("RingC",
+                center=[Ring.ports["Con1"].center[0] / 2 + ring.ports["Con2"].center[0] / 2,Ring.ports["Con1"].center[1] / 2 + ring.ports["Con2"].center[1] / 2],
+                layer=oplayer,width=1,
+                )
+    for port in Ring.ports:
+        if "Heat" in port.name:
+            sr.add_port(port.name, port=port)
     return sr
+
 
 
 # TCRingT1: TCRing use RingPulleyT1

@@ -17,10 +17,9 @@ PDK.activate()
 # layer define
 class LayerMapUserDef(LayerMap):
     WG:Layer = (1,0)
-    M1:Layer = (3, 0)# 高频电极
-    M2:Layer = (4 , 0) # 加热电极
-    VIA:Layer=(70,0)
-    OPEN:Layer = (5 , 0)
+    M1:Layer = (10,0)
+    OPEN:Layer = (20,0)
+    M2:Layer = (4 , 1) # 高频电极
     SR1:Layer = (216 , 0)
     NONSR1:Layer = (216 , 100)
     SR2:Layer = (217 , 0)
@@ -48,6 +47,8 @@ class LayerMapUserDef(LayerMap):
     LM1:Layer = (125 , 0)
     SINEC:Layer = (89 , 100)
     V1:Layer = (70 , 0)
+    VIA:Layer=(70,0)
+
     TSW:Layer = (159 , 100)
     V2:Layer = (71 , 0)
     M6:Layer = (66 , 0)
@@ -58,10 +59,11 @@ class LayerMapUserDef(LayerMap):
     PA:Layer = (80 , 0)
     DO1:Layer = (55 , 100)
     HVO:Layer = (111 , 0)
+
     DUMBA:Layer = (120,0)
     DUMBN:Layer = (130,2)
     DUMBM:Layer = (121,0)
-    WAFER:Layer = (1000,0)
+    WAFER:Layer = (100,1)
 
 LAYER = LayerMapUserDef
 # %% section & crosssection
