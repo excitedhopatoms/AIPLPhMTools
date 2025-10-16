@@ -21,10 +21,112 @@ taper_in_DFB_reverse.add_port(name="o1", port=taper_in_tes0.ports["o2"])
 taper_in_DFB_reverse.add_port(name="o2", port=taper_in_tes1.ports["o1"])
 
 # %% TCRing5: racetrack ring
+# @gf.cell
+# def TCRaceTrackP(
+#         r_ring: float = 2000,
+#         r_bend: float = r_euler_true,
+#         width_ring: float = 8,
+#         width_near: float = 4,
+#         width_heat: float = 5,
+#         width_route: float = 1,
+#         width_single: float = 1,
+#         angle_rc: float = 20,
+#         length_taper: float = 500,
+#         length_total: float = 10000,
+#         length_run: float = 1000,
+#         pos_ring: float = 5000,
+#         gap_rc: float = 1,
+#         gap_heat: float = 1,
+#         delta_heat:float = 1,
+#         is_heat: bool = False,
+#         type_heater: str="default",
+#         tout: Component =None,
+#         tin: Component = None,
+#         oplayer: LayerSpec = LAYER.WG,
+# ) -> Component:
+#     """
+#     创建一个集成了单个 `RaceTrackP` (滑轮耦合跑道环) 谐振器的完整组件。
+#     包含标准的输入/输出锥形波导（如果提供了 `tin`/`tout`），
+#     并通过弯曲和锥形波导将核心跑道环的Input/Through端口连接到外部。
+#     此设计为双端口器件（Input/Through）。
+#
+#     参数:
+#         r_ring (float): 跑道环的弯曲半径 (µm)。
+#         r_bend (float): 用于连接外部IO的引出臂的弯曲半径 (µm)。
+#         width_ring (float): 跑道环波导宽度 (µm)。
+#         width_near (float): 耦合总线波导宽度 (µm)。
+#         width_heat (float): (未使用，但传递给RaceTrackP的参数可能需要) 加热器宽度 (µm)。
+#         width_single (float): 外部单模IO波导宽度 (µm)。
+#         angle_rc (float): 跑道环的滑轮耦合角度 (度)。
+#         length_taper (float): 从单模波导到耦合总线宽度的锥形长度 (µm)。
+#         length_total (float): 组件目标总长度，用于对齐输出IO组件的右边缘 (µm)。
+#         length_run (float): 跑道环直线段的长度 (µm)。
+#         pos_ring (float): 核心跑道环组件的大致X轴中心位置 (µm)。
+#         gap_rc (float): 环与总线的耦合间隙 (µm)。
+#         tout (ComponentSpec | None): 输出端接组件（如光栅）的规格。如果None，则输出端口在引出臂末端。
+#         tin (ComponentSpec | None): 输入端接组件（如光栅）的规格。如果None，则输入端口在引出臂末端。
+#         oplayer (LayerSpec): 光学波导层。
+#
+#     返回:
+#         Component: 生成的集成滑轮耦合跑道环组件。
+#
+#     端口:
+#         input: 组件的总光学输入端口。
+#         output: 组件的总光学输出端口 (对应核心环的Through端口)。
+#         inputo2: (如果tin存在) 输入IO组件的内部端口（连接到引出臂）。
+#         outputo1: (如果tout存在) 输出IO组件的内部端口（连接到引出臂）。
+#         RingC: 跑道环中心的参考端口。
+#     """
+#     sr = gf.Component()
+#     ring = sr << RaceTrackP(
+#         WidthRing=width_ring, WidthNear=width_near, GapCouple=gap_rc, oplayer=oplayer, RadiusRing=r_ring,
+#         AngleCouple=angle_rc, IsAD=False,LengthRun=length_run,
+#         IsHeat=is_heat,WidthHeat=width_heat,WidthRoute=width_route,DeltaHeat=delta_heat,GapHeat=gap_heat,TypeHeater=type_heater,
+#     )
+#     taper_s2n_1 = sr << gf.c.taper(width1=width_single, width2=width_near, length=length_taper, layer=oplayer)
+#     taper_s2n_2 = sr << gf.c.taper(width2=width_single, width1=width_near, length=length_taper, layer=oplayer)
+#     ring.rotate(90).movex(pos_ring)
+#     taper_s2n_1.connect("o2", other=ring.ports["Input"])
+#     taper_s2n_2.connect("o1", other=ring.ports["Through"])
+#     bend_single_1 = sr << gf.c.bend_euler(width=width_single, angle=-90, radius=r_bend, layer=oplayer)
+#     bend_single_2 = sr << gf.c.bend_euler(width=width_single, angle=90, radius=r_bend, layer=oplayer)
+#     bend_single_1.connect("o2", other=taper_s2n_1.ports["o1"])
+#     bend_single_2.connect("o1", other=taper_s2n_2.ports["o2"])
+#     # input
+#     if tin != None:
+#         ctin = sr << tin
+#         ctin.connect("o2", bend_single_1.ports["o1"])
+#         ctin.movex(-pos_ring)
+#         route_in = gf.routing.route_single(sr,ctin.ports["o2"], bend_single_1.ports["o1"], layer=oplayer, route_width=width_single)
+#         # sr.add(route_in.references)
+#         sr.add_port("input", port=ctin.ports["o1"])
+#         sr.add_port("inputo2", port=ctin.ports["o2"])
+#     # output
+#     if tout != None:
+#         ctout = sr << tout
+#         ctout.connect("o2", other=bend_single_1.ports["o1"],allow_width_mismatch=True)
+#         ctout.movex(length_total-(ctout.ports["o2"].center[0]-ctin.ports["o1"].center[0]))
+#         delta = ctout.ports["o1"].center[1] - bend_single_2.ports["o2"].center[1]
+#         ctout.movey(-delta)
+#         route_out = gf.routing.route_single(sr,ctout.ports["o1"], bend_single_2.ports["o2"], layer=oplayer,
+#                                          route_width=width_single)
+#         # sr.add(route_out.references)
+#         sr.add_port("output", port=ctout.ports["o2"])
+#         sr.add_port("outputo1", port=ctout.ports["o1"])
+#
+#     sr.add_port("RingC", port=ring.ports["Input"],
+#                 center = (np.array(ring.ports["Rcen1"].center) + np.array(ring.ports["Rcen2"].center)) / 2)
+#     # add_labels_to_ports(sr)
+#     CompOut = gf.Component()
+#     Csr = CompOut << sr
+#     Csr.movex(-sr.ports["input"].center[0])
+#     for port in Csr.ports:
+#         CompOut.add_port(port.name,port=port)
+#     return CompOut
 @gf.cell
 def TCRaceTrackP(
         r_ring: float = 2000,
-        r_bend: float = r_euler_true,
+        r_bend: float = 20,
         width_ring: float = 8,
         width_near: float = 4,
         width_heat: float = 5,
@@ -37,93 +139,138 @@ def TCRaceTrackP(
         pos_ring: float = 5000,
         gap_rc: float = 1,
         gap_heat: float = 1,
-        delta_heat:float = 1,
+        delta_heat: float = 1,
         is_heat: bool = False,
-        type_heater: str="default",
-        tout: Component =None,
+        type_heater: str = "default",
+        tout: Component = None,
         tin: Component = None,
-        oplayer: LayerSpec = LAYER.WG,
+        oplayer: LayerSpec = "WG",
+        position_taper_in: str = "after_bend",   # 输入端 taper 位置
+        position_taper_out: str = "before_bend",  # 输出端 taper 位置
 ) -> Component:
     """
-    创建一个集成了单个 `RaceTrackP` (滑轮耦合跑道环) 谐振器的完整组件。
-    包含标准的输入/输出锥形波导（如果提供了 `tin`/`tout`），
-    并通过弯曲和锥形波导将核心跑道环的Input/Through端口连接到外部。
-    此设计为双端口器件（Input/Through）。
+    创建一个带有双端独立 taper 位置控制的滑轮耦合跑道环。
+    耦合区域光传播的方向垂直光输入和输出的方向
+    取代了原本的racetrack pulley耦合的总的腔的函数
 
     参数:
-        r_ring (float): 跑道环的弯曲半径 (µm)。
-        r_bend (float): 用于连接外部IO的引出臂的弯曲半径 (µm)。
-        width_ring (float): 跑道环波导宽度 (µm)。
-        width_near (float): 耦合总线波导宽度 (µm)。
-        width_heat (float): (未使用，但传递给RaceTrackP的参数可能需要) 加热器宽度 (µm)。
-        width_single (float): 外部单模IO波导宽度 (µm)。
-        angle_rc (float): 跑道环的滑轮耦合角度 (度)。
-        length_taper (float): 从单模波导到耦合总线宽度的锥形长度 (µm)。
-        length_total (float): 组件目标总长度，用于对齐输出IO组件的右边缘 (µm)。
-        length_run (float): 跑道环直线段的长度 (µm)。
-        pos_ring (float): 核心跑道环组件的大致X轴中心位置 (µm)。
-        gap_rc (float): 环与总线的耦合间隙 (µm)。
-        tout (ComponentSpec | None): 输出端接组件（如光栅）的规格。如果None，则输出端口在引出臂末端。
-        tin (ComponentSpec | None): 输入端接组件（如光栅）的规格。如果None，则输入端口在引出臂末端。
-        oplayer (LayerSpec): 光学波导层。
+        position_taper_in:  输入端 taper 位置 ('before_bend' | 'after_bend' | 'no_bend')
+        position_taper_out: 输出端 taper 位置 ('before_bend' | 'after_bend' | 'no_bend')
 
-    返回:
-        Component: 生成的集成滑轮耦合跑道环组件。
-
-    端口:
-        input: 组件的总光学输入端口。
-        output: 组件的总光学输出端口 (对应核心环的Through端口)。
-        inputo2: (如果tin存在) 输入IO组件的内部端口（连接到引出臂）。
-        outputo1: (如果tout存在) 输出IO组件的内部端口（连接到引出臂）。
-        RingC: 跑道环中心的参考端口。
+    三种选项定义:
+        - 'before_bend': taper 在 bend 之前 (taper→bend)
+        - 'after_bend':  taper 在 bend 之后 (bend→taper)
+        - 'no_bend':     无弯曲，taper 直接连接
     """
+
     sr = gf.Component()
+
+    # 创建核心跑道环
     ring = sr << RaceTrackP(
         WidthRing=width_ring, WidthNear=width_near, GapCouple=gap_rc, oplayer=oplayer, RadiusRing=r_ring,
         AngleCouple=angle_rc, IsAD=False,LengthRun=length_run,
         IsHeat=is_heat,WidthHeat=width_heat,WidthRoute=width_route,DeltaHeat=delta_heat,GapHeat=gap_heat,TypeHeater=type_heater,
     )
-    taper_s2n_1 = sr << gf.c.taper(width1=width_single, width2=width_near, length=length_taper, layer=oplayer)
-    taper_s2n_2 = sr << gf.c.taper(width2=width_single, width1=width_near, length=length_taper, layer=oplayer)
+
     ring.rotate(90).movex(pos_ring)
-    taper_s2n_1.connect("o2", other=ring.ports["Input"])
-    taper_s2n_2.connect("o1", other=ring.ports["Through"])
-    bend_single_1 = sr << gf.c.bend_euler(width=width_single, angle=-90, radius=r_bend, layer=oplayer)
-    bend_single_2 = sr << gf.c.bend_euler(width=width_single, angle=90, radius=r_bend, layer=oplayer)
-    bend_single_1.connect("o2", other=taper_s2n_1.ports["o1"])
-    bend_single_2.connect("o1", other=taper_s2n_2.ports["o2"])
-    # input
-    if tin != None:
+
+    # taper 定义
+    taper_in = sr << gf.c.taper(width1=width_single, width2=width_near, length=length_taper, layer=oplayer)
+    taper_out = sr << gf.c.taper(width2=width_single, width1=width_near, length=length_taper, layer=oplayer)
+
+    # ========== 输入端连接 ==========
+    if position_taper_in == "before_bend":
+        # taper -> bend -> ring
+        bend_in = sr << gf.c.bend_euler(width=width_near, angle=-90, radius=r_bend, layer=oplayer)
+        bend_in.connect("o2", other=ring.ports["Input"])
+        taper_in.connect("o2", other=bend_in.ports["o1"])
+        port_in = taper_in.ports["o1"]
+
+    elif position_taper_in == "after_bend":
+        # bend -> taper -> ring
+        bend_in = sr << gf.c.bend_euler(width=width_single, angle=-90, radius=r_bend, layer=oplayer)
+        taper_in.connect("o2", other=ring.ports["Input"])
+        bend_in.connect("o2", other=taper_in.ports["o1"])
+        port_in = bend_in.ports["o1"]
+
+    elif position_taper_in == "no_bend":
+        # taper 直接连接 ring
+        taper_in.connect("o2", other=ring.ports["Input"])
+        port_in = taper_in.ports["o1"]
+
+    else:
+        raise ValueError("position_taper_in 必须是 'before_bend'、'after_bend' 或 'no_bend'")
+
+    # ========== 输出端连接 ==========
+    if position_taper_out == "before_bend":
+        # output-> taper -> bend
+        taper_out.connect("o1", other=ring.ports["Through"])
+        bend_out = sr << gf.c.bend_euler(width=width_single, angle=90, radius=r_bend, layer=oplayer)
+        bend_out.connect("o1", other=taper_out.ports["o2"])
+        port_out = bend_out.ports["o2"]
+
+    elif position_taper_out == "after_bend":
+        # output -> bend -> taper
+        bend_out = sr << gf.c.bend_euler(width=width_near, angle=90, radius=r_bend, layer=oplayer)
+        bend_out.connect("o1", other=ring.ports["Through"])
+        taper_out.connect("o1", other=bend_out.ports["o2"])
+        port_out = taper_out.ports["o2"]
+
+    elif position_taper_out == "no_bend":
+        # taper 直接连接 ring
+        taper_out.connect("o1", other=ring.ports["Through"])
+        port_out = taper_out.ports["o2"]
+
+    else:
+        raise ValueError("position_taper_out 必须是 'before_bend'、'after_bend' 或 'no_bend'")
+
+
+    # ========== 输入端 tin ==========
+    if tin is not None:
         ctin = sr << tin
-        ctin.connect("o2", bend_single_1.ports["o1"])
+        target_port = port_in
+        ctin.connect("o2", target_port)
         ctin.movex(-pos_ring)
-        route_in = gf.routing.route_single(sr,ctin.ports["o2"], bend_single_1.ports["o1"], layer=oplayer, route_width=width_single)
-        # sr.add(route_in.references)
+
+        route_in = gf.routing.route_single(
+            sr, ctin.ports["o2"], target_port, layer=oplayer, route_width=width_single
+        )
         sr.add_port("input", port=ctin.ports["o1"])
         sr.add_port("inputo2", port=ctin.ports["o2"])
-    # output
-    if tout != None:
+    else:
+        sr.add_port("input", port=port_in)
+
+    # ========== 输出端 tout ==========
+    if tout is not None:
         ctout = sr << tout
-        ctout.connect("o2", other=bend_single_1.ports["o1"],allow_width_mismatch=True)
-        ctout.movex(length_total-(ctout.ports["o2"].center[0]-ctin.ports["o1"].center[0]))
-        delta = ctout.ports["o1"].center[1] - bend_single_2.ports["o2"].center[1]
-        ctout.movey(-delta)
-        route_out = gf.routing.route_single(sr,ctout.ports["o1"], bend_single_2.ports["o2"], layer=oplayer,
-                                         route_width=width_single)
-        # sr.add(route_out.references)
+        target_port = port_out
+
+        # 连接 + 平移
+        ctout.connect("o1", other=port_out, allow_width_mismatch=True)
+        ctout.movex(length_total - (ctout.ports["o2"].center[0] - (ctin.ports["o1"].center[0] if tin else 0)))
+        route_out = gf.routing.route_single(
+            sr, ctout.ports["o1"], target_port, layer=oplayer, route_width=width_single
+        )
         sr.add_port("output", port=ctout.ports["o2"])
         sr.add_port("outputo1", port=ctout.ports["o1"])
+    else:
+        sr.add_port("output", port=port_out)
 
-    sr.add_port("RingC", port=ring.ports["Input"],
-                center = (np.array(ring.ports["Rcen1"].center) + np.array(ring.ports["Rcen2"].center)) / 2)
-    # add_labels_to_ports(sr)
+    # ========== 环中心端口 ==========
+    sr.add_port(
+        "RingC",
+        center=(np.array(ring.ports["Rcen1"].center) + np.array(ring.ports["Rcen2"].center)) / 2,orientation=180,layer=oplayer,width=width_route,
+    )
+
+    # ========== 封装为 CompOut ==========
     CompOut = gf.Component()
     Csr = CompOut << sr
     Csr.movex(-sr.ports["input"].center[0])
-    for port in Csr.ports:
-        CompOut.add_port(port.name,port=port)
-    return CompOut
 
+    for port in Csr.ports:
+        CompOut.add_port(port.name, port=port)
+
+    return CompOut
 
 # %% TCRaceTrack2_1: racetrack ring,straigh couple straight in
 @gf.cell
