@@ -986,8 +986,6 @@ def TCFingerRing1(
             sr.add_port(port.name, port=port)
     return sr
 
-
-
 # TCRingT1: TCRing use RingPulleyT1
 @gf.cell
 def TCRingT1(
