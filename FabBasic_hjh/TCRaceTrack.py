@@ -28,6 +28,7 @@ def TCRaceTrackP(
         width_ring: float = 8,
         width_near: float = 4,
         width_heat: float = 5,
+        width_route: float = 1,
         width_single: float = 1,
         angle_rc: float = 20,
         length_taper: float = 500,
@@ -35,6 +36,10 @@ def TCRaceTrackP(
         length_run: float = 1000,
         pos_ring: float = 5000,
         gap_rc: float = 1,
+        gap_heat: float = 1,
+        delta_heat:float = 1,
+        is_heat: bool = False,
+        type_heater: str="default",
         tout: Component =None,
         tin: Component = None,
         oplayer: LayerSpec = LAYER.WG,
@@ -72,10 +77,11 @@ def TCRaceTrackP(
         outputo1: (如果tout存在) 输出IO组件的内部端口（连接到引出臂）。
         RingC: 跑道环中心的参考端口。
     """
-    sr = gf.Component("RaceTrack")
+    sr = gf.Component()
     ring = sr << RaceTrackP(
         WidthRing=width_ring, WidthNear=width_near, GapCouple=gap_rc, oplayer=oplayer, RadiusRing=r_ring,
         AngleCouple=angle_rc, IsAD=False,LengthRun=length_run,
+        IsHeat=is_heat,WidthHeat=width_heat,WidthRoute=width_route,DeltaHeat=delta_heat,GapHeat=gap_heat,TypeHeater=type_heater,
     )
     taper_s2n_1 = sr << gf.c.taper(width1=width_single, width2=width_near, length=length_taper, layer=oplayer)
     taper_s2n_2 = sr << gf.c.taper(width2=width_single, width1=width_near, length=length_taper, layer=oplayer)
@@ -99,7 +105,7 @@ def TCRaceTrackP(
     if tout != None:
         ctout = sr << tout
         ctout.connect("o2", other=bend_single_1.ports["o1"],allow_width_mismatch=True)
-        ctout.movex(length_total)
+        ctout.movex(length_total-(ctout.ports["o2"].center[0]-ctin.ports["o1"].center[0]))
         delta = ctout.ports["o1"].center[1] - bend_single_2.ports["o2"].center[1]
         ctout.movey(-delta)
         route_out = gf.routing.route_single(sr,ctout.ports["o1"], bend_single_2.ports["o2"], layer=oplayer,
@@ -110,8 +116,13 @@ def TCRaceTrackP(
 
     sr.add_port("RingC", port=ring.ports["Input"],
                 center = (np.array(ring.ports["Rcen1"].center) + np.array(ring.ports["Rcen2"].center)) / 2)
-    add_labels_to_ports(sr)
-    return sr
+    # add_labels_to_ports(sr)
+    CompOut = gf.Component()
+    Csr = CompOut << sr
+    Csr.movex(-sr.ports["input"].center[0])
+    for port in Csr.ports:
+        CompOut.add_port(port.name,port=port)
+    return CompOut
 
 
 # %% TCRaceTrack2_1: racetrack ring,straigh couple straight in
@@ -130,7 +141,7 @@ def TCRaceTrackS(
         length_ele:float = None,
         pos_ring: float = 5000,
         gap_rc: float = 1,
-        type_heat:str = 'none',
+        type_heat:str = 'default',
         tout: Component =None,
         tin: Component = None,
         oplayer: LayerSpec = LAYER.WG,
@@ -157,11 +168,11 @@ def TCRaceTrackS(
         output: 组件的总光学输出端口。
         RingC: 跑道环中心的参考端口。
     """
-    sr = gf.Component("RaceTrack")
+    sr = gf.Component()
     width_near = width_ring
     ring = sr << RaceTrackS(
         WidthRing=width_ring, LengthRun=length_run, GapCouple=gap_rc, oplayer=oplayer, RadiusRing=r_ring,
-        LengthCouple=length_rc, IsAD=False,TypeHeater=type_heat
+        LengthCouple=length_rc, IsAD=False,TypeHeater=type_heat,IsHeat=False,
     )
     taper_s2n_1 = sr << gf.c.taper(width1=width_single, width2=width_near, length=length_taper, layer=oplayer)
     taper_s2n_2 = sr << gf.c.taper(width2=width_single, width1=width_near, length=length_taper, layer=oplayer)
@@ -179,30 +190,32 @@ def TCRaceTrackS(
     # input
     if tin != None:
         ctin = sr << tin
-        ctin.connect("o2", ring.ports["Input"],allow_width_mismatch=True)
+        ctin.connect("o2", taper_s2n_1.ports["o1"],allow_width_mismatch=True)
         ctin.movex(-pos_ring)
         route_in = gf.routing.route_single(sr,ctin.ports["o2"], taper_s2n_1.ports["o1"], layer=oplayer, route_width=width_single)
         # sr.add(route_in.references)
         sr.add_port("input", port=ctin.ports["o1"])
+        sr.add_port("inputo2", port=ctin.ports["o2"])
     # output
     if tout != None:
         ctout = sr << tout
-        ctout.connect("o2", other=ctin.ports["o1"],allow_width_mismatch=True)
-        ctout.movex(length_total)
-        delta = ctout.ports["o1"].center[1] - bend_outsingle_2.ports["o2"].center[1]
-        ctout.movey(-delta)
-        route_out = gf.routing.route_single(sr,ctout.ports["o1"], bend_outsingle_2.ports["o2"], layer=oplayer,
+        ctout.connect("o1", other=bend_outsingle_2.ports['o2'],allow_width_mismatch=True)
+        ctout.movex(length_total-(ctout.ports["o2"].center[0]-ctin.ports["o1"].center[0]))
+        route_out = gf.routing.route_single(sr,ctout.ports["o1"], bend_outsingle_2.ports['o2'], layer=oplayer,
                                          route_width=width_single)
-        sr.add_port("output", port=ctout.ports["o1"])
         # sr.add(route_out.references)
-
+        sr.add_port("output", port=ctout.ports["o2"])
+        sr.add_port("outputo1", port=ctout.ports["o1"])
 
     sr.add_port("RingC", port=ring.ports["Input"],
-                center = (np.array(ring.ports["Rcen1"].center) + np.array(ring.ports["Rcen2"].center)) / 2
-                )
-    add_labels_to_ports(sr)
-    return sr
-
+                center = (np.array(ring.ports["Rcen1"].center) + np.array(ring.ports["Rcen2"].center)) / 2)
+    # add_labels_to_ports(sr)
+    CompOut = gf.Component()
+    Csr = CompOut << sr
+    Csr.movex(-sr.ports["input"].center[0])
+    for port in Csr.ports:
+        CompOut.add_port(port.name,port=port)
+    return CompOut
 
 # %% TCRaceTrack2_2: racetrack ring,straigh couple straight out
 @gf.cell
