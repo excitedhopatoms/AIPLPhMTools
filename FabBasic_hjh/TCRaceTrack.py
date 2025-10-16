@@ -270,7 +270,7 @@ def TCRaceTrackP(
 
     for port in Csr.ports:
         CompOut.add_port(port.name, port=port)
-
+    # add_labels_to_ports(CompOut)
     return CompOut
 
 # %% TCRaceTrack2_1: racetrack ring,straigh couple straight in
