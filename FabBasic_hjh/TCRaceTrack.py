@@ -181,14 +181,14 @@ def TCRaceTrackP(
     # ========== 输入端连接 ==========
     if position_taper_in == "before_bend":
         # taper -> bend -> ring
-        bend_in = sr << gf.c.bend_euler(width=width_near, angle=-90, radius=r_bend, layer=oplayer)
+        bend_in = sr << gf.c.bend_euler(width=width_near, angle=-90, radius=r_bend, layer=oplayer,with_arc_floorplan=False)
         bend_in.connect("o2", other=ring.ports["Input"])
         taper_in.connect("o2", other=bend_in.ports["o1"])
         port_in = taper_in.ports["o1"]
 
     elif position_taper_in == "after_bend":
         # bend -> taper -> ring
-        bend_in = sr << gf.c.bend_euler(width=width_single, angle=-90, radius=r_bend, layer=oplayer)
+        bend_in = sr << gf.c.bend_euler(width=width_single, angle=-90, radius=r_bend, layer=oplayer,with_arc_floorplan=False)
         taper_in.connect("o2", other=ring.ports["Input"])
         bend_in.connect("o2", other=taper_in.ports["o1"])
         port_in = bend_in.ports["o1"]
@@ -205,13 +205,13 @@ def TCRaceTrackP(
     if position_taper_out == "before_bend":
         # output-> taper -> bend
         taper_out.connect("o1", other=ring.ports["Through"])
-        bend_out = sr << gf.c.bend_euler(width=width_single, angle=90, radius=r_bend, layer=oplayer)
+        bend_out = sr << gf.c.bend_euler(width=width_single, angle=90, radius=r_bend, layer=oplayer,with_arc_floorplan=False)
         bend_out.connect("o1", other=taper_out.ports["o2"])
         port_out = bend_out.ports["o2"]
 
     elif position_taper_out == "after_bend":
         # output -> bend -> taper
-        bend_out = sr << gf.c.bend_euler(width=width_near, angle=90, radius=r_bend, layer=oplayer)
+        bend_out = sr << gf.c.bend_euler(width=width_near, angle=90, radius=r_bend, layer=oplayer,with_arc_floorplan=False)
         bend_out.connect("o1", other=ring.ports["Through"])
         taper_out.connect("o1", other=bend_out.ports["o2"])
         port_out = taper_out.ports["o2"]
@@ -261,8 +261,9 @@ def TCRaceTrackP(
         "RingC",
         center=(np.array(ring.ports["Rcen1"].center) + np.array(ring.ports["Rcen2"].center)) / 2,orientation=180,layer=oplayer,width=width_route,
     )
-
-    # ========== 封装为 CompOut ==========
+    for port in ring:
+        sr.add_port("Ring"+port.name, port=port)
+    # ========== 封装为   CompOut ==========
     CompOut = gf.Component()
     Csr = CompOut << sr
     Csr.movex(-sr.ports["input"].center[0])
