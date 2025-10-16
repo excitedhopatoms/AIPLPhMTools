@@ -18,6 +18,7 @@ def RaceTrackP(
         IsAD: bool = True,
         IsHeat: bool = True,
         TypeHeater: str = "default",
+        DirectionHeater: str = "down",
         oplayer: LayerSpec = LAYER.WG,
         heatlayer: LayerSpec = LAYER.M1,
         routelayer: LayerSpec = LAYER.M2,
@@ -149,6 +150,8 @@ def RaceTrackP(
         heater = snap_all_polygons_iteratively(heater)
         h = c << heater
         h.connect("HeatBmid1",c.ports["RingBmid1"],allow_width_mismatch=True,allow_layer_mismatch=True)
+        if DirectionHeater == 'down':
+            h.mirror_x(RP1.ports["o1"].center[0])
         # h.mirror_x(h.ports["HeatBmid1"].center[0])
         if TypeHeater == "side":
             heater.add_port("HeatSIn", port=RHP3.ports["HeatSIn"])
