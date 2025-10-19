@@ -78,7 +78,7 @@ class HeaterConfig:
     LayerHeat: str = LAYER.M1
     LayerRoute: str = LAYER.M2
     LayerVia: str = LAYER.VIA
-HeaterConfig0 = HeaterConfig()
+heaterconfig0 = HeaterConfig()
 # %% section & crosssection
 S_in_te0 = gf.Section(width=0.5, layer=LAYER.WG, port_names=("o1", "o2"))
 S_in_te1 = gf.Section(width=1, layer=LAYER.WG, port_names=("o1", "o2"))

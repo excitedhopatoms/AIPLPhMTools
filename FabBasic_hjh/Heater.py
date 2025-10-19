@@ -5,6 +5,7 @@ from shapely.affinity import translate
 import numpy as np
 from shapely.geometry import Polygon, MultiPoint, box
 from joblib import Parallel, delayed,cpu_count
+from BasicDefine import HeaterConfig
 def SnakeHeater(
         WidthHeat: float = 8,
         WidthWG: float = 2,
@@ -72,17 +73,8 @@ def SnakeHeater(
 @gf.cell
 def DifferentHeater(
         PathHeat: Path = None,
-        WidthHeat: float = 4,
         WidthWG: float = 1,
-        WidthRoute: float = 10,
-        WidthVia: float = 0.26,
-        Spacing: float = 1.1,
-        DeltaHeat: float = 2,
-        GapHeat: float = 3,
-        heatlayer: LayerSpec = LAYER.M1,
-        routelayer: LayerSpec = LAYER.M2,
-        vialayer: LayerSpec = LAYER.VIA,
-        TypeHeater: str = "default",
+        Heater: HeaterConfig = heaterconfig0,
         **kwargs
 ) -> Component:
     """
@@ -133,6 +125,17 @@ def DifferentHeater(
             - "HeatIn", "HeatOut": 主加热区域（中心条）的（概念性）输入/输出。
     """
     h = gf.Component()
+    # 从配置对象中提取参数
+    TypeHeater = Heater.TypeHeater
+    WidthHeat = Heater.WidthHeat
+    WidthRoute = Heater.WidthRuute
+    WidthVia = Heater.WidthVia
+    Spacing = Heater.Spacing
+    DeltaHeat = Heater.DeltaHeat
+    GapHeat = Heater.GapHeat
+    heatlayer = Heater.LayerHeat
+    routelayer = Heater.LayerRoute
+    vialayer = Heater.LayerVia
     if TypeHeater == "default":
         # 默认加热电极
         heatL_comp1 = h << gf.path.extrude(PathHeat, width=WidthHeat, layer=heatlayer)  # 创建左侧加热电极
