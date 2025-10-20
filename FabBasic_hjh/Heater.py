@@ -73,7 +73,7 @@ def SnakeHeater(
 def DifferentHeater(
         PathHeat: Path = None,
         WidthWG: float = 1,
-        Heater: HeaterConfigClass = heaterconfig0,
+        HeaterConfig: HeaterConfigClass = heaterconfig0,
         **kwargs
 ) -> Component:
     """
@@ -125,16 +125,16 @@ def DifferentHeater(
     """
     h = gf.Component()
     # 从配置对象中提取参数
-    TypeHeater = Heater.TypeHeater
-    WidthHeat = Heater.WidthHeat
-    WidthRoute = Heater.WidthRoute
-    WidthVia = Heater.WidthVia
-    Spacing = Heater.Spacing
-    DeltaHeat = Heater.DeltaHeat
-    GapHeat = Heater.GapHeat
-    heatlayer = Heater.LayerHeat
-    routelayer = Heater.LayerRoute
-    vialayer = Heater.LayerVia
+    TypeHeater = HeaterConfig.TypeHeater
+    WidthHeat = HeaterConfig.WidthHeat
+    WidthRoute = HeaterConfig.WidthRoute
+    WidthVia = HeaterConfig.WidthVia
+    Spacing = HeaterConfig.Spacing
+    DeltaHeat = HeaterConfig.DeltaHeat
+    GapHeat = HeaterConfig.GapHeat
+    heatlayer = HeaterConfig.LayerHeat
+    routelayer = HeaterConfig.LayerRoute
+    vialayer = HeaterConfig.LayerVia
     if TypeHeater == "default":
         # 默认加热电极
         heatL_comp1 = h << gf.path.extrude(PathHeat, width=WidthHeat, layer=heatlayer)  # 创建左侧加热电极
