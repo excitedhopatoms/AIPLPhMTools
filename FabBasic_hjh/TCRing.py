@@ -888,6 +888,7 @@ def TCFingerRing1(
         gap_heat:float = 2,
         delta_heat:float = 2,
         is_heat: bool= False,
+        heaterconfig: HeaterConfigClass = None,
         tin: Component = taper_in,
         tout: Component = taper_out,
         oplayer: LayerSpec = LAYER.WG,
@@ -932,13 +933,16 @@ def TCFingerRing1(
     """
     sr = gf.Component()
     ring = gf.Component()
+    if heaterconfig is None:
+        heaterconfig = HeaterConfigClass(
+            WidthHeat=width_heat,WidthRoute=width_route,GapHeat=gap_heat,DeltaHeat=delta_heat,
+        )
     ## ring
     ring0 = ring << RingFinger(
         WidthRing=width_ring, WidthNear=width_near, LengthSide=length_side, LengthCouple=length_couple,
-        LengthConnect=length_connect,IsHeat = is_heat,WidthHeat=width_heat,WidthRoute=width_route,
-        GapHeat=gap_heat,DeltaHeat=delta_heat,
+        LengthConnect=length_connect,IsHeat = is_heat,WidthRoute=width_route,
         GapRing=gap_rc, AngleCouple=angle_rc, AngleSide=angle_side, RadiusCouple=r_ring, RadiusSide=r_side,
-        oplayer=oplayer,
+        oplayer=oplayer,HeaterConfig=heaterconfig,
     )
     taper_s2n1 = ring << gf.c.taper(width1=width_single, width2=width_near, length=length_taper, layer=oplayer)
     taper_s2n2 = ring << gf.c.taper(width1=width_near, width2=width_single, length=length_taper, layer=oplayer)
