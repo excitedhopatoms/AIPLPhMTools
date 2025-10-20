@@ -209,8 +209,8 @@ def DifferentHeater(
         sections_tuple = tuple(section)
         Xdbs = gf.CrossSection(sections=sections_tuple)
         HPart = h << gf.path.extrude(PathHeat, cross_section=Xdbs)  # 创建左侧加热电极
-        h.add_port(name="HeatIn", port=HPart.ports["o1"])  # 添加加热输入端口
-        h.add_port(name="HeatOut", port=HPart.ports["o2"])  # 添加加热输出端口
+        h.add_port(name="HeatIn", port=HPart.ports["assit1"])  # 添加加热输入端口
+        h.add_port(name="HeatOut", port=HPart.ports["assit2"])  # 添加加热输出端口
         for port in HPart.ports:
             h.add_port(name=port.name, port=port)
         h.remove_layers(layers=[vialayer,])
