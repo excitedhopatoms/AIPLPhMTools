@@ -74,7 +74,6 @@ def DifferentHeater(
         PathHeat: Path = None,
         WidthWG: float = 1,
         HeaterConfig: HeaterConfigClass = heaterconfig0,
-        **kwargs
 ) -> Component:
     """
     根据指定的类型和其他参数，生成不同类型的加热器组件。
