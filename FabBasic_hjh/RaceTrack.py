@@ -7,22 +7,14 @@ from .SnapMerge import *
 def RaceTrackP(
         WidthRing: float = 8,
         WidthNear: float = 5,
-        WidthHeat: float = 10,
-        DeltaHeat: float = 10,
-        GapHeat: float = 10,
-        WidthRoute: float = 20,
         LengthRun: float = 200,
         RadiusRing: float = 100,
         GapCouple: float = 1,
         AngleCouple: float = 20,
         IsAD: bool = True,
-        IsHeat: bool = True,
-        TypeHeater: str = "default",
         DirectionHeater: str = "down",
         oplayer: LayerSpec = LAYER.WG,
-        heatlayer: LayerSpec = LAYER.M1,
-        routelayer: LayerSpec = LAYER.M2,
-        vialayer: LayerSpec = LAYER.VIA,
+        HeaterConfig:HeaterConfigClass = None,
 ) -> Component:
     """
     创建一个基于滑轮型（角度）耦合的跑道环谐振器 (RaceTrack Pulley Coupler)。
@@ -119,7 +111,7 @@ def RaceTrackP(
     c.add_port(name="Rcenter", center=np.array(RP1.ports["o2"].center)/2+np.array(RP3.ports["o2"].center)/2,
                width=WidthRing, orientation=180,layer=oplayer)
     print("length="+str(RingPath1.length()*4))
-    if IsHeat:
+    if HeaterConfig:
         rrun1 = gf.path.straight(length=LengthRun / 2)
         rring1 = gf.path.arc(radius=RadiusRing, angle=45)
         rring2 = gf.path.arc(radius=RadiusRing, angle=-70)
@@ -129,22 +121,16 @@ def RaceTrackP(
         HeatPath2 = rring2 + rb2+ rrun1
         HeatPath3 = rrun1
         heater = gf.Component()
-        RHP1 = heater << DifferentHeater(PathHeat=HeatPath1,WidthHeat=WidthHeat,WidthRoute=WidthRoute,WidthWG=WidthRing,
-                                         DeltaHeat=DeltaHeat, GapHeat=GapHeat,
-                               heatlayer=heatlayer,routelayer=routelayer,vialayer=vialayer,TypeHeater=TypeHeater)
-        RHP2 = heater << DifferentHeater(PathHeat=HeatPath2, WidthHeat=WidthHeat, WidthRoute=WidthRoute, WidthWG=WidthRing,
-                                         DeltaHeat=-DeltaHeat, GapHeat=GapHeat,
-                               heatlayer=heatlayer, routelayer=routelayer, vialayer=vialayer, TypeHeater=TypeHeater)
-        RHP3 = heater << DifferentHeater(PathHeat=HeatPath3, WidthHeat=WidthHeat, WidthRoute=WidthRoute, WidthWG=WidthRing,
-                                         DeltaHeat=DeltaHeat, GapHeat=GapHeat,
-                               heatlayer=heatlayer, routelayer=routelayer, vialayer=vialayer, TypeHeater=TypeHeater)
+        RHP1 = heater << DifferentHeater(PathHeat=HeatPath1,WidthWG=WidthRing,HeaterConfig=HeaterConfig)
+        RHP2 = heater << DifferentHeater(PathHeat=HeatPath2,WidthWG=WidthRing,HeaterConfig=HeaterConfig)
+        RHP3 = heater << DifferentHeater(PathHeat=HeatPath3,WidthWG=WidthRing,HeaterConfig=HeaterConfig)
         RHP2.connect("HeatIn", other=RHP1.ports["HeatIn"])
         RHP3.connect("HeatOut", other=RHP2.ports["HeatOut"])
         heater.add_port("HeatBmid1", port=RHP1.ports["HeatIn"])
         heater.add_port("HeatBmid2", port=RHP2.ports["HeatIn"])
         heater.add_port("HeatIn", port=RHP3.ports["HeatIn"])
         heater.add_port("HeatOut",port=RHP1.ports["HeatOut"])
-        if TypeHeater == 'spilt':
+        if HeaterConfig.TypeHeater == 'spilt':
             heater.add_port("HeatLIn", port=RHP3.ports["HeatLIn"])
             heater.add_port("HeatRIn", port=RHP3.ports["HeatRIn"])
             heater.add_port("HeatLOut", port=RHP1.ports["HeatLOut"])
@@ -155,7 +141,7 @@ def RaceTrackP(
         if DirectionHeater == 'down':
             h.mirror_x(RP1.ports["o1"].center[0])
         # h.mirror_x(h.ports["HeatBmid1"].center[0])
-        if TypeHeater == "side":
+        if HeaterConfig.TypeHeater == "side":
             heater.add_port("HeatSIn", port=RHP3.ports["HeatSIn"])
             heater.add_port("HeatSOut", port=RHP1.ports["HeatSOut"])
         for port in h.ports:
@@ -184,6 +170,7 @@ def RaceTrackS(
         routelayer: LayerSpec = LAYER.M2,
         vialayer: LayerSpec = LAYER.VIA,
         Name: str = "RaceTrack_Pulley",
+        HeaterConfig: HeaterConfigClass = heaterconfig0,
 ) -> Component:
     """
     创建一个基于直线耦合的跑道环谐振器。
@@ -225,23 +212,16 @@ def RaceTrackS(
         Rcen1, Rcen2: 弯曲中心参考点。
         (以及可能的加热器/电极端口)
     """
-    if TypeHeater == "center":
+    if HeaterConfig.TypeHeater == "center":
         return RaceTrackStrHC(
             WidthRing=WidthRing,
-            WidthHeat=WidthHeat,
-            WidthRoute = WidthRoute,
             LengthRun=LengthRun,
             RadiusRing=RadiusRing,
             GapCouple=GapCouple,
-            GapRoute=GapHeat,
-            DeltaHeat=DeltaHeat,
             LengthCouple=LengthCouple,
             IsAD=IsAD,
             IsHeat=IsHeat,
             oplayer=oplayer,
-            heatlayer=heatlayer,
-            vialayer=vialayer,
-            routelayer=routelayer,
         )
     c = gf.Component()
     layer = oplayer
@@ -303,7 +283,7 @@ def RaceTrackS(
     c.add_port(name="Rcen1", port=RP1.ports["o2"])
     c.add_port(name="Rcen2", port=RP3.ports["o2"])
     # heat part
-    if TypeHeater == "ELE" or TypeHeater == "ele":
+    if HeaterConfig.TypeHeater == "ELE" or TypeHeater == "ele":
         ele = c << GSGELE(
             WidthS=20,WidthG=80,GapGS=5,LengthEle=LengthRun+60,IsPad=True,LengthToPad=90,
             elelayer=elelayer,
@@ -312,18 +292,10 @@ def RaceTrackS(
         ele.movey(-LengthRun/2)
     else:
         heater = gf.Component()
-        RHP1 = heater << DifferentHeater(PathHeat=HeatPath1,WidthHeat=WidthHeat,WidthRoute=WidthRoute,WidthWG=WidthRing,
-                                         DeltaHeat=DeltaHeat, GapHeat=GapHeat,
-                               heatlayer=heatlayer,routelayer=routelayer,vialayer=vialayer,TypeHeater=TypeHeater)
-        RHP2 = heater << DifferentHeater(PathHeat=HeatPath1, WidthHeat=WidthHeat, WidthRoute=WidthRoute, WidthWG=WidthRing,
-                                         DeltaHeat=DeltaHeat, GapHeat=GapHeat,
-                               heatlayer=heatlayer, routelayer=routelayer, vialayer=vialayer, TypeHeater=TypeHeater)
-        RHP3 = heater << DifferentHeater(PathHeat=HeatPath2, WidthHeat=WidthHeat, WidthRoute=WidthRoute, WidthWG=WidthRing,
-                                         DeltaHeat=DeltaHeat, GapHeat=GapHeat,
-                               heatlayer=heatlayer, routelayer=routelayer, vialayer=vialayer, TypeHeater=TypeHeater)
-        RHP4 = heater << DifferentHeater(PathHeat=HeatPath2, WidthHeat=WidthHeat, WidthRoute=WidthRoute, WidthWG=WidthRing,
-                                         DeltaHeat=DeltaHeat,GapHeat=GapHeat,
-                               heatlayer=heatlayer, routelayer=routelayer, vialayer=vialayer, TypeHeater=TypeHeater)
+        RHP1 = heater << DifferentHeater(PathHeat=HeatPath1,WidthWG=WidthRing,HeaterConfig=HeaterConfig)
+        RHP2 = heater << DifferentHeater(PathHeat=HeatPath1,WidthWG=WidthRing,HeaterConfig=HeaterConfig)
+        RHP3 = heater << DifferentHeater(PathHeat=HeatPath2,WidthWG=WidthRing,HeaterConfig=HeaterConfig)
+        RHP4 = heater << DifferentHeater(PathHeat=HeatPath2,WidthWG=WidthRing,HeaterConfig=HeaterConfig)
         RHP2.connect("HeatOut", other=RHP1.ports["HeatOut"],mirror=True)
         RHP3.connect("HeatIn", other=RHP1.ports["HeatIn"])
         RHP4.connect("HeatIn", other=RHP2.ports["HeatIn"],mirror=True)
@@ -347,19 +319,14 @@ def RaceTrackStrHC(
         WidthRing: float = 8,
         WidthHeat: float = 8,
         WidthRoute: float = 50,
-        DeltaHeat: float = -10,
-        GapRoute: float = 50,
         LengthRun: float = 200,
         RadiusRing: float = 500,
         GapCouple: float = 1,
         LengthCouple: float = 200,
         IsAD: bool = True,
-        IsHeat: bool = True,
         oplayer: LayerSpec = LAYER.WG,
         heatlayer: LayerSpec = LAYER.M1,
-        routelayer: LayerSpec = LAYER.M2,
-        vialayer: LayerSpec = LAYER.VIA,
-        Name: str = "RaceTrack_Pulley"
+        HeaterConfig: HeaterConfigClass = None
 ) -> Component:
     """
      创建一个带有加热电极的环形跑道波导组件，支持输入、输出、添加和丢弃端口。
@@ -454,7 +421,18 @@ def RaceTrackStrHC(
     c.add_port(name="Rcen2", port=RP3.ports["o2"])
 
     # heat part
-    if IsHeat:
+    if HeaterConfig:
+        # 从配置对象中提取参数
+        TypeHeater = HeaterConfig.TypeHeater
+        WidthHeat = HeaterConfig.WidthHeat
+        WidthRoute = HeaterConfig.WidthRoute
+        WidthVia = HeaterConfig.WidthVia
+        Spacing = HeaterConfig.Spacing
+        DeltaHeat = HeaterConfig.DeltaHeat
+        GapRoute = HeaterConfig.GapHeat
+        heatlayer = HeaterConfig.LayerHeat
+        routelayer = HeaterConfig.LayerRoute
+        vialayer = HeaterConfig.LayerVia
         h_plus = gf.Component()
         h_minus = gf.Component()
         secheat1 = gf.Section(width=WidthHeat, offset=-DeltaHeat, layer=heatlayer, port_names=("o1", "o2"))
@@ -510,8 +488,8 @@ def RaceTrackStrHC(
         Htotal = c << gf.boolean(A=h_plus, B=h_minus, operation="not", layer=heatlayer)
         c.add_port(name="HeatIn", port=HP1.ports["o1"], orientation=0)
         c.add_port(name="HeatOut", port=HP2.ports["o2"])
-    remove_layer(c,layer=(512,8))
-    add_labels_to_ports(c)
+    # remove_layer(c,layer=(512,8))
+    # add_labels_to_ports(c)
     print("length="+str(RingPath1.length()*4))
     return c
 
@@ -528,10 +506,7 @@ def TaperRaceTrackPulley(
         AngleCouple: float = 20,
         IsAD: bool = True,
         oplayer: LayerSpec = LAYER.WG,
-        heatlayer: LayerSpec = LAYER.M1,
-        routelayer: LayerSpec = LAYER.M2,
-        vialayer: LayerSpec = LAYER.VIA,
-        Name: str = "TaperRaceTrack_Pulley"
+        HeaterConfig: HeaterConfigClass=None,
 ) -> Component:
     """
      创建一个带有中心放置加热电极的直线耦合跑道环谐振器。
