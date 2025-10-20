@@ -873,8 +873,6 @@ def TCFingerRing1(
         width_ring: float = 1,
         width_near: float = 2,
         width_single: float = 1,
-        width_heat:float = 5,
-        width_route: float = 20,
         angle_rc: float = 20,
         angle_side: float = 190,
         length_taper: float = 150,
@@ -885,9 +883,6 @@ def TCFingerRing1(
         length_connect: float = 120,
         pos_ring: float = 500,
         gap_rc: float = 1,
-        gap_heat:float = 2,
-        delta_heat:float = 2,
-        is_heat: bool= False,
         heaterconfig: HeaterConfigClass = None,
         tin: Component = taper_in,
         tout: Component = taper_out,
@@ -933,14 +928,10 @@ def TCFingerRing1(
     """
     sr = gf.Component()
     ring = gf.Component()
-    if heaterconfig is None:
-        heaterconfig = HeaterConfigClass(
-            WidthHeat=width_heat,WidthRoute=width_route,GapHeat=gap_heat,DeltaHeat=delta_heat,
-        )
     ## ring
     ring0 = ring << RingFinger(
         WidthRing=width_ring, WidthNear=width_near, LengthSide=length_side, LengthCouple=length_couple,
-        LengthConnect=length_connect,IsHeat = is_heat,WidthRoute=width_route,
+        LengthConnect=length_connect,
         GapRing=gap_rc, AngleCouple=angle_rc, AngleSide=angle_side, RadiusCouple=r_ring, RadiusSide=r_side,
         oplayer=oplayer,HeaterConfig=heaterconfig,
     )
@@ -997,29 +988,24 @@ def TCRingT1(
         r_euler_min: float = r_euler_true,
         width_ring: float = 1,
         width_near: float = 2,
-        width_heat: float = 5,
         width_single: float = 1,
         angle_rc: float = 20,
         length_taper: float = 150,
         length_total: float = 10000,
         length_th_horizontal: float = 10,
         length_th_vertical: float = 10,
-        length_busheater: float = 100,
+        length_busheater: float = 1,
         pos_ring: float = 500,
         gap_rc: float = 1,
-        gap_heat: float = 1,
-        gap_heat_bus: float = None,
-        delta_heat: float = 1,
         tin: Component = taper_in,
         tout: Component = taper_out,
         is_heat: bool = True,
         is_ad: bool = False,
         oplayer: LayerSpec = LAYER.WG,
-        heatlayer: LayerSpec = LAYER.M1,
         direction_heater: str = "up",
         position_taper: str = "before_bend",  # 控制锥形波导的位置
-        type_heater: str = "None",  # 控制加热器类型
-        type_busheaeter: str = "None",
+        heater_config_ring: HeaterConfigClass = None,  # 控制加热器类型
+        heater_config_bus: HeaterConfigClass = None,
 ) -> Component:
     """
     创建一个环形波导组件，支持通过 position_taper 参数控制锥形波导的位置，并通过 type_heater 参数控制加热器类型。
@@ -1062,12 +1048,10 @@ def TCRingT1(
     """
     sr = gf.Component()
     ring = gf.Component()
-    if type_heater == "none" or "None":
-        is_heat=False
     ring0 = ring << RingPulleyT1(
-        WidthRing=width_ring, WidthNear=width_near, WidthHeat=width_heat, GapRing=gap_rc, GapHeat=gap_heat,
-        RadiusRing=r_ring, AngleCouple=angle_rc, DeltaHeat=delta_heat, DirectionHeater=direction_heater,
-        IsAD=is_ad, IsHeat=is_heat, oplayer=oplayer, heatlayer=heatlayer, TypeHeater=type_heater
+        WidthRing=width_ring, WidthNear=width_near, GapRing=gap_rc,
+        RadiusRing=r_ring, AngleCouple=angle_rc, DirectionHeater=direction_heater,
+        IsAD=is_ad, IsHeat=is_heat, oplayer=oplayer,HeaterConfig=heater_config_ring,
     )
     taper_s2n1 = ring << gf.c.taper(width1=width_single, width2=width_near, length=length_taper, layer=oplayer)
     taper_s2n1.connect("o2", ring0.ports["Input"])
@@ -1164,18 +1148,9 @@ def TCRingT1(
             sr.add_port(port.name, port=Ring.ports[port.name])
         if "Drop" in port.name:
             sr.add_port(port.name, port=Ring.ports[port.name])
-    if (type_busheaeter == "None") or (type_busheaeter == "none"):
-        sr = remove_layer(sr, layer=(512, 8))
-        add_labels_to_ports(sr)
-        return sr
-    else:
-        if gap_heat_bus is None:
-            gap_heat_bus=gap_heat
+    if heater_config_bus:
         pbusheat = gf.path.straight(length=length_busheater)
-        cbusheat = sr << DifferentHeater(pbusheat,
-           WidthHeat=width_heat,WidthWG=width_single,WidthRoute=20,
-           DeltaHeat=delta_heat,GapHeat=gap_heat,heatlayer=heatlayer,TypeHeater=type_busheaeter
-           )
+        cbusheat = sr << DifferentHeater(pbusheat,WidthWG=width_single,HeaterConfig=heater_config_bus)
         cbusheat.connect("HeatIn",other=Ring.ports["o1"],allow_width_mismatch=True, allow_layer_mismatch=True)
         for port in cbusheat.ports:
             if "Heat" in port.name:
@@ -1192,7 +1167,6 @@ def TCRingT2(
         r_euler_min: float = r_euler_true,
         width_ring: float = 1,
         width_near: float = 10,
-        width_heat: float = 5,
         width_single: float = 1,
         angle_rc: float = 20,
         length_taper: float = 150,
@@ -1202,18 +1176,12 @@ def TCRingT2(
         length_busheater: float = 100,
         pos_ring: float = 500,
         gap_rc: float = 1,
-        gap_heat: float = 1,
-        gap_heat_bus: float = None,
-        delta_heat: float = 1,
         tin: Component = taper_in,
         tout: Component = taper_out,
-        is_heat: bool = True,
-        is_ad: bool = False,
         oplayer: LayerSpec = LAYER.WG,
-        heatlayer: LayerSpec = LAYER.M1,
         position_taper: str = "before_bend",  # 控制锥形波导的位置
-        type_heater: str = "default",  # 控制加热器类型
-        type_busheaeter: str = "none",
+        heater_config_ring: HeaterConfigClass = None,  # 控制加热器类型
+        heater_config_bus: HeaterConfigClass = None,
         direction_heater: str = "up",
 ) -> Component:
     """
@@ -1258,9 +1226,8 @@ def TCRingT2(
     sr = gf.Component()
     ring = gf.Component()
     ring0 = ring << RingPulleyT2(
-        WidthRing=width_ring, WidthNear=width_near, WidthHeat=width_heat, GapRing=gap_rc, GapHeat=gap_heat,
-        RadiusRing=r_ring, AngleCouple=angle_rc,DeltaHeat=delta_heat,
-        IsHeat=is_heat, oplayer=oplayer, heatlayer=heatlayer, TypeHeater=type_heater,DirectionHeater=direction_heater,
+        WidthRing=width_ring, WidthNear=width_near, GapRing=gap_rc,
+        RadiusRing=r_ring, AngleCouple=angle_rc, oplayer=oplayer, HeaterConfig=heater_config_ring,DirectionHeater=direction_heater,
     )
     taper_s2n1 = ring << gf.c.taper(width1=width_single, width2=width_near, length=length_taper, layer=oplayer)
     taper_s2n1.connect("o2", ring0.ports["Input"])
@@ -1319,19 +1286,9 @@ def TCRingT2(
     for port in Ring.ports:
         if "Heat" in port.name:
             sr.add_port(port.name, port=Ring.ports[port.name])
-    if (type_busheaeter == "None") or (type_busheaeter == "none"):
-        sr = remove_layer(sr, layer=(512, 8))
-        add_labels_to_ports(sr)
-        return sr
-    else:
-        if gap_heat_bus is None:
-            gap_heat_bus = gap_heat
+    if heater_config_bus:
         pbusheat = gf.path.straight(length=length_busheater)
-        cbusheat = sr << DifferentHeater(pbusheat,
-                                         WidthHeat=width_heat, WidthWG=width_single, WidthRoute=20,
-                                         DeltaHeat=delta_heat, GapHeat=gap_heat, heatlayer=heatlayer,
-                                         TypeHeater=type_busheaeter
-                                         )
+        cbusheat = sr << DifferentHeater(pbusheat,WidthWG=width_single, HeaterConfig=heater_config_bus)
         cbusheat.connect("HeatIn", other=Ring.ports["o1"], allow_width_mismatch=True, allow_layer_mismatch=True)
         for port in cbusheat.ports:
             if "Heat" in port.name:
