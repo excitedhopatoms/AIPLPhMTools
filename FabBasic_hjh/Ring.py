@@ -13,11 +13,10 @@ def RingPulley(
         RadiusRing: float = 100,
         GapRing: float = 1,
         AngleCouple: float = 20,
-        IsHeat: bool = False,
         IsAD: bool = True,
         Name: str = "Ring_Pullry",
         oplayer: LayerSpec = LAYER.WG,
-        HeaterConfig: HeaterConfigClass = heaterconfig0,
+        HeaterConfig: HeaterConfigClass = None,
 ) -> Component:
     """
     创建一个通用的滑轮耦合（Pulley Coupler）环形谐振器组件。
@@ -58,7 +57,6 @@ def RingPulley(
         RadiusRing=RadiusRing,
         GapRing=GapRing,
         AngleCouple=AngleCouple,
-        IsHeat=IsHeat,
         IsAD=IsAD,
         Name=Name,
         oplayer=oplayer,
@@ -78,9 +76,8 @@ def RingPulley1DC(
         GapRing2: float = 2,
         AngleCouple1: float = 20,
         AngleCouple2: float = 40,
-        IsHeat: bool = False,
         oplayer: LayerSpec = LAYER.WG,
-        HeaterConfig: HeaterConfigClass = heaterconfig0,
+        HeaterConfig: HeaterConfigClass = None,
 ) -> Component:
     """
     创建一个滑轮耦合环形谐振器，其上下两侧（或Input/Through侧与Add/Drop侧）
@@ -118,7 +115,6 @@ def RingPulley1DC(
         GapRing2=GapRing2,
         AngleCouple=AngleCouple1,
         AngleCouple2=AngleCouple2,
-        IsHeat=IsHeat,
         oplayer=oplayer,
         HeaterConfig=HeaterConfig,
     )
@@ -130,14 +126,12 @@ def RingPulley1DC(
 def RingPulley1HS(
         WidthRing: float = 1,
         WidthNear: float = 0.9,
-        DeltaHeat: float = -10,
         RadiusRing: float = 1000,
         GapRing: float = 1,
         AngleCouple: float = 20,
         IsAD: bool = True,
-        Name: str = "Ring_Pullry",
         oplayer: LayerSpec = LAYER.WG,
-        HeaterConfig: HeaterConfigClass = heaterconfig0,
+        HeaterConfig: HeaterConfigClass = None,
 ) -> Component:
     """
     创建一个滑轮耦合环形谐振器，并集成一个“侧边”类型的加热器。
@@ -156,19 +150,27 @@ def RingPulley1HS(
 
     端口: (与 RingPulley / RingPulleyT1 类似)
     """
+    Heater1 = HeaterConfigClass(
+        TypeHeater = "side",
+        WidthHeat = HeaterConfig.WidthHeat,
+        WidthRoute = HeaterConfig.WidthRoute,
+        WidthVia = HeaterConfig.WidthVia,
+        Spacing = HeaterConfig.Spacing,
+        DeltaHeat = HeaterConfig.DeltaHeat,
+        GapHeat = HeaterConfig.GapHeat,
+        LayerHeat = HeaterConfig.LayerHeat,
+        LayerRoute = HeaterConfig.LayerRoute,
+        LayerVia = HeaterConfig.LayerVia,
+    )
     c = RingPulleyT1(
         WidthRing=WidthRing,
         WidthNear=WidthNear,
         RadiusRing=RadiusRing,
         GapRing=GapRing,
-        GapHeat=DeltaHeat,
         AngleCouple=AngleCouple,
         IsAD=IsAD,
-        IsHeat=True,
-        Name=Name,
         oplayer=oplayer,
         HeaterConfig=HeaterConfig,
-        TypeHeater="side",
     )
     return c
 
@@ -178,14 +180,12 @@ def RingPulley1HS(
 def RingPulley1HSn(
         WidthRing: float = 1,
         WidthNear: float = 0.9,
-        DeltaHeat: float = 0,
         RadiusRing: float = 1000,
         GapRing: float = 1,
         AngleCouple: float = 20,
         IsAD: bool = True,
-        Name: str = "Ring_Pullry",
         oplayer: LayerSpec = LAYER.WG,
-        HeaterConfig: HeaterConfigClass = heaterconfig0,
+        HeaterConfig: HeaterConfigClass = None,
 ) -> Component:
     """
     创建一个滑轮耦合环形谐振器，并集成一个“蛇形”类型的加热器。
@@ -221,10 +221,8 @@ def RingPulley1HSn(
         GapRing=GapRing,
         AngleCouple=AngleCouple,
         IsAD=IsAD,
-        Name=Name,
         oplayer=oplayer,
         HeaterConfig=HeaterConfig,
-        IsHeat=True,
     )
     return c
 
@@ -237,9 +235,8 @@ def RingPulley2(
         RadiusRing: float = 100,
         GapRing: float = 1,
         AngleCouple: float = 20,
-        IsHeat: bool = False,
         oplayer: LayerSpec = LAYER.WG,
-        HeaterConfig: HeaterConfigClass = heaterconfig0,
+        HeaterConfig: HeaterConfigClass = None,
 ) -> Component:
     """
     创建一个滑轮耦合环形谐zh振器，其输入/输出耦合臂具有特定的弯曲形状（由 `RingPulleyT2` 定义）。
@@ -267,7 +264,7 @@ def RingPulley2(
         如果 `RingPulleyT2` 支持 Add/Drop 和加热，则也会有相应端口。
     """
     c = RingPulleyT2(WidthRing=WidthRing,WidthNear=WidthNear,RadiusRing=RadiusRing,GapRing=GapRing,AngleCouple=AngleCouple,
-                     IsHeat=IsHeat,oplayer=oplayer,HeaterConfig=HeaterConfig,)
+                     oplayer=oplayer,HeaterConfig=HeaterConfig,)
     return c
 
 
@@ -318,12 +315,9 @@ def RingPulley2ES(
 def RingPulley3(
         WidthRing: float = 1,
         WidthNear: float = 0.9,
-        WidthHeat: float = 2,
         RadiusRing: float = 100,
         GapRing: float = 1,
         AngleCouple: float = 90,
-        IsHeat: bool = False,
-        Name: str = "Ring_Pullry2",
         oplayer: LayerSpec = LAYER.WG,
 ) -> Component:
     """
@@ -379,12 +373,9 @@ def RingPulley3(
 def RingPulley4(
         WidthRing: float = 1,
         WidthNear: float = 0.9,
-        WidthHeat: float = 2,
         RadiusRing: float = 100,
         GapRing: float = 1,
         AngleCouple: float = 50,
-        IsHeat: bool = False,
-        Name: str = "Ring_Pullry2",
         oplayer: LayerSpec = LAYER.WG,
 ) -> Component:
     """
@@ -436,7 +427,6 @@ def RingPulley4(
 def RingFinger(
         WidthRing: float = 1,
         WidthNear: float = 0.9,
-        WidthRoute:float = 20,
         RadiusCouple: float = 150,
         RadiusSide: float = 100,
         LengthCouple: float = 100,
@@ -445,7 +435,6 @@ def RingFinger(
         GapRing: float = 1,
         AngleCouple: float = 20,
         AngleSide: float = 180,
-        IsHeat: bool = False,
         Name: str = "RingFinger",
         oplayer: LayerSpec = LAYER.WG,
         HeaterConfig: HeaterConfigClass = heaterconfig0
@@ -519,7 +508,7 @@ def RingFinger(
     c.add_port(name="Through", port=CcoupleR.ports["o2"])
     c.add_port(name="Con1", port=str_connect.ports["o1"])
     c.add_port(name="Con2", port=str_connect.ports["o2"])
-    if IsHeat:
+    if HeaterConfig:
         path_half_heat = path_side + path_side2 + path_connect
         HeatL = c << DifferentHeater(path_half_heat,WidthWG=WidthRing,HeaterConfig=HeaterConfig)
         HeatR = c << DifferentHeater(path_half_heat,WidthWG=WidthRing,HeaterConfig=HeaterConfig)
@@ -548,12 +537,10 @@ def RingPulleyT1(
         GapRing: float = 1.0,
         GapTrench: float = 10,
         AngleCouple: float = 20.0,
-        IsHeat: bool = True,
         IsAD: bool = True,
         IsTrench: bool = False,
         DirectionHeater: str = "up",
-        Name: str = "Ring_Pullry",
-        HeaterConfig: HeaterConfigClass = HeaterConfigClass(),
+        HeaterConfig: HeaterConfigClass = None,
         oplayer: LayerSpec = LAYER.WG,
         trelayer: LayerSpec = (3, 0)
 ) -> Component:
@@ -661,7 +648,7 @@ def RingPulleyT1(
         c.add_port(name="Drop", port=downcouple_comp2.ports["o2"])  # 添加 Drop 端口
 
     # 加热部分
-    if IsHeat:
+    if HeaterConfig:
         DifferentHeater_local(c, WidthRing=WidthRing,RadiusRing=RadiusRing,HeaterConfig=HeaterConfig,DirectionHeater=DirectionHeater)
     if IsTrench:
         ring_tr = c << gf.c.ring(width=WidthTrench, layer=trelayer,
@@ -680,11 +667,9 @@ def RingPulleyT2(
         RadiusRing: float = 100.0,
         GapRing: float = 1.0,
         AngleCouple: float = 20.0,
-        IsHeat: bool = True,
-        Name: str = "Ring_Pullry",
         DirectionHeater: str = "up",
         oplayer: LayerSpec = LAYER.WG,
-        HeaterConfig: HeaterConfigClass = heaterconfig0,
+        HeaterConfig: HeaterConfigClass = None,
 ) -> Component:
     """
     创建一种特定几何形状的滑轮耦合环形谐振器。
@@ -719,17 +704,6 @@ def RingPulleyT2(
         (如果IsHeat=True，还有加热器端口)
     """
     c = gf.Component()
-    # Heater 参数
-    TypeHeater = Heater.TypeHeater
-    WidthHeat = Heater.WidthHeat
-    WidthRoute = Heater.WidthRoute
-    WidthVia = Heater.WidthVia
-    Spacing = Heater.Spacing
-    DeltaHeat = Heater.DeltaHeat
-    GapHeat = Heater.GapHeat
-    heatlayer = Heater.LayerHeat
-    routelayer = Heater.LayerRoute
-    vialayer = Heater.LayerVia
     # 光学部分：创建环形波导
     ring_path90 = gf.path.arc(radius=RadiusRing, angle=90)
     ring_path_all = ring_path90 + ring_path90 + ring_path90 + ring_path90
@@ -757,7 +731,7 @@ def RingPulleyT2(
     c.add_port(name="RingU", width=1, center=[0, 2 * RadiusRing],layer=oplayer)
     c.add_port(name="RingC", width=1, center=[0, RadiusRing],layer=oplayer)
     # 添加加热电极
-    if IsHeat:
+    if HeaterConfig:
         DifferentHeater_local(c, WidthRing=WidthRing,RadiusRing=RadiusRing,HeaterConfig=HeaterConfig,DirectionHeater=DirectionHeater)
     add_labels_to_ports(c)
     return c
@@ -770,7 +744,7 @@ def DifferentHeater_local(
         WidthRing: float = 1,
         RadiusRing: float = 100.0,
         DirectionHeater: str = "down",
-        HeaterConfig: HeaterConfigClass = heaterconfig0,
+        HeaterConfig: HeaterConfigClass = HeaterConfigClass(),
 ) -> Component:
     """
     （局部辅助函数）创建一个加热电极子组件，支持多种类型和方向。
