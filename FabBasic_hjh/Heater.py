@@ -5,7 +5,6 @@ from shapely.affinity import translate
 import numpy as np
 from shapely.geometry import Polygon, MultiPoint, box
 from joblib import Parallel, delayed,cpu_count
-from BasicDefine import HeaterConfig
 def SnakeHeater(
         WidthHeat: float = 8,
         WidthWG: float = 2,
@@ -128,7 +127,7 @@ def DifferentHeater(
     # 从配置对象中提取参数
     TypeHeater = Heater.TypeHeater
     WidthHeat = Heater.WidthHeat
-    WidthRoute = Heater.WidthRuute
+    WidthRoute = Heater.WidthRoute
     WidthVia = Heater.WidthVia
     Spacing = Heater.Spacing
     DeltaHeat = Heater.DeltaHeat
@@ -162,7 +161,7 @@ def DifferentHeater(
         # 两侧边加热电极
         section1 = gf.Section(width=WidthHeat, offset=DeltaHeat, layer=heatlayer, port_names=("Uo1", "Uo2"))
         section2 = gf.Section(width=WidthHeat, offset=-DeltaHeat, layer=heatlayer, port_names=("Do1", "Do2"))
-        CrossSection = gf.CrossSection(sections=[section1, section2])
+        CrossSection = gf.CrossSection(sections=(section1, section2,))
         HPart = h << gf.path.extrude(PathHeat, cross_section=CrossSection)  # 创建左侧加热电极
         h.add_port(name="HeatLIn", port=HPart.ports["Uo1"])  # 添加加热输入端口
         h.add_port(name="HeatLOut", port=HPart.ports["Uo2"])  # 添加加热输出端口
@@ -172,6 +171,50 @@ def DifferentHeater(
                    center=np.array(h.ports["HeatLIn"].center) / 2 + np.array(h.ports["HeatRIn"].center / 2))  # 添加加热输入端口
         h.add_port(name="HeatOut", width=WidthWG, layer=heatlayer,
                    center=np.array(h.ports["HeatLOut"].center) / 2 + np.array(h.ports["HeatROut"].center / 2))  # 添加加热输出端口
+    elif TypeHeater == "multi":
+        if isinstance(WidthHeat, (list, tuple)) or hasattr(WidthHeat, "__iter__"):
+            noh = len(WidthHeat)
+        else:
+            noh = 1
+            WidthHeat = [WidthHeat]
+        if isinstance(DeltaHeat, (list, tuple)) or hasattr(DeltaHeat, "__iter__"):
+            nod = len(DeltaHeat)
+        else:
+            nod = 1
+            DeltaHeat = [DeltaHeat]
+        if noh != nod:
+            raise ValueError(
+                "Number of WidthHeat != Number of DeltaHeat"
+            )
+        widthheat = []
+        deltaheat = []
+        for i in range(noh):
+            if isinstance(WidthHeat, (list, tuple)):
+                widthheat.append(WidthHeat[i])
+            elif hasattr(WidthHeat, "__iter__"):  # 支持 numpy.ndarray
+                WidthHeat = list(WidthHeat)
+                widthheat.append(WidthHeat[i])
+            if isinstance(DeltaHeat, (list, tuple)):
+                deltaheat.append(DeltaHeat[i])
+            elif hasattr(DeltaHeat, "__iter__"):  # 支持 numpy.ndarray
+                DeltaHeat = list(DeltaHeat)
+                deltaheat.append(DeltaHeat[i])
+        # section & crosssection
+        section = []
+        for i in range(noh):
+            sec = gf.Section(width=widthheat[i], offset=deltaheat[i], layer=heatlayer,
+                                    port_names=("Heat"+str(i)+"In", "Heat"+str(i)+"Out"))
+            section.append(sec)
+        section_assit = gf.Section(width=0.01, offset=0, layer=vialayer, port_names=("assit1", "assit2"))
+        section.append(section_assit)
+        sections_tuple = tuple(section)
+        Xdbs = gf.CrossSection(sections=sections_tuple)
+        HPart = h << gf.path.extrude(PathHeat, cross_section=Xdbs)  # 创建左侧加热电极
+        h.add_port(name="HeatIn", port=HPart.ports["o1"])  # 添加加热输入端口
+        h.add_port(name="HeatOut", port=HPart.ports["o2"])  # 添加加热输出端口
+        for port in HPart.ports:
+            h.add_port(name=port.name, port=port)
+        h.remove_layers(layers=[vialayer,])
     elif TypeHeater == "spilt":
         # section and crosssection
         n_pieces = np.floor((PathHeat.length()) / (WidthRoute + GapHeat))
