@@ -10,6 +10,7 @@ from gdsfactory.pdk import get_active_pdk
 from gdsfactory.technology.layer_map import LayerMap
 from gdsfactory.typings import Layer, LayerSpec, LayerSpecs, CrossSectionSpec
 from dataclasses import dataclass
+from typing import Union, Sequence
 PDK = get_generic_pdk()
 PDK.activate()
 
@@ -66,19 +67,19 @@ class LayerMapUserDef(LayerMap):
     WAFER:Layer = (100,1)
 LAYER = LayerMapUserDef
 
-@dataclass
-class HeaterConfig:
+@dataclass(frozen=True)
+class HeaterConfigClass:
     TypeHeater: str = "default"
-    WidthHeat: float = 4
-    WidthRuute: float = 1
+    WidthHeat: Union[float, Sequence[float]] = 4
+    WidthRoute: float = 1
     WidthVia: float = 0.26
     GapHeat: float = 3 # 两个heater的间隔
-    DeltaHeat: float = 2 # 距离中心波导的距离
+    DeltaHeat: Union[float, Sequence[float]] = 2 # 距离中心波导的距离
     Spacing: float = 1.1 # Via的spacing
-    LayerHeat: str = LAYER.M1
-    LayerRoute: str = LAYER.M2
-    LayerVia: str = LAYER.VIA
-heaterconfig0 = HeaterConfig()
+    LayerHeat: tuple[int,int] = LAYER.M1
+    LayerRoute: tuple[int,int] = LAYER.M2
+    LayerVia: tuple[int,int] = LAYER.VIA
+heaterconfig0 = HeaterConfigClass()
 # %% section & crosssection
 S_in_te0 = gf.Section(width=0.5, layer=LAYER.WG, port_names=("o1", "o2"))
 S_in_te1 = gf.Section(width=1, layer=LAYER.WG, port_names=("o1", "o2"))
@@ -767,10 +768,6 @@ def euler_Bend_Half_Forward(
     if flip:
         points[:, 1] *= -1
 
-    # 若 angle 为负，则镜像
-    if mirror:
-        points = np.array([x, -y]).T
-
     # 输出 Path
     P = Path()
     P.points = points
@@ -778,6 +775,9 @@ def euler_Bend_Half_Forward(
     P.end_angle = angle
     P.info["Rmin"] = Rmin * scale
     P.info["Reff"] = Reff * scale
+    # 若 angle 为负，则镜像
+    if mirror:
+        P.mirror((1, 0))
     return P
 
 # 部分欧拉弯曲的路径

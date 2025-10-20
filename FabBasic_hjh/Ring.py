@@ -80,7 +80,7 @@ def RingPulley1DC(
         AngleCouple2: float = 40,
         IsHeat: bool = False,
         oplayer: LayerSpec = LAYER.WG,
-        Heater: HeaterConfig = heaterconfig0,
+        Heater: HeaterConfigClass = heaterconfig0,
 ) -> Component:
     """
     创建一个滑轮耦合环形谐振器，其上下两侧（或Input/Through侧与Add/Drop侧）
@@ -137,7 +137,7 @@ def RingPulley1HS(
         IsAD: bool = True,
         Name: str = "Ring_Pullry",
         oplayer: LayerSpec = LAYER.WG,
-        Heater: HeaterConfig = heaterconfig0,
+        Heater: HeaterConfigClass = heaterconfig0,
 ) -> Component:
     """
     创建一个滑轮耦合环形谐振器，并集成一个“侧边”类型的加热器。
@@ -185,7 +185,7 @@ def RingPulley1HSn(
         IsAD: bool = True,
         Name: str = "Ring_Pullry",
         oplayer: LayerSpec = LAYER.WG,
-        Heater: HeaterConfig = heaterconfig0,
+        Heater: HeaterConfigClass = heaterconfig0,
 ) -> Component:
     """
     创建一个滑轮耦合环形谐振器，并集成一个“蛇形”类型的加热器。
@@ -202,7 +202,7 @@ def RingPulley1HSn(
 
     端口: (与 RingPulley / RingPulleyT1 类似)
     """
-    Heater1 = HeaterConfig(
+    Heater1 = HeaterConfigClass(
         TypeHeater = "snake",
         WidthHeat = Heater.WidthHeat,
         WidthRoute = Heater.WidthRoute,
@@ -239,7 +239,7 @@ def RingPulley2(
         AngleCouple: float = 20,
         IsHeat: bool = False,
         oplayer: LayerSpec = LAYER.WG,
-        Heater: HeaterConfig = heaterconfig0,
+        Heater: HeaterConfigClass = heaterconfig0,
 ) -> Component:
     """
     创建一个滑轮耦合环形谐zh振器，其输入/输出耦合臂具有特定的弯曲形状（由 `RingPulleyT2` 定义）。
@@ -300,7 +300,7 @@ def RingPulley2ES(
 
     端口: (由 RingPulleyT2 定义，并包含 "bothside" 加热器的特定端口)
     """
-    Heater=HeaterConfig(
+    Heater=HeaterConfigClass(
         WidthHeat=WidthEle,DeltaHeat=DeltaEle,LayerHeat=elelayer,TypeHeater='bothside',
     )
     c = RingPulleyT2(WidthRing=WidthRing,
@@ -448,7 +448,7 @@ def RingFinger(
         IsHeat: bool = False,
         Name: str = "RingFinger",
         oplayer: LayerSpec = LAYER.WG,
-        Heater: HeaterConfig = heaterconfig0
+        Heater: HeaterConfigClass = heaterconfig0
 ) -> Component:
     """
     创建一个“手指”形或梳状的多弯曲环形谐振器结构。
@@ -563,7 +563,7 @@ def RingPulleyT1(
         IsTrench: bool = False,
         DirectionHeater: str = "up",
         Name: str = "Ring_Pullry",
-        Heater: HeaterConfig = HeaterConfig(),
+        Heater: HeaterConfigClass = HeaterConfigClass(),
         oplayer: LayerSpec = LAYER.WG,
         trelayer: LayerSpec = (3, 0)
 ) -> Component:
@@ -694,7 +694,7 @@ def RingPulleyT2(
         Name: str = "Ring_Pullry",
         DirectionHeater: str = "up",
         oplayer: LayerSpec = LAYER.WG,
-        Heater: HeaterConfig = heaterconfig0,
+        Heater: HeaterConfigClass = heaterconfig0,
 ) -> Component:
     """
     创建一种特定几何形状的滑轮耦合环形谐振器。
@@ -780,7 +780,7 @@ def DifferentHeater_local(
         WidthRing: float = 1,
         RadiusRing: float = 100.0,
         DirectionHeater: str = "down",
-        Heater: HeaterConfig = heaterconfig0,
+        Heater: HeaterConfigClass = heaterconfig0,
 ) -> Component:
     """
     （局部辅助函数）创建一个加热电极子组件，支持多种类型和方向。
@@ -1052,7 +1052,6 @@ def DifferentHeater_local(
         c.add_port(name="HeatExtIn", port=heater.ports["HeatExtIn"])  # 添加加热输入端口
         c.add_port(name="HeatExtOut", port=heater.ports["HeatExtOut"])  # 添加加热输出端口
     elif TypeHeater == "multi":
-        # 自动判断类型并提取前两个值
         if isinstance(WidthHeat, (list, tuple)) or hasattr(WidthHeat, "__iter__"):
             noh = len(WidthHeat)
         else:

@@ -73,7 +73,7 @@ def SnakeHeater(
 def DifferentHeater(
         PathHeat: Path = None,
         WidthWG: float = 1,
-        Heater: HeaterConfig = heaterconfig0,
+        Heater: HeaterConfigClass = heaterconfig0,
         **kwargs
 ) -> Component:
     """
