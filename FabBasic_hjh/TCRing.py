@@ -29,7 +29,6 @@ def TCRing(
         r_euler_true: float = r_euler_true,
         width_ring: float = 1,
         width_near: float = 2,
-        width_heat: float = 5,
         width_single: float = 1,
         angle_rc: float = 20,
         length_taper: float = 150,
@@ -39,10 +38,9 @@ def TCRing(
         gap_rc: float = 1,
         tin: Component = taper_in,
         tout: Component = taper_out,
-        is_heat: bool = True,
         is_ad: bool = False,
         oplayer: LayerSpec = LAYER.WG,
-        heatlayer: LayerSpec = LAYER.M1,
+        heater_config:HeaterConfigClass=None,
 ) -> Component:
     """
     创建一个基础环形波导组件，支持加热器和输入输出锥形波导。
@@ -83,7 +81,6 @@ def TCRing(
         r_euler_min=r_euler_true,
         width_ring=width_ring,
         width_near=width_near,
-        width_heat=width_heat,
         width_single=width_single,
         angle_rc=angle_rc,
         length_taper=length_taper,
@@ -93,10 +90,9 @@ def TCRing(
         gap_rc=gap_rc,
         tin=tin,
         tout=tout,
-        is_heat=is_heat,
         is_ad=is_ad,
         oplayer=oplayer,
-        heatlayer=heatlayer,
+        heater_config_ring=heater_config,
     )
     return sr
 
@@ -107,7 +103,6 @@ def TCRing1AD(
         r_ring: float = 120,
         width_ring: float = 1,
         width_near: float = 2,
-        width_heat: float = 5,
         width_single: float = 1,
         angle_rc: float = 20,
         length_taper: float = 150,
@@ -117,6 +112,7 @@ def TCRing1AD(
         tout: Component = taper_out,
         tin: Component = taper_in,
         oplayer: LayerSpec = LAYER.WG,
+        heater_config:HeaterConfigClass=None,
 ) -> Component:
     """
     创建一个支持 Add/Drop 端口的环形波导组件。
@@ -163,7 +159,7 @@ def TCRing1AD(
     taper_s2n_dr = sr << taper_s2n
     ring = sr << RingPulley(
         WidthRing=width_ring, WidthNear=width_near, GapRing=gap_rc, oplayer=oplayer, RadiusRing=r_ring,
-        AngleCouple=angle_rc, WidthHeat=width_heat, IsAD=True
+        AngleCouple=angle_rc, HeaterConfig=heater_config, IsAD=True
     )
     taper_s2n_in.movex(pos_ring - length_taper).movey(
         tinring.ports['o1'].center[1] - taper_s2n_in.ports['o1'].center[1])
@@ -206,13 +202,6 @@ def TCRing1AD(
         [taper_s2n_in.ports["o1"], toutring_ad.ports["o1"], toutring_dr.ports["o1"], toutring_th.ports["o1"]],
         route_width=width_single, layer=oplayer
     )
-    # for route in route_io:
-    #     sr.add(route.references)
-    # for route in str_tout2r:
-    #     sr.add(route.references)
-    # # sr_cld1 = gf.geometry.offset(sr, distance=width_cld, layer=LAYER.CLD2)
-    # # sr_cld2 = gf.geometry.offset(sr_cld1, distance=-0.8, layer=LAYER.CLD2)
-    # # sr.add_ref(sr_cld2)
     sr.add_port("input", port=tinring.ports["o1"])
     sr.add_port("through", port=toutring_th.ports["o2"])
     sr.add_port("drop", port=toutring_dr.ports["o2"])
@@ -240,6 +229,7 @@ def TCRing1_3(
         tin: Component = taper_in,
         tout: Component = taper_out,
         oplayer: LayerSpec = LAYER.WG,
+        heater_config:HeaterConfigClass=None,
 ) -> Component:
     """
     ---不建议使用---
@@ -281,7 +271,7 @@ def TCRing1_3(
         gap_rc=gap_rc,
         tin=tin,
         tout=tout,
-        is_heat=False,
+        heater_config_ring=heater_config,
         oplayer=oplayer,
         position_taper="no_bend"
     )
@@ -296,7 +286,6 @@ def TCRing1DC(
         width_ring: float = 1,
         width_near1: float = 2,
         width_near2: float = 3,
-        width_heat: float = 5,
         width_single: float = 1,
         angle_rc1: float = 20,
         angle_rc2: float = 30,
@@ -309,6 +298,7 @@ def TCRing1DC(
         tout: Component = taper_out,
         tin: Component = taper_in,
         oplayer: LayerSpec = LAYER.WG,
+        heater_config:HeaterConfigClass=None,
 ) -> Component:
     """
     创建一个支持不同耦合参数的环形波导组件。
@@ -365,7 +355,7 @@ def TCRing1DC(
         WidthRing=width_ring, oplayer=oplayer, RadiusRing=r_ring,
         WidthNear1=width_near1, GapRing1=gap_rc1, AngleCouple1=angle_rc1,
         WidthNear2=width_near2, GapRing2=gap_rc2, AngleCouple2=angle_rc2,
-        WidthHeat=width_heat
+        HeaterConfig=heater_config,
     )
     taper_s2n_in.movex(pos_ring - length_taper).movey(
         tinring.ports['o1'].center[1] - taper_s2n_in.ports['o1'].center[1])
@@ -428,18 +418,17 @@ def TCRing2(
         r_ring: float = 120,
         width_ring: float = 1,
         width_near: float = 2,
-        width_heat: float = 5,
         width_single: float = 1,
         angle_rc: float = 20,
         length_taper: float = 150,
         length_total: float = 10000,
         length_th_vertical: float = 101,
         pos_ring: float = 500,
-        delta_io=500,
         gap_rc: float = 1,
         tout: Component = taper_out,
         tin: Component = taper_in,
         oplayer: LayerSpec = LAYER.WG,
+        heater_config:HeaterConfigClass=None,
 ) -> Component:
     """
     ---不建议使用---
@@ -475,7 +464,6 @@ def TCRing2(
         width_ring=width_ring,
         width_near=width_near,
         width_single=width_single,
-        width_heat=width_heat,
         angle_rc=angle_rc,
         length_taper=length_taper,
         length_total=length_total,
@@ -484,89 +472,86 @@ def TCRing2(
         gap_rc=gap_rc,
         tin=tin,
         tout=tout,
-        is_heat=False,
         oplayer=oplayer,
+        heater_config=heater_config,
     )
     return sr
 
 
-# %% TCRing2ES: bend PulleyRing + side ele
-def TCRing2ES(
-        r_ring: float = 120,
-        width_ring: float = 1,
-        width_near: float = 2,
-        width_ele: float = 5,
-        width_single: float = 1,
-        angle_rc: float = 20,
-        length_taper: float = 150,
-        length_total: float = 10000,
-        pos_ring: float = 500,
-        length_th_vertical=500,
-        delta_ele=5,
-        gap_rc: float = 1,
-        tout: Component = taper_out,
-        tin: Component = taper_in,
-        oplayer: LayerSpec = LAYER.WG,
-        elelayer: LayerSpec = LAYER.M1,
-) -> [Component]:
-    """
-    创建一个支持侧边电极的环形波导组件。
-    该组件包含输入输出锥形波导和侧边电极。
-
-    参数：
-        r_ring: 环形波导的半径（单位：um）。
-        width_ring: 环形波导的宽度（单位：um）。
-        width_near: 耦合波导的宽度（单位：um）。
-        width_ele: 电极的宽度（单位：um）。
-        width_single: 输入输出波导的宽度（单位：um）。
-        angle_rc: 耦合角度（单位：度）。
-        length_taper: 锥形波导的长度（单位：um）。
-        length_total: 总长度（单位：um）。
-        pos_ring: 环形波导的位置（单位：um）。
-        delta_io: 输入输出端口的偏移量（单位：um）。
-        delta_ele: 电极与波导的间距（单位：um）。
-        gap_rc: 耦合波导与环形波导的间距（单位：um）。
-        tout: 输出锥形波导组件。
-        tin: 输入锥形波导组件。
-        oplayer: 光学层定义。
-        elelayer: 电极层定义。
-
-    返回：
-        [Component]: 生成的环形波导组件和电极组件。
-
-    端口：
-        input: 输入端口。
-        output: 输出端口。
-        RingC: 环形波导的中心端口。
-        EleLin: 左侧电极输入端口。
-        EleLout: 左侧电极输出端口。
-        EleRin: 右侧电极输入端口。
-        EleRout: 右侧电极输出端口。
-    """
-    s0 = TCRingT2(
-        r_ring=r_ring,
-        width_ring=width_ring,
-        width_near=width_near,
-        width_single=width_single,
-        width_heat=width_ele,
-        angle_rc=angle_rc,
-        gap_heat=delta_ele,
-        length_taper=length_taper,
-        length_total=length_total,
-        length_th_vertical=length_th_vertical,
-        pos_ring=pos_ring,
-        gap_rc=gap_rc,
-        tin=tin,
-        tout=tout,
-        is_heat=True,
-        type_heater='bothside',
-        oplayer=oplayer,
-        heatlayer=elelayer,
-    )
-    sr = GetFromLayer(CompOriginal=s0, OLayer=oplayer)
-    se = GetFromLayer(CompOriginal=s0, OLayer=elelayer)
-    return [sr, se]
-
+# # %% TCRing2ES: bend PulleyRing + side ele
+# def TCRing2ES(
+#         r_ring: float = 120,
+#         width_ring: float = 1,
+#         width_near: float = 2,
+#         width_ele: float = 5,
+#         width_single: float = 1,
+#         angle_rc: float = 20,
+#         length_taper: float = 150,
+#         length_total: float = 10000,
+#         pos_ring: float = 500,
+#         length_th_vertical=500,
+#         delta_ele=5,
+#         gap_rc: float = 1,
+#         tout: Component = taper_out,
+#         tin: Component = taper_in,
+#         oplayer: LayerSpec = LAYER.WG,
+#         elelayer: LayerSpec = LAYER.M1,
+# ) -> [Component]:
+#     """
+#     创建一个支持侧边电极的环形波导组件。
+#     该组件包含输入输出锥形波导和侧边电极。
+#
+#     参数：
+#         r_ring: 环形波导的半径（单位：um）。
+#         width_ring: 环形波导的宽度（单位：um）。
+#         width_near: 耦合波导的宽度（单位：um）。
+#         width_ele: 电极的宽度（单位：um）。
+#         width_single: 输入输出波导的宽度（单位：um）。
+#         angle_rc: 耦合角度（单位：度）。
+#         length_taper: 锥形波导的长度（单位：um）。
+#         length_total: 总长度（单位：um）。
+#         pos_ring: 环形波导的位置（单位：um）。
+#         delta_io: 输入输出端口的偏移量（单位：um）。
+#         delta_ele: 电极与波导的间距（单位：um）。
+#         gap_rc: 耦合波导与环形波导的间距（单位：um）。
+#         tout: 输出锥形波导组件。
+#         tin: 输入锥形波导组件。
+#         oplayer: 光学层定义。
+#         elelayer: 电极层定义。
+#
+#     返回：
+#         [Component]: 生成的环形波导组件和电极组件。
+#
+#     端口：
+#         input: 输入端口。
+#         output: 输出端口。
+#         RingC: 环形波导的中心端口。
+#         EleLin: 左侧电极输入端口。
+#         EleLout: 左侧电极输出端口。
+#         EleRin: 右侧电极输入端口。
+#         EleRout: 右侧电极输出端口。
+#     """
+#     s0 = TCRingT2(
+#         r_ring=r_ring,
+#         width_ring=width_ring,
+#         width_near=width_near,
+#         width_single=width_single,
+#         angle_rc=angle_rc,
+#         length_taper=length_taper,
+#         length_total=length_total,
+#         length_th_vertical=length_th_vertical,
+#         pos_ring=pos_ring,
+#         gap_rc=gap_rc,
+#         tin=tin,
+#         tout=tout,
+#
+#         oplayer=oplayer,
+#         heatlayer=elelayer,
+#     )
+#     sr = GetFromLayer(CompOriginal=s0, OLayer=oplayer)
+#     se = GetFromLayer(CompOriginal=s0, OLayer=elelayer)
+#     return [sr, se]
+#
 
 # %% TCRing2_2: pulleyRing taper_s2n after output bend
 @gf.cell
@@ -574,7 +559,6 @@ def TCRing2_2(
         r_ring: float = 120,
         width_ring: float = 1,
         width_near: float = 2,
-        width_heat: float = 5,
         width_single: float = 1,
         angle_rc: float = 20,
         length_taper: float = 150,
@@ -623,7 +607,6 @@ def TCRing2_2(
         gap_rc=gap_rc,
         tin=tin,
         tout=tout,
-        is_heat=False,
         oplayer=oplayer,
         position_taper="after_bend"
     )
@@ -634,10 +617,8 @@ def TCRing2_2(
 @gf.cell
 def TCRing2_3(
         r_ring: float = 120,
-        r_bend: float = 100,
         width_ring: float = 1,
         width_near: float = 2,
-        width_heat: float = 5,
         width_single: float = 1,
         angle_rc: float = 20,
         length_taper: float = 200,
@@ -688,11 +669,9 @@ def TCRing2_3(
         gap_rc=gap_rc,
         tin=tin,
         tout=tout,
-        is_heat=False,
         oplayer=oplayer,
         position_taper="before_bend"
     )
-    return sr
     return sr
 
 
@@ -703,7 +682,6 @@ def TCRing3(
         r_bend: float = r_euler_true,
         width_ring: float = 1,
         width_near: float = 2,
-        width_heat: float = 5,
         width_single: float = 1,
         angle_rc: float = 20,
         length_taper: float = 150,
@@ -747,7 +725,7 @@ def TCRing3(
     toutring = sr << tout
     ring = sr << RingPulley3(
         WidthRing=width_ring, WidthNear=width_near, GapRing=gap_rc, oplayer=oplayer, RadiusRing=r_ring,
-        AngleCouple=angle_rc, WidthHeat=width_heat
+        AngleCouple=angle_rc,
     )
     ring.connect("Input", other=tinring.ports["o2"], mirror=True)
     ring.movex(pos_ring)
@@ -785,10 +763,8 @@ def TCRing3(
 @gf.cell
 def TCRing4(
         r_ring: float = 120,
-        r_bend: float = r_euler_true,
         width_ring: float = 1,
         width_near: float = 2,
-        width_heat: float = 5,
         width_single: float = 1,
         angle_rc: float = 20,
         length_taper: float = 150,
@@ -832,7 +808,7 @@ def TCRing4(
     toutring = sr << tout
     ring = sr << RingPulley4(
         WidthRing=width_ring, WidthNear=width_near, GapRing=gap_rc, oplayer=oplayer, RadiusRing=r_ring,
-        AngleCouple=angle_rc, WidthHeat=width_heat
+        AngleCouple=angle_rc,
     )
     ring.connect("Input", other=tinring.ports["o2"], mirror=True)
     ring.movex(pos_ring)
@@ -999,7 +975,6 @@ def TCRingT1(
         gap_rc: float = 1,
         tin: Component = taper_in,
         tout: Component = taper_out,
-        is_heat: bool = True,
         is_ad: bool = False,
         oplayer: LayerSpec = LAYER.WG,
         direction_heater: str = "up",
@@ -1051,7 +1026,7 @@ def TCRingT1(
     ring0 = ring << RingPulleyT1(
         WidthRing=width_ring, WidthNear=width_near, GapRing=gap_rc,
         RadiusRing=r_ring, AngleCouple=angle_rc, DirectionHeater=direction_heater,
-        IsAD=is_ad, IsHeat=is_heat, oplayer=oplayer,HeaterConfig=heater_config_ring,
+        IsAD=is_ad, oplayer=oplayer,HeaterConfig=heater_config_ring,
     )
     taper_s2n1 = ring << gf.c.taper(width1=width_single, width2=width_near, length=length_taper, layer=oplayer)
     taper_s2n1.connect("o2", ring0.ports["Input"])
@@ -1143,7 +1118,7 @@ def TCRingT1(
                 center=np.array(Ring.ports["RingL"].center) / 2 + np.array(Ring.ports["RingR"].center) / 2)
     for port in Ring.ports:
         if "Heat" in port.name:
-            sr.add_port(port.name, port=Ring.ports[port.name])
+            sr.add_port("Ring"+port.name, port=Ring.ports[port.name])
         if "Add" in port.name:
             sr.add_port(port.name, port=Ring.ports[port.name])
         if "Drop" in port.name:
@@ -1304,27 +1279,21 @@ def TCRingDCouple(
         r_euler_min: float = r_euler_true,
         width_ring: float = 1,
         width_near: float = 2,
-        width_heat: float = 5,
         width_single: float = 1,
-        width_route: float = 20,
         angle_rc: float = 20,
         length_taper: float = 200,
         length_total: float = 10000,
         length_th_horizontal: float = 20,
-        length_th_vertical: float = 10,
         pos_ring: float = 500,
         gap_rc: float = 1,
-        gap_heat: float = 1,
-        delta_heat: float = 1,
         tin: Component = taper_in,
         tout: Component = taper_out,
-        is_heat: bool = True,
         oplayer: LayerSpec = LAYER.WG,
-        heatlayer: LayerSpec = LAYER.M1,
-        type_heater: str = "default",  # 控制加热器类型
+        heater_config_ring: HeaterConfigClass = None,
+        heater_config_couple: HeaterConfigClass = None,
 ) -> Component:
     """
-    创建一个环形波导组件，支持通过 position_taper 参数控制锥形波导的位置，并通过 type_heater 参数控制加热器类型。
+    创建一个二次耦合的环形波导组件，支持通过 position_taper 参数控制锥形波导的位置，并通过 type_heater 参数控制加热器类型。
     使用 RingPulleyT1 型的微环结构。
 
     参数：
@@ -1364,13 +1333,10 @@ def TCRingDCouple(
     """
     sr = gf.Component()
     ring = gf.Component("Ring")
-    C_near = gf.Section(layer=oplayer, width=width_near, port_names=["o1", "o2"])
-    C_heat = gf.Section(layer=heatlayer, width=width_heat, port_names=["CoupHeatIn", "CoupHeatOut"])
     ring0 = ring << RingPulleyT1(
-        WidthRing=width_ring, WidthNear=width_near, WidthHeat=width_heat, GapRing=gap_rc, GapHeat=gap_heat,
-        DeltaHeat=delta_heat,
+        WidthRing=width_ring, WidthNear=width_near, GapRing=gap_rc,
         RadiusRing=r_ring, AngleCouple=angle_rc,
-        IsAD=True, IsHeat=is_heat, oplayer=oplayer, heatlayer=heatlayer, TypeHeater=type_heater
+        IsAD=True, oplayer=oplayer, HeaterConfig=heater_config_ring,
     )
 
     # bend 2 bend
@@ -1384,10 +1350,9 @@ def TCRingDCouple(
                                      with_arc_floorplan=False)
     bend_input.connect("o1", other=str_i2b.ports["o2"])
     bend_drop.connect("o1", other=str_d2b.ports["o2"])
-    path_near = gf.path.straight(bend_input.ports["o2"].center[1] - bend_drop.ports["o2"].center[1])
+    path_near = gf.path.straight(abs(bend_input.ports["o2"].center[1] - bend_drop.ports["o2"].center[1]))
     str_near = ring << gf.path.extrude(p=path_near, width=width_near, layer=oplayer)
-    heat_near = ring << DifferentHeater(path_near, WidthHeat=width_heat, WidthWG=width_near, WidthRoute=width_route,
-                                        GapHeat=gap_heat, DeltaHeat=delta_heat, TypeHeater=type_heater)
+    heat_near = ring << DifferentHeater(path_near, WidthWG=width_near,HeaterConfig=heater_config_couple)
     heat_near.connect('HeatIn', bend_input.ports['o2'], allow_width_mismatch=True, allow_layer_mismatch=True)
     str_near.connect('o1', bend_input.ports['o2'])
 
@@ -1405,10 +1370,10 @@ def TCRingDCouple(
     # ring.show()
     for port in ring0.ports:
         if "Heat" in port.name:
-            ring.add_port("R" + port, port=ring0.ports[port])
+            ring.add_port("R" + port.name, port=port)
     for port in heat_near.ports:
         if "Heat" in port.name:
-            ring.add_port("N" + port, port=heat_near.ports[port])
+            ring.add_port("N" + port.name, port=port)
     Ring = sr << ring
 
     # input
@@ -1424,21 +1389,20 @@ def TCRingDCouple(
     sr.add_port("output", port=toutring.ports["o2"])
 
     # route
-    str_tout2r = gf.routing.get_bundle([toutring.ports["o1"], Ring.ports["RingIn"]],
-                                       [Ring.ports["RingOut"], tinring.ports["o2"]],
-                                       layer=oplayer, width=width_single, radius=r_euler_min)
-    for route in str_tout2r:
-        sr.add(route.references)
+    str_tout2r = gf.routing.route_bundle(sr,[tinring.ports["o2"]],[Ring.ports["RingIn"]],
+                                       layer=oplayer, route_width=width_single, radius=r_euler_min)
+    str_tout2r = gf.routing.route_bundle(sr,[Ring.ports["RingOut"]],[toutring.ports["o1"]],
+                                       layer=oplayer, route_width=width_single, radius=r_euler_min)
     sr.add_port("RingC", width=width_single, layer=oplayer,
                 center=np.array(Ring.ports["RingL"].center) / 2 + np.array(Ring.ports["RingR"].center) / 2)
     for port in Ring.ports:
         if "Heat" in port.name:
-            sr.add_port(port.name, port=Ring.ports[port.name])
-    sr = remove_layer(sr, layer=(512, 8))
-    add_labels_to_ports(sr)
+            sr.add_port(port.name, port=port)
+    # sr = remove_layer(sr, layer=(512, 8))
+    # add_labels_to_ports(sr)
     return sr
 
 
-__all__ = ['TCRing', 'TCRing2', 'TCRing3', 'TCRing4', 'TCRing1DC', 'TCRing2ES', 'TCRing2_2', 'TCRing2_3',
+__all__ = ['TCRing', 'TCRing2', 'TCRing3', 'TCRing4', 'TCRing1DC', 'TCRing2_2', 'TCRing2_3',
            'TCRing1AD', 'TCRing1_3', 'TCFingerRing1', 'TCRingT1',
            'TCRingT2', 'TCRingDCouple']

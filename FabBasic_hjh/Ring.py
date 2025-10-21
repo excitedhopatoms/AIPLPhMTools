@@ -1057,17 +1057,18 @@ def DifferentHeater_local(
         heat_path_ring = gf.path.arc(radius=RadiusRing, angle=300)  # 创建加热电极路径
         heatout_pathB1 = euler_Bend_Half(radius=RadiusRing/5, angle=-60)  # Backward
         heatout_pathF2 = euler_Bend_Half(radius=RadiusRing/5, angle=-60,direction="Forward")  # 创建欧拉弯曲路径
-        path_total = heatout_pathF2+heat_path_ring+heatout_pathB1
-        path_half = heatout_pathF2+heat_path_ringhalf
+        path_total = heat_path_ring
+        path_half = heat_path_ringhalf
         # path_total.plot()
-        heatcenter = path_half.points[-1]-(RadiusRing,RadiusRing)
+        heatcenter = path_half.points[-1]-(np.asin(30)*RadiusRing,np.asin(60)*RadiusRing)
         cheater = h << gf.path.extrude(path_total, cross_section=Xdbs)
         cheater.move(-heatcenter)
+        h.add_port(name="RingC", port=c.ports["RingC"])
+        h.rotate(30+180,h.ports["RingC"].center)
         # h.show()
         for port in cheater.ports:
             h.add_port(name=port.name, port=port)
-        h.add_port(name="RingC", port=c.ports["RingC"])
-        h.rotate(-90,h.ports["RingC"].center)
+        # print(h.ports)
         # original
         heater = c << h
         if DirectionHeater == "down":
