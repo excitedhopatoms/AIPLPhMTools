@@ -110,6 +110,8 @@ def RaceTrackP(
     c.add_port(name="Rcen2", port=RP3.ports["o2"])
     c.add_port(name="Rcenter", center=np.array(RP1.ports["o2"].center)/2+np.array(RP3.ports["o2"].center)/2,
                width=WidthRing, orientation=180,layer=oplayer)
+    c.add_port(name="RingC", center=np.array(RP1.ports["o2"].center)/2+np.array(RP3.ports["o2"].center)/2,
+               width=WidthRing, orientation=180,layer=oplayer)
     print("length="+str(RingPath1.length()*4))
     if HeaterConfig:
         rrun1 = gf.path.straight(length=LengthRun / 2)
