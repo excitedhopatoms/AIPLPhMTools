@@ -154,8 +154,6 @@ def DoubleRaceTrack(
 # %% COupled Double Racetrack Cavity
 def CoupleDouRaceTrack(
         WidthRing: float = 8,
-        WidthHeat: float = 10,
-        WidthRoute: float = 20,
         WidthNear: float = 1,
         LengthRun: float = 200,
         RadiusRing: float = 100,
@@ -164,18 +162,12 @@ def CoupleDouRaceTrack(
         LengthCoupleOut: float = 200,
         LengthCoupleIn: float = 100,
         AngleCouple:float = 10,
-        GapHeat: float = 10,
-        DeltaHeat: float = 0,
         DeltaRun: float = 20,
-        IsHeat: bool = True,
-        TypeHeater: str = "default",
+        HeaterConfig:HeaterConfigClass=None,
         DirectionsHeater = ['down', 'down'],
         TypeCouple: str = "S",
         oplayer: LayerSpec = LAYER.WG,
         elelayer: LayerSpec = LAYER.M2,
-        heatlayer: LayerSpec = LAYER.M1,
-        routelayer: LayerSpec = LAYER.M2,
-        vialayer: LayerSpec = LAYER.VIA,
 )->Component:
     """
     创建一个耦合的双跑道环谐振腔组件。
@@ -206,46 +198,45 @@ def CoupleDouRaceTrack(
     c = gf.Component()
     if TypeCouple == "s" or TypeCouple == "S":
         racetrack1 = c << RaceTrackS(
-            WidthRing= WidthRing,WidthHeat= WidthHeat,WidthRoute= WidthRoute,
+            WidthRing= WidthRing,
             LengthRun= LengthRun,
             RadiusRing= RadiusRing,GapCouple= GapCoupleOut,LengthCouple= LengthCoupleOut,
-            GapHeat= GapHeat,DeltaHeat= DeltaHeat,IsHeat= IsHeat,elelayer= elelayer,heatlayer= heatlayer,TypeHeater= TypeHeater,
+            HeaterConfig=HeaterConfig,DirectionsHeater=DirectionsHeater[0],
             IsAD= False,
-            oplayer= oplayer,routelayer= routelayer,vialayer= vialayer)
+            oplayer= oplayer)
         racetrack2 = c << RaceTrackS(
-            WidthRing= WidthRing,WidthHeat= WidthHeat,WidthRoute= WidthRoute,
+            WidthRing= WidthRing,
             LengthRun= LengthRun+DeltaRun,
             RadiusRing= RadiusRing,GapCouple= GapCoupleOut,LengthCouple= LengthCoupleOut,
-            GapHeat= GapHeat,DeltaHeat= DeltaHeat,IsHeat= IsHeat,elelayer= elelayer,heatlayer= heatlayer,TypeHeater= TypeHeater,
+            HeaterConfig=HeaterConfig, DirectionsHeater=DirectionsHeater[1],
             IsAD= False,
-            oplayer= oplayer,routelayer= routelayer,vialayer= vialayer)
+            oplayer= oplayer)
         racetrack1.connect("RingSmid1", other=racetrack2.ports["RingSmid1"])
         racetrack1.movex(+WidthRing + GapCoupleIn)
         racetrack1.movey(-DeltaRun / 2 + LengthCoupleIn - LengthRun)
     elif TypeCouple == "p" or TypeCouple == "P":
         racetrack1 = c << RaceTrackP(
-            WidthRing=WidthRing, WidthNear=WidthNear, GapCouple=GapCoupleOut,WidthHeat=WidthHeat,WidthRoute=WidthRoute,
+            WidthRing=WidthRing, WidthNear=WidthNear, GapCouple=GapCoupleOut,
             LengthRun=LengthRun, RadiusRing=RadiusRing, AngleCouple=AngleCouple, oplayer=oplayer,IsAD=False,
-        GapHeat = GapHeat, DeltaHeat = DeltaHeat, IsHeat = IsHeat,  heatlayer = heatlayer, TypeHeater = TypeHeater,
+            HeaterConfig=HeaterConfig, DirectionsHeater=DirectionsHeater[0],
         )
         racetrack2 = c << RaceTrackP(
-            WidthRing=WidthRing, WidthNear=WidthNear, GapCouple=GapCoupleOut,WidthHeat=WidthHeat,WidthRoute=WidthRoute,
+            WidthRing=WidthRing, WidthNear=WidthNear, GapCouple=GapCoupleOut,
             LengthRun=LengthRun + DeltaRun, RadiusRing=RadiusRing, AngleCouple=AngleCouple, oplayer=oplayer,IsAD=False,
-            GapHeat=GapHeat, DeltaHeat=DeltaHeat, IsHeat=IsHeat,  heatlayer=heatlayer,
-            TypeHeater=TypeHeater,
+            HeaterConfig=HeaterConfig, DirectionsHeater=DirectionsHeater[1],
         )
         racetrack1.connect("RingSmid1", other=racetrack2.ports["RingSmid1"])
         racetrack1.movex(+WidthRing + GapCoupleIn)
         racetrack1.movey(-DeltaRun / 2 + LengthCoupleIn - LengthRun)
         racetrack2.mirror_y(racetrack2.ports["Input"].center[1])
         racetrack1.mirror_y(racetrack2.ports["Input"].center[1])
-    if IsHeat:
-        for port in racetrack1.ports:
-            if "Heat" in port.name:
-                c.add_port(name="R1" + port.name, port=port)
-        for port in racetrack2.ports:
-            if "Heat" in port.name:
-                c.add_port(name="R2" + port.name, port=port)
+
+    for port in racetrack1.ports:
+        if "Heat" in port.name:
+            c.add_port(name="R1" + port.name, port=port)
+    for port in racetrack2.ports:
+        if "Heat" in port.name:
+            c.add_port(name="R2" + port.name, port=port)
     c.add_port("R1Input",port=racetrack1.ports["Input"])
     c.add_port("R1Through", port=racetrack1.ports["Through"])
     c.add_port("R2Input", port=racetrack2.ports["Input"])
