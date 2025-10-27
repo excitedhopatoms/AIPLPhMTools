@@ -34,7 +34,6 @@ def TCRaceTrackP(
         length_run: float = 1000,
         pos_ring: float = 5000,
         gap_rc: float = 1,
-        is_heat: bool = False,
         tout: Component = None,
         tin: Component = None,
         oplayer: LayerSpec = "WG",
@@ -187,7 +186,7 @@ def TCRaceTrackS(
         tout: Component =None,
         tin: Component = None,
         oplayer: LayerSpec = LAYER.WG,
-        **kwargs,
+        heater_config : HeaterConfigClass=None,
 ) -> Component:
     """
     创建一个集成了单个 `RaceTrackS` (直线耦合跑道环) 的完整组件。
@@ -214,7 +213,7 @@ def TCRaceTrackS(
     width_near = width_ring
     ring = sr << RaceTrackS(
         WidthRing=width_ring, LengthRun=length_run, GapCouple=gap_rc, oplayer=oplayer, RadiusRing=r_ring,
-        LengthCouple=length_rc, IsAD=False,TypeHeater=type_heat,IsHeat=False,
+        LengthCouple=length_rc, IsAD=False,HeaterConfig=heater_config,TypeHeater=heater_config.TypeHeater
     )
     taper_s2n_1 = sr << gf.c.taper(width1=width_single, width2=width_near, length=length_taper, layer=oplayer)
     taper_s2n_2 = sr << gf.c.taper(width2=width_single, width1=width_near, length=length_taper, layer=oplayer)
@@ -277,6 +276,7 @@ def TCRaceTrackS2(
         tout: Component =None,
         tin: Component = None,
         oplayer: LayerSpec = LAYER.WG,
+        heater_config:HeaterConfigClass=None,
 ) -> Component:
     """
     创建集成了单个 `RaceTrackS` (直线耦合跑道环) 的完整组件。
@@ -299,7 +299,7 @@ def TCRaceTrackS2(
     width_near = width_ring
     ring = sr << RaceTrackS(
         WidthRing=width_ring, LengthRun=length_run, GapCouple=gap_rc, oplayer=oplayer, RadiusRing=r_ring,
-        LengthCouple=length_rc, IsAD=False
+        LengthCouple=length_rc, IsAD=False,HeaterConfig=heater_config
     )
     taper_s2n_1 = sr << gf.c.taper(width1=width_single, width2=width_near, length=length_taper, layer=oplayer)
     taper_s2n_2 = sr << gf.c.taper(width2=width_single, width1=width_near, length=length_taper, layer=oplayer)
@@ -351,10 +351,10 @@ def TCRaceTrackS3(
         length_total: float = 10000,
         pos_ring: float = 5000,
         gap_rc: float = 1,
-        IsLabels: float = True,
         tout: Component =None,
         tin: Component = None,
         oplayer: LayerSpec = LAYER.WG,
+        heaeter_config:HeaterConfigClass=None,
 ) -> Component:
     """
     创建集成了单个 `RaceTrackS` (直线耦合跑道环) 的完整组件。
@@ -375,7 +375,7 @@ def TCRaceTrackS3(
     width_near = width_ring
     Cring = RaceTrackS(
         WidthRing=width_ring, LengthRun=length_run, GapCouple=gap_rc, oplayer=oplayer, RadiusRing=r_ring,
-        LengthCouple=length_rc, IsAD=False, IsLabels=False,
+        LengthCouple=length_rc, IsAD=False, IsLabels=False,HeaterConfig=heaeter_config
     )
     ring = sr << Cring
     taper_s2n_1 = sr << gf.c.taper(width1=width_single, width2=width_near, length=length_taper, layer=oplayer)
@@ -401,14 +401,11 @@ def TCRaceTrackS3(
         sr.add_port("output", port=ctout.ports["o1"])
     sr.add_port("RingC", port=ring.ports["Input"],
                 center = (np.array(ring.ports["Rcen1"].center) + np.array(ring.ports["Rcen2"].center)) / 2)
-    if IsLabels:
-        add_labels_to_ports(sr)
     return sr
 
 
 def TCRaceTrackS3h(
         r_ring: float = 2000,
-        delta_heat: float = 10,
         width_ring: float = 8,
         width_single: float = 1,
         length_rc: float = 20,
@@ -418,11 +415,10 @@ def TCRaceTrackS3h(
         pos_ring: float = 5000,
         gap_rc: float = 1,
         gap_route: float = 100,
-        IsLabels: float = True,
         tout: Component =None,
         tin: Component = None,
         oplayer: LayerSpec = LAYER.WG,
-        heatlayer: LayerSpec = LAYER.M1,
+        heater_config: HeaterConfigClass=None,
 ) -> Component:
     """
     创建集成了单个 `RaceTrackS` (直线耦合跑道环) 的完整组件，并明确启用加热功能。
@@ -450,7 +446,7 @@ def TCRaceTrackS3h(
     Cring = RaceTrackS(
         WidthRing=width_ring, LengthRun=length_run, GapCouple=gap_rc, oplayer=oplayer, RadiusRing=r_ring,
         GapRoute=gap_route,
-        LengthCouple=length_rc, IsAD=False, IsLabels=False, DeltaHeat=delta_heat, heatlayer=heatlayer
+        LengthCouple=length_rc, IsAD=False, HeaterConfig=heater_config
     )
     ring = sr << Cring
     taper_s2n_1 = sr << gf.c.taper(width1=width_single, width2=width_near, length=length_taper, layer=oplayer)
@@ -490,7 +486,6 @@ def TCTaperRaceTrackP(
         width_ring: float = 8,
         width_near: float = 4,
         width_run: float = 4,
-        width_heat: float = 5,
         width_single: float = 1,
         angle_rc: float = 20,
         length_racetaper: float = 150,
@@ -570,7 +565,6 @@ def TCTaperRaceTrackS(
         width_ring: float = 8,
         width_near: float = 4,
         width_run: float = 4,
-        width_heat: float = 5,
         width_single: float = 1,
         angle_rc: float = 20,
         length_racetaper: float = 150,
