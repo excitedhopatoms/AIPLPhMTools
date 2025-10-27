@@ -78,21 +78,14 @@ def PulleyCoupler2X2(
 @gf.cell
 def DMZI(
         WidthWG: float = 0.8,
-        WidthHeat: float = 8,
         LengthCoup: float = 100,
         LengthBridge:float =300,
         LengthBend:float =300,
         Radius:float =200,
         GapCoup:float =1,
-        GapHeat=1,
-        DeltaHeat=0,
         DeltaOut = -40,
-        IsHeat: bool = True,
-        TypeHeater: str = "default",
         oplayer: LayerSpec = LAYER.WG,
-        heatlayer: LayerSpec = LAYER.M1,
-        routelayer: LayerSpec = LAYER.M2,
-        vialayer: LayerSpec = LAYER.VIA,
+        HeaterConfig:HeaterConfigClass=None,
 ) -> Component:
     """
     创建一个基于直波导定向耦合器的 2x2 马赫-曾德干涉仪 (MZI) 组件。
@@ -161,10 +154,9 @@ def DMZI(
     c.add_port(name="Bridge1", port=CW1.ports["out"])
     c.add_port(name="Bridge2", port=CW2.ports["out"])
     # if heater
-    if IsHeat:
-        heater = DifferentHeater(PathHeat=coupheat, WidthHeat=WidthHeat, DeltaHeat=DeltaHeat, GapHeat=GapHeat,
-                                 WidthWG=WidthWG, WidthRoute=20,
-                                 heatlayer=heatlayer, TypeHeater=TypeHeater, vialayer=vialayer, routelayer=routelayer)
+    if HeaterConfig:
+        heater = DifferentHeater(PathHeat=coupheat,
+                                 WidthWG=WidthWG, WidthRoute=20,HeaterConfig=HeaterConfig)
         heaterL = c << heater
         heaterR = c << heater
         heaterL.connect("HeatOut", other=CBs1.ports["o2"], allow_width_mismatch=True, allow_layer_mismatch=True,
@@ -188,7 +180,6 @@ def DMZI(
 def PMZI(
         WidthNear: float = 0.8,
         WidthRing: float = 1,
-        WidthHeat: float = 8,
         AngleCouple: float = 20,
         AngleIn: float = 20,
         AngleBend: float = 90,
@@ -200,14 +191,8 @@ def PMZI(
         Radius=200,
         r_radius_false=100,
         GapCoup=1,
-        GapHeat=1,
-        DeltaHeat=0,
-        IsHeat: bool = True,
-        TypeHeater: str = "default",
+        HeaterConfig:HeaterConfigClass=None,
         oplayer: LayerSpec = LAYER.WG,
-        heatlayer: LayerSpec = LAYER.M1,
-        routelayer: LayerSpec = LAYER.M2,
-        vialayer: LayerSpec = LAYER.VIA,
 ) -> Component:
     """
      创建一个基于 Pulley 型耦合器的马赫-曾德干涉仪 (MZI) 结构。
@@ -289,10 +274,9 @@ def PMZI(
     c.add_port(name="Output2", port=ringout_1.ports["in"])
     c.add_port(name="Output1", port=Coup1.ports["in2"])
     # if heater
-    if IsHeat:
-        heater = DifferentHeater(PathHeat=path_heat, WidthHeat=WidthHeat, DeltaHeat=DeltaHeat, GapHeat=GapHeat,
-                                 WidthWG=WidthNear, WidthRoute=20,
-                                 heatlayer=heatlayer, TypeHeater=TypeHeater, vialayer=vialayer, routelayer=routelayer)
+    if HeaterConfig:
+        heater = DifferentHeater(PathHeat=path_heat,HeaterConfig=HeaterConfig,
+                                 WidthWG=WidthNear, WidthRoute=20,)
         heaterL = c.add_ref(heater)
         heaterR = c.add_ref(heater)
         heaterL.connect("HeatOut", other=taper_2.ports["o2"], allow_width_mismatch=True, allow_layer_mismatch=True,
@@ -315,7 +299,6 @@ def PMZI(
 def PMZIHSn(
         WidthNear: float = 0.8,
         WidthRing: float = 1,
-        WidthHeat: float = 8,
         AngleCouple: float = 20,
         AngleIn: float = 20,
         AngleBend: float = 30,
@@ -327,13 +310,8 @@ def PMZIHSn(
         Radius=200,
         r_radius_false=100,
         GapCoup=1,
-        GapHeat=1,
-        DeltaHeat=0,
-        IsHeat=True,
         oplayer: LayerSpec = LAYER.WG,
-        heatlayer: LayerSpec = LAYER.M1,
-        routelayer: LayerSpec = LAYER.M2,
-        vialayer: LayerSpec = LAYER.VIA,
+        HeaterConfig: HeaterConfigClass = None,
 ) -> Component:
     """
     创建一个带有蛇形加热器的 Pulley 型耦合马赫-曾德干涉仪 (MZI) 组件。
@@ -348,10 +326,22 @@ def PMZIHSn(
                    (注意：原代码中其他类似的 HSn 函数返回 (Component, HeaterComponent)，
                     但此函数直接调用 PMZI，PMZI 返回单个 Component。行为可能需要统一。)
     """
+    HeaterConfig0 = HeaterConfigClass(
+        TypeHeater="snake",
+        WidthHeat=HeaterConfig.WidthHeat,
+        WidthRoute=HeaterConfig.WidthRoute,
+        WidthVia=HeaterConfig.WidthVia,
+        GapHeat=HeaterConfig.GapHeat,
+        DeltaHeat=HeaterConfig.DeltaHeat,
+        Spacing=HeaterConfig.Spacing,
+        LayerHeat=HeaterConfig.LayerHeat,
+        LayerRoute=HeaterConfig.LayerRoute,
+        LayerVia=HeaterConfig.LayerVia,
+        LayerELE=HeaterConfig.LayerELE,
+    )
     return PMZI(
         WidthNear=WidthNear,
         WidthRing=WidthRing,
-        WidthHeat=WidthHeat,
         AngleCouple=AngleCouple,
         AngleIn=AngleIn,
         AngleBend=AngleBend,
@@ -363,12 +353,8 @@ def PMZIHSn(
         Radius=Radius,
         r_radius_false=r_radius_false,
         GapCoup=GapCoup,
-        GapHeat=GapHeat,
-        DeltaHeat=DeltaHeat,
-        IsHeat=IsHeat,
         oplayer=oplayer,
-        heatlayer=heatlayer,
-        TypeHeater="snake",
+        HeaterConfig=HeaterConfig0,
     )
 
 
@@ -386,9 +372,6 @@ def SagnacRing(
         GapCoup=0.3,
         IsTaperIn: bool = True,
         oplayer: LayerSpec = LAYER.WG,
-        heatlayer: LayerSpec = LAYER.M1,
-        routelayer: LayerSpec = LAYER.M2,
-        vialayer: LayerSpec = LAYER.VIA,
 
 ) -> Component:
     """

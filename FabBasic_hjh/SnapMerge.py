@@ -198,6 +198,53 @@ def merge_polygons_in_each_layer(
 
     return component_out
 
+def merge_polygons_in_layer(
+        component_in: ComponentSpec,
+        precision: float = 1e-4,
+        mergelayer:LayerSpecs = None,
+) -> Component:
+    """
+    对输入组件的每一个图层上的所有多边形执行合并 (布尔 OR) 操作。
+    此函数会处理组件层级结构，有效地在每个图层上扁平化并合并形状。
+
+    Args:
+        component_in: 输入的 gdsfactory 组件或组件引用。
+        precision: 布尔运算的精度。
+
+    Returns:
+        一个新的 gdsfactory 组件，其中每个图层上的多边形都已合并。
+    """
+    c_in = gf.get_component(component_in)
+
+    if c_in is None:
+        print(f"错误: 输入 '{component_in}' 无法解析为有效组件。将返回一个空组件。")
+        base_name = str(component_in) if isinstance(component_in, str) else "invalid_input"
+        safe_base_name = "".join(
+            char if char.isalnum() or char in ['_', '-'] else '_' for char in base_name
+        )
+        return gf.Component(name=f"{safe_base_name}_merge_failed_no_input_component")
+
+    safe_original_name = "".join(
+        char if char.isalnum() or char in ['_', '-'] else '_' for char in c_in.name
+    )
+    component_out = gf.Component(name=f"{safe_original_name}_layers_merged")
+
+    active_layers: LayerSpecs = c_in.layers
+
+    # if mergelayer not in active_layers:
+    #     print(f"警告: 组件 '{c_in.name}' 中没有'{mergelayer}'图层可供处理。")
+    #     return component_out
+    # c_in.flatten()
+    try:
+        layer_merged_component = gf.boolean(
+            c_in,c_in, operation="or", layer=mergelayer
+        )
+    except Exception as e:
+        print(f"警告: 无法在图层 {mergelayer} 上为组件 '{c_in.name}' 执行布尔操作: {e}")
+
+    if layer_merged_component:
+        component_out << layer_merged_component
+    return component_out
 
 if __name__ == "__main__":
     # --- 创建一个示例组件用于测试 ---

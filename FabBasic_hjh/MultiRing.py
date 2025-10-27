@@ -8,24 +8,17 @@ from .Ring import *
 def DoubleRingPulley(
         WidthRing: float = 1,
         WidthNear: float = 0.9,
-        WidthHeat: float = 2,
         LengthR2R: float = 150,
         RadiusRing: float = 100,
         RadiusR2R: float = None,
         DeltaRadius: float = 1,
         GapRing: float = 1,
-        GapHeat: float = 10,
-        DeltaHeat: float = 0,
         AngleCouple: float = 20,
-        IsHeat: bool = False,
-        TypeHeater: str = "default",
+        HeaterConfig: HeaterConfigClass = None,
         TypeR2R: str = "straight",
         DirectionsHeater: [str] = ["up", "up"],
         DirectionsRing: [str] = ["up", "up"],
         oplayer: LayerSpec = LAYER.WG,
-        heatlayer: LayerSpec = LAYER.M1,
-        routelayer: LayerSpec = LAYER.M2,
-        vialayer: LayerSpec = LAYER.VIA,
 ) -> Component:
     """
     创建一个双环滑轮型（Pulley）谐振器组件。
@@ -69,16 +62,16 @@ def DoubleRingPulley(
     """
     c = gf.Component()
     ring1 = c << RingPulleyT1(
-        WidthRing=WidthRing, WidthNear=WidthNear, WidthHeat=WidthHeat,
-        RadiusRing=RadiusRing, GapRing=GapRing, GapHeat=GapHeat, DeltaHeat=DeltaHeat,
+        WidthRing=WidthRing, WidthNear=WidthNear,
+        RadiusRing=RadiusRing, GapRing=GapRing,
         AngleCouple=AngleCouple,
-        oplayer=oplayer, heatlayer=heatlayer, TypeHeater=TypeHeater, IsHeat=IsHeat, DirectionHeater=DirectionsHeater[0]
+        oplayer=oplayer, HeaterConfig=HeaterConfig,  DirectionHeater=DirectionsHeater[0]
     )
     ring2 = c << RingPulleyT1(
-        WidthRing=WidthRing, WidthNear=WidthNear, WidthHeat=WidthHeat,
-        RadiusRing=RadiusRing + DeltaRadius, GapRing=GapRing, GapHeat=GapHeat, DeltaHeat=DeltaHeat,
-        AngleCouple=AngleCouple,
-        oplayer=oplayer, heatlayer=heatlayer, TypeHeater=TypeHeater, IsHeat=IsHeat, DirectionHeater=DirectionsHeater[1]
+        WidthRing = WidthRing, WidthNear = WidthNear,
+        RadiusRing = RadiusRing+DeltaRadius, GapRing = GapRing,
+        AngleCouple = AngleCouple,
+        oplayer = oplayer, HeaterConfig = HeaterConfig, DirectionHeater = DirectionsHeater[1]
     )
     if TypeR2R == "straight":
         str_R2R = c << GfCStraight(width=WidthNear, length=LengthR2R, layer=oplayer)
@@ -120,13 +113,12 @@ def DoubleRingPulley(
     c.add_port(name="R2Input", port=ring2.ports["Input"])
     c.add_port(name="R2Through", port=ring2.ports["Through"])
 
-    if IsHeat:
-        for port in ring1.ports:
-            if "Heat" in port.name:
-                c.add_port(name="R1" + port.name, port=ring1.ports[port.name])
-        for port in ring2.ports:
-            if "Heat" in port.name:
-                c.add_port(name="R2" + port.name, port=ring2.ports[port.name])
+    for port in ring1.ports:
+        if "Heat" in port.name:
+            c.add_port(name="R1" + port.name, port=ring1.ports[port.name])
+    for port in ring2.ports:
+        if "Heat" in port.name:
+            c.add_port(name="R2" + port.name, port=ring2.ports[port.name])
     add_labels_to_ports(c, label_layer=(512, 8))
     return c
 
@@ -136,18 +128,13 @@ def DoubleRingPulley(
 def DoubleRingPulley2HSn(
         WidthRing: float = 1,
         WidthNear: float = 0.9,
-        WidthHeat: float = 2,
         LengthR2R: float = 150,
         RadiusRing: float = 100,
         DeltaRadius: float = 1,
         GapRing: float = 1,
-        GapHeat: float = 1,
         AngleCouple: float = 20,
-        IsHeat: bool = True,
         oplayer: LayerSpec = LAYER.WG,
-        heatlayer: LayerSpec = LAYER.M1,
-        routelayer: LayerSpec = LAYER.M2,
-        vialayer: LayerSpec = LAYER.VIA,
+        HeaterConfig: HeaterConfigClass = None,
 ) -> Component:
     """
     创建一个双环滑轮型谐振器组件，固定使用蛇形加热器 (`TypeHeater="snake"`)。
@@ -164,17 +151,13 @@ def DoubleRingPulley2HSn(
     c = DoubleRingPulley(
         WidthRing=WidthRing,
         WidthNear=WidthNear,
-        WidthHeat=WidthHeat,
         LengthR2R=LengthR2R,
         RadiusRing=RadiusRing,
         DeltaRadius=DeltaRadius,
         GapRing=GapRing,
-        GapHeat=GapHeat,
         AngleCouple=AngleCouple,
-        IsHeat=IsHeat,
         oplayer=oplayer,
-        heatlayer=heatlayer,
-        TypeHeater="snake",
+        HeaterConfig=HeaterConfig,
     )
     # add_labels_to_ports(c)
     return c
@@ -185,18 +168,13 @@ def DoubleRingPulley2HSn(
 def DoubleRingPulley2_1HSn(
         WidthRing: float = 1,
         WidthNear: float = 0.9,
-        WidthHeat: float = 2,
         LengthR2R: float = 700,
         RadiusRing: float = 100,
         DeltaRadius: float = 1,
         GapRing: float = 1,
-        GapHeat: float = 1,
         AngleCouple: float = 20,
-        Name: str = "Ring_Pulley_Snake_Heater_Round",
         oplayer: LayerSpec = LAYER.WG,
-        heatlayer: LayerSpec = LAYER.M1,
-        routelayer: LayerSpec = LAYER.M2,
-        vialayer: LayerSpec = LAYER.VIA,
+        HeaterConfig: HeaterConfigClass = None,
 ) -> Component:
     """
     创建双环滑轮型谐振器，固定使用蛇形加热器 (`TypeHeater="snake"`)
@@ -214,19 +192,14 @@ def DoubleRingPulley2_1HSn(
     c = DoubleRingPulley(
         WidthRing=WidthRing,
         WidthNear=WidthNear,
-        WidthHeat=WidthHeat,
         LengthR2R=LengthR2R,
         RadiusRing=RadiusRing,
         DeltaRadius=DeltaRadius,
         GapRing=GapRing,
-        GapHeat=GapHeat,
         AngleCouple=AngleCouple,
-        IsHeat=True,
-        Name=Name,
         oplayer=oplayer,
-        heatlayer=heatlayer,
-        TypeHeater="snake",
         TypeR2R="bend",
+        HeaterConfig=HeaterConfig,
     )
     return c
 
@@ -236,7 +209,6 @@ def DoubleRingPulley2_1HSn(
 def ADRAPRADR(
         WidthRing: float = 1,
         WidthNear: float = 0.9,
-        WidthHeat: float = 2,
         WidthSingle: float = 0.45,
         LengthTaper: float = 100,
         LengthR2R: float = 50,
@@ -247,14 +219,11 @@ def ADRAPRADR(
         GapRing: float = 1,
         AngleCouple: float = 20,
         AngleCouple3: float = 40,
-        IsHeat: bool = False,
         IsSquare: bool = True,
         Name: str = "ADRAPRADR",
         oplayer: LayerSpec = LAYER.WG,
-        heatlayer: LayerSpec = LAYER.M1,
-        routelayer: LayerSpec = LAYER.M2,
-        vialayer: LayerSpec = LAYER.VIA,
         CrossComp: Component = None,
+        HeaterConfig: HeaterConfigClass = None,
 ) -> Component:
     """
     创建一个由三个环组成的谐振结构：两个Add-Drop环（ADR1, ADR2）夹着一个全通环（APR, ring3）。
@@ -286,15 +255,15 @@ def ADRAPRADR(
     TriRing = gf.Component()
     ring1 = TriRing << RingPulley(
         IsAD=True, WidthRing=WidthRing, RadiusRing=RadiusRing, oplayer=oplayer, GapRing=GapRing,
-        WidthNear=WidthNear, AngleCouple=AngleCouple, IsHeat=IsHeat, heatlayer=heatlayer, WidthHeat=WidthHeat
+        WidthNear=WidthNear, AngleCouple=AngleCouple,HeaterConfig=HeaterConfig
     )
     ring2 = TriRing << RingPulley(
         IsAD=True, WidthRing=WidthRing, RadiusRing=RadiusRing + DeltaRadius, oplayer=oplayer, GapRing=GapRing,
-        WidthNear=WidthNear, AngleCouple=AngleCouple, IsHeat=IsHeat, heatlayer=heatlayer, WidthHeat=WidthHeat
+        WidthNear=WidthNear, AngleCouple=AngleCouple, HeaterConfig=HeaterConfig
     )
     ring3 = TriRing << RingPulley2(
         WidthRing=WidthRing, RadiusRing=RadiusRing + DeltaRadius / 2, oplayer=oplayer, GapRing=GapRing,
-        WidthNear=WidthNear, AngleCouple=AngleCouple3, IsHeat=IsHeat, heatlayer=heatlayer, WidthHeat=WidthHeat
+        WidthNear=WidthNear, AngleCouple=AngleCouple3, HeaterConfig=HeaterConfig
     )
     str_r1r3 = TriRing << GfCStraight(length=LengthR2R, width=WidthNear, layer=oplayer)
     str_r2r3 = TriRing << GfCStraight(length=LengthR2R, width=WidthNear, layer=oplayer)
@@ -339,29 +308,22 @@ def ADRAPRADR(
 def TriRingPulley(
         WidthRing: float = 1,
         WidthNear: float = 0.9,
-        WidthHeat: float = 2,
         LengthR2R: float = 300,
         RadiusRing: float = 100,
         RadiusR2R: float = None,
         DeltaRadius: float = 1,
         GapRing: float = 1,
-        GapHeat: float = 10,
-        DeltaHeat: float = 0,
         AngleCouple: float = 20,
-        IsHeat: bool = False,
-        TypeHeater: str = "default",
         TypeR2R: str = "straight",
         DirectionsHeater: [str] = ["up", "up"],
         DirectionsRing: [str] = ["up", "up"],
         oplayer: LayerSpec = LAYER.WG,
-        heatlayer: LayerSpec = LAYER.M1,
-        routelayer: LayerSpec = LAYER.M2,
-        vialayer: LayerSpec = LAYER.VIA,
         RadiusRing3:float=100,
         GapRing3:float=1,
         WidthNear3:float=1 ,
         WidthRing3:float=1,
-        AngleCouple3:float=15
+        AngleCouple3:float=15,
+        HeaterConfig:HeaterConfigClass=None,
 ) -> Component:
     """
     2025/07/23
@@ -407,16 +369,16 @@ def TriRingPulley(
     """
     c = gf.Component()
     ring1 = c << RingPulleyT1(
-        WidthRing=WidthRing, WidthNear=WidthNear, WidthHeat=WidthHeat,
-        RadiusRing=RadiusRing, GapRing=GapRing, GapHeat=GapHeat, DeltaHeat=DeltaHeat,
+        WidthRing=WidthRing, WidthNear=WidthNear,
+        RadiusRing=RadiusRing, GapRing=GapRing,
         AngleCouple=AngleCouple,
-        oplayer=oplayer, heatlayer=heatlayer, TypeHeater=TypeHeater, IsHeat=IsHeat, DirectionHeater=DirectionsHeater[0]
+        oplayer=oplayer,HeaterConfig=HeaterConfig, DirectionHeater=DirectionsHeater[0]
     )
     ring2 = c << RingPulleyT1(
-        WidthRing=WidthRing, WidthNear=WidthNear, WidthHeat=WidthHeat,
-        RadiusRing=RadiusRing + DeltaRadius, GapRing=GapRing, GapHeat=GapHeat, DeltaHeat=DeltaHeat,
+        WidthRing=WidthRing, WidthNear=WidthNear,
+        RadiusRing=RadiusRing + DeltaRadius, GapRing=GapRing,HeaterConfig=HeaterConfig,
         AngleCouple=AngleCouple,
-        oplayer=oplayer, heatlayer=heatlayer, TypeHeater=TypeHeater, IsHeat=IsHeat, DirectionHeater=DirectionsHeater[1]
+        oplayer=oplayer, DirectionHeater=DirectionsHeater[1]
     )
     if TypeR2R == "straight":
         str_R2R = c << GfCStraight(width=WidthNear, length=LengthR2R, layer=oplayer)
@@ -463,13 +425,12 @@ def TriRingPulley(
     c.add_port(name="R2Input", port=ring2.ports["Input"])
     c.add_port(name="R2Through", port=ring2.ports["Through"])
 
-    if IsHeat:
-        for port in ring1.ports:
-            if "Heat" in port.name:
-                c.add_port(name="R1" + port.name, port=ring1.ports[port.name])
-        for port in ring2.ports:
-            if "Heat" in port.name:
-                c.add_port(name="R2" + port.name, port=ring2.ports[port.name])
+    for port in ring1.ports:
+        if "Heat" in port.name:
+            c.add_port(name="R1" + port.name, port=ring1.ports[port.name])
+    for port in ring2.ports:
+        if "Heat" in port.name:
+            c.add_port(name="R2" + port.name, port=ring2.ports[port.name])
     add_labels_to_ports(c, label_layer=(512, 8))
     return c
 
@@ -478,34 +439,22 @@ def TriRingPulley(
 def CoupleRingDRT1(
         WidthRing1: float = 1,
         WidthNear1: float = 0.9,
-        WidthHeat1: float = 2,
         RadiusRing1: float = 100,
         GapRB1: float = 2,
-        GapHeat1: float = 1,
-        DeltaHeat1: float = 0,
         AngleCouple1: float = 20,
         WidthRing2: float = None,
         WidthNear2: float = None,
-        WidthHeat2: float = None,
         LengthNear2: float = 110,
         RadiusRing2: float = None,
         GapRB2: float = 3,
-        GapHeat2: float = None,
-        DeltaHeat2: float = 0,
         AngleR12: float = 30,
         GapRR: float = 1,
-        GapHeat: float = 10,
-        IsHeat: bool = True,
-        TypeHeaterR1: str = "default",
-        TypeHeaterR2: str = "default",
         TypeR2R: str = "strsight",
         DirectionsHeater: [str] = ["up", "down"],
-        Name: str = "Ring_Pulley",
+        HeaterConfigRing1: HeaterConfigClass = None,
+        HeaterConfigRing2: HeaterConfigClass = None,
         IsAD: bool = False,
         oplayer: LayerSpec = LAYER.WG,
-        heatlayer: LayerSpec = LAYER.M1,
-        routelayer: LayerSpec = LAYER.M2,
-        vialayer: LayerSpec = LAYER.VIA,
 ) -> Component:
     """
     创建一个由两个可配置参数的 `RingPulleyT1` 单元组成的耦合环结构。
@@ -541,22 +490,16 @@ def CoupleRingDRT1(
     """
     if WidthRing2 is None:
         WidthRing2 = WidthRing1
-    if WidthHeat2 is None:
-        WidthHeat2 = WidthHeat1
     if RadiusRing2 is None:
         RadiusRing2 = RadiusRing1
     if WidthNear2 is None:
         WidthNear2 = WidthNear1
-    if GapHeat2 is None:
-        GapHeat2 = GapHeat1
-    if DeltaHeat2 is None:
-        DeltaHeat2 = DeltaHeat1
     c = gf.Component()
     ring1 = c << RingPulleyT1(
-        WidthRing=WidthRing1, WidthNear=WidthNear1, WidthHeat=WidthHeat1,
-        RadiusRing=RadiusRing1, GapRing=GapRB1, GapHeat=GapHeat1, DeltaHeat=DeltaHeat1,
+        WidthRing=WidthRing1, WidthNear=WidthNear1,
+        RadiusRing=RadiusRing1, GapRing=GapRB1,
         AngleCouple=AngleCouple1, IsAD=False,
-        oplayer=oplayer, heatlayer=heatlayer, TypeHeater=TypeHeaterR1, IsHeat=IsHeat,
+        oplayer=oplayer,HeaterConfig=HeaterConfigRing1,
         DirectionHeater=DirectionsHeater[0]
     )
     ring2_c = gf.Component()
@@ -575,14 +518,14 @@ def CoupleRingDRT1(
         c.add_port(name="Add", port=str_ring2_2.ports["o1"])
         c.add_port(name="Drop", port=str_ring2_1.ports["o2"])
     ring2_hc = RingPulleyT1(
-        WidthRing=WidthRing2, WidthNear=WidthNear2, WidthHeat=WidthHeat2,
-        RadiusRing=RadiusRing2, GapRing=GapRB2, GapHeat=GapHeat2, DeltaHeat=DeltaHeat2,
+        WidthRing=WidthRing2, WidthNear=WidthNear2,
+        RadiusRing=RadiusRing2, GapRing=GapRB2,
         AngleCouple=AngleCouple1, IsAD=False,
-        oplayer=oplayer, heatlayer=heatlayer, TypeHeater=TypeHeaterR2, IsHeat=IsHeat,
+        oplayer=oplayer, HeaterConfig=HeaterConfigRing2,
         DirectionHeater=DirectionsHeater[1]
     )
 
-    ring2h = c << GetFromLayer(ring2_hc, OLayer=heatlayer)
+    ring2h = c << GetFromLayer(ring2_hc, OLayer=HeaterConfigRing2.LayerHeat)
     ring2h.move(np.array(ring2.ports["RingC"].center) - np.array(ring2h.ports["RingC"].center))
 
     # c.add_port(name="R1Add", port=ring1.ports["Add"])
@@ -594,13 +537,12 @@ def CoupleRingDRT1(
     # c.add_port(name="R2Input", port=ring2.ports["Input"])
     # c.add_port(name="R2Through", port=ring2.ports["Through"])
 
-    if IsHeat:
-        for port in ring1.ports:
-            if "Heat" in port.name:
-                c.add_port(name="R1" + port.name, port=port)
-        for port in ring2h.ports:
-            if "Heat" in port.name:
-                c.add_port(name="R2" + port.name, port=port)
+    for port in ring1.ports:
+        if "Heat" in port.name:
+            c.add_port(name="R1" + port.name, port=port)
+    for port in ring2h.ports:
+        if "Heat" in port.name:
+            c.add_port(name="R2" + port.name, port=port)
     # add_labels_to_ports(c,label_layer=(412,8))
     c.flatten()
     return c

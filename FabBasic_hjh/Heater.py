@@ -72,18 +72,8 @@ def SnakeHeater(
 @gf.cell
 def DifferentHeater(
         PathHeat: Path = None,
-        WidthHeat: float = 4,
         WidthWG: float = 1,
-        WidthRoute: float = 10,
-        WidthVia: float = 0.26,
-        Spacing: float = 1.1,
-        DeltaHeat: float = 2,
-        GapHeat: float = 3,
-        heatlayer: LayerSpec = LAYER.M1,
-        routelayer: LayerSpec = LAYER.M2,
-        vialayer: LayerSpec = LAYER.VIA,
-        TypeHeater: str = "default",
-        **kwargs
+        HeaterConfig: HeaterConfigClass = heaterconfig0,
 ) -> Component:
     """
     根据指定的类型和其他参数，生成不同类型的加热器组件。
@@ -133,6 +123,17 @@ def DifferentHeater(
             - "HeatIn", "HeatOut": 主加热区域（中心条）的（概念性）输入/输出。
     """
     h = gf.Component()
+    # 从配置对象中提取参数
+    TypeHeater = HeaterConfig.TypeHeater
+    WidthHeat = HeaterConfig.WidthHeat
+    WidthRoute = HeaterConfig.WidthRoute
+    WidthVia = HeaterConfig.WidthVia
+    Spacing = HeaterConfig.Spacing
+    DeltaHeat = HeaterConfig.DeltaHeat
+    GapHeat = HeaterConfig.GapHeat
+    heatlayer = HeaterConfig.LayerHeat
+    routelayer = HeaterConfig.LayerRoute
+    vialayer = HeaterConfig.LayerVia
     if TypeHeater == "default":
         # 默认加热电极
         heatL_comp1 = h << gf.path.extrude(PathHeat, width=WidthHeat, layer=heatlayer)  # 创建左侧加热电极
@@ -159,7 +160,7 @@ def DifferentHeater(
         # 两侧边加热电极
         section1 = gf.Section(width=WidthHeat, offset=DeltaHeat, layer=heatlayer, port_names=("Uo1", "Uo2"))
         section2 = gf.Section(width=WidthHeat, offset=-DeltaHeat, layer=heatlayer, port_names=("Do1", "Do2"))
-        CrossSection = gf.CrossSection(sections=[section1, section2])
+        CrossSection = gf.CrossSection(sections=(section1, section2,))
         HPart = h << gf.path.extrude(PathHeat, cross_section=CrossSection)  # 创建左侧加热电极
         h.add_port(name="HeatLIn", port=HPart.ports["Uo1"])  # 添加加热输入端口
         h.add_port(name="HeatLOut", port=HPart.ports["Uo2"])  # 添加加热输出端口
@@ -169,6 +170,50 @@ def DifferentHeater(
                    center=np.array(h.ports["HeatLIn"].center) / 2 + np.array(h.ports["HeatRIn"].center / 2))  # 添加加热输入端口
         h.add_port(name="HeatOut", width=WidthWG, layer=heatlayer,
                    center=np.array(h.ports["HeatLOut"].center) / 2 + np.array(h.ports["HeatROut"].center / 2))  # 添加加热输出端口
+    elif TypeHeater == "multi":
+        if isinstance(WidthHeat, (list, tuple)) or hasattr(WidthHeat, "__iter__"):
+            noh = len(WidthHeat)
+        else:
+            noh = 1
+            WidthHeat = [WidthHeat]
+        if isinstance(DeltaHeat, (list, tuple)) or hasattr(DeltaHeat, "__iter__"):
+            nod = len(DeltaHeat)
+        else:
+            nod = 1
+            DeltaHeat = [DeltaHeat]
+        if noh != nod:
+            raise ValueError(
+                "Number of WidthHeat != Number of DeltaHeat"
+            )
+        widthheat = []
+        deltaheat = []
+        for i in range(noh):
+            if isinstance(WidthHeat, (list, tuple)):
+                widthheat.append(WidthHeat[i])
+            elif hasattr(WidthHeat, "__iter__"):  # 支持 numpy.ndarray
+                WidthHeat = list(WidthHeat)
+                widthheat.append(WidthHeat[i])
+            if isinstance(DeltaHeat, (list, tuple)):
+                deltaheat.append(DeltaHeat[i])
+            elif hasattr(DeltaHeat, "__iter__"):  # 支持 numpy.ndarray
+                DeltaHeat = list(DeltaHeat)
+                deltaheat.append(DeltaHeat[i])
+        # section & crosssection
+        section = []
+        for i in range(noh):
+            sec = gf.Section(width=widthheat[i], offset=deltaheat[i], layer=heatlayer,
+                                    port_names=("Heat"+str(i)+"In", "Heat"+str(i)+"Out"))
+            section.append(sec)
+        section_assit = gf.Section(width=0.01, offset=0, layer=vialayer, port_names=("assit1", "assit2"))
+        section.append(section_assit)
+        sections_tuple = tuple(section)
+        Xdbs = gf.CrossSection(sections=sections_tuple)
+        HPart = h << gf.path.extrude(PathHeat, cross_section=Xdbs)  # 创建左侧加热电极
+        h.add_port(name="HeatIn", port=HPart.ports["assit1"])  # 添加加热输入端口
+        h.add_port(name="HeatOut", port=HPart.ports["assit2"])  # 添加加热输出端口
+        for port in HPart.ports:
+            h.add_port(name=port.name, port=port)
+        h.remove_layers(layers=[vialayer,])
     elif TypeHeater == "spilt":
         # section and crosssection
         n_pieces = np.floor((PathHeat.length()) / (WidthRoute + GapHeat))

@@ -9,61 +9,70 @@ from gdsfactory.path import Path, _fresnel
 from gdsfactory.pdk import get_active_pdk
 from gdsfactory.technology.layer_map import LayerMap
 from gdsfactory.typings import Layer, LayerSpec, LayerSpecs, CrossSectionSpec
-
+from dataclasses import dataclass
+from typing import Union, Sequence
 PDK = get_generic_pdk()
 PDK.activate()
 
 
 # layer define
 class LayerMapUserDef(LayerMap):
-    SR1:Layer = (216 , 0)
-    NONSR1:Layer = (216 , 100)
-    SR2:Layer = (217 , 0)
-    NONSR2:Layer = (217 , 100)
-    AA:Layer = (10 , 0)
-    KV:Layer = (9 , 0)
-    P2:Layer = (31 , 0)
-    NONP2:Layer = (31 , 100)
-    CPF:Layer = (130 , 0)# 氮化硅波导层
-    WG:Layer = (1,1)
-    CAA:Layer = (196 , 0)# 离子注入保护层
-    TN:Layer = (24 , 0)
-    TP:Layer = (15 , 0)
-    NLH:Layer = (36 , 0)
-    PLH:Layer = (37 , 0)
-    NLL:Layer = (35 , 0)
-    PLL:Layer = (38 , 0)
-    SN:Layer = (40 , 0)
-    SP:Layer = (43 , 0)
-    P1:Layer = (32 , 0)
-    SAB:Layer = (48 , 0)
-    NONSAB:Layer = (48 , 100)
-    V0:Layer = (219 , 0)
-    CT:Layer = (50 , 0)
-    DT:Layer = (51 , 0)
-    M1:Layer = (3, 1)# 高频电极
-    LM1:Layer = (125 , 0)
-    SINEC:Layer = (89 , 100)
-    V1:Layer = (70 , 0)
-    VIA:Layer=(70,0)
-    M2:Layer = (4 , 1) # 加热电极
-    TSW:Layer = (159 , 100)
-    V2:Layer = (71 , 0)
-    M6:Layer = (66 , 0)
-    MIM:Layer = (58 , 0)
-    TSW2:Layer = (160 , 100)
-    TV:Layer = (78 , 0)
-    TM:Layer = (69 , 0)
-    PA:Layer = (80 , 0)
-    DO1:Layer = (55 , 100)
-    HVO:Layer = (111 , 0)
-    OPEN:Layer = (5 , 1)
-    DUMBA:Layer = (120,0)
-    DUMBN:Layer = (130,2)
-    DUMBM:Layer = (121,0)
-    WAFER:Layer = (1000,0)
-
+    WG:LayerSpec = (1,0)
+    M1:LayerSpec = (10,0)
+    OPEN:LayerSpec = (20,0)
+    M2:LayerSpec = (4 , 1) # 高频电极
+    SR1:LayerSpec = (216 , 0)
+    SR2:LayerSpec = (217 , 0)
+    AA:LayerSpec = (10 , 0)
+    KV:LayerSpec = (9 , 0)
+    P2:LayerSpec = (31 , 0)
+    CPF:LayerSpec = (130 , 0)# 氮化硅波导层
+    CAA:LayerSpec = (196 , 0)# 离子注入保护层
+    TN:LayerSpec = (24 , 0)
+    TP:LayerSpec = (15 , 0)
+    NLH:LayerSpec = (36 , 0)
+    PLH:LayerSpec = (37 , 0)
+    NLL:LayerSpec = (35 , 0)
+    PLL:LayerSpec = (38 , 0)
+    SN:LayerSpec = (40 , 0)
+    SP:LayerSpec = (43 , 0)
+    P1:LayerSpec = (32 , 0)
+    SAB:LayerSpec = (48 , 0)
+    NONSAB:LayerSpec = (48 , 100)
+    V0:LayerSpec = (219 , 0)
+    CT:LayerSpec = (50 , 0)
+    DT:LayerSpec = (51 , 0)
+    LM1:LayerSpec = (125 , 0)
+    SINEC:LayerSpec = (89 , 100)
+    V1:LayerSpec = (70 , 0)
+    VIA:LayerSpec=(70,0)
+    TSW:LayerSpec = (159 , 100)
+    V2:LayerSpec = (71 , 0)
+    M6:LayerSpec = (66 , 0)
+    MIM:LayerSpec = (58 , 0)
+    TSW2:LayerSpec = (160 , 100)
+    TV:LayerSpec = (78 , 0)
+    TM:LayerSpec = (69 , 0)
+    PA:LayerSpec = (80 , 0)
+    DO1:LayerSpec = (55 , 100)
+    HVO:LayerSpec = (111 , 0)
+    WAFER:LayerSpec = (100,1)
 LAYER = LayerMapUserDef
+
+@dataclass(frozen=True)
+class HeaterConfigClass:
+    TypeHeater: str = "default"
+    WidthHeat: Union[float, Sequence[float]] = 4
+    WidthRoute: float = 1
+    WidthVia: float = 0.26
+    GapHeat: float = 3 # 两个heater的间隔
+    DeltaHeat: Union[float, Sequence[float]] = 2 # 距离中心波导的距离
+    Spacing: float = 1.1 # Via的spacing
+    LayerHeat: tuple[int,int] = LAYER.M1
+    LayerRoute: tuple[int,int] = LAYER.M2
+    LayerVia: tuple[int,int] = LAYER.VIA
+    LayerELE: tuple[int,int] = LAYER.M1
+heaterconfig0 = HeaterConfigClass()
 # %% section & crosssection
 S_in_te0 = gf.Section(width=0.5, layer=LAYER.WG, port_names=("o1", "o2"))
 S_in_te1 = gf.Section(width=1, layer=LAYER.WG, port_names=("o1", "o2"))
@@ -125,6 +134,7 @@ def add_labels_to_ports(
         label_layer: LayerSpec = (512, 8),  # 指定文本标签的层次
         port_type: str = "optical",
         port_filter: str = None,
+        label_on:bool = True,
         **kwargs,
 ):
     """
@@ -146,14 +156,15 @@ def add_labels_to_ports(
     """
     # new_component = component.copy()  # 创建组件的副本
     # component = remove_layer(component, layer=label_layer)
-    ports = component.get_ports_list(port_type=port_type, **kwargs)
-    for port in ports:
-        if port_filter is None:
-            component.add_label(text=port.name, position=port.center, layer=label_layer)
-        else:
-            portname = str(port)
-            if port_filter in portname:
+    if label_on:
+        ports = component.get_ports_list(port_type=port_type, **kwargs)
+        for port in ports:
+            if port_filter is None:
                 component.add_label(text=port.name, position=port.center, layer=label_layer)
+            else:
+                portname = str(port)
+                if port_filter in portname:
+                    component.add_label(text=port.name, position=port.center, layer=label_layer)
     return
 
 # %% original straight
@@ -510,34 +521,80 @@ def euler_Bend_Half(
         flip: bool = False,
         use_eff: bool = False,
         npoints: int | None = None,
+        direction: str = "Backward",  # "Backward": euler→straight; "Forward": straight→euler
 ) -> Path:
     """
-    返回一个欧拉弯曲路径，该路径从弯曲状态逐渐过渡到直线状态 (或者说，是完整欧拉弯曲的一半)。
+    生成一个半欧拉弯曲（Euler Bend Half）路径。
 
-    如果 `use_eff` 为 True，`radius` 参数对应于有效曲率半径，使得该曲线
-    可以作为具有相同 `radius` 和 `angle` 的圆弧弯曲的直接替代品。
-    如果 `use_eff` 为 False (默认)，`radius` 参数对应于弯曲的最小曲率半径。
-    参数 `p` 控制曲线中纯欧拉过渡部分的比例。
+    根据 `direction` 参数控制弯曲方向：
+    - "Forward": 从直线逐渐过渡到圆弧；
+    - "Backward": 从圆弧逐渐过渡到直线。
+
+    当 `use_eff=True` 时，`radius` 表示等效曲率半径，使得该曲线与具有相同
+    半径和角度的理想圆弧端点一致，可直接替代圆弧弯曲；
+    当 `use_eff=False` 时，`radius` 表示最小曲率半径。
 
     参数:
-        radius (float): 最小曲率半径 (如果 use_eff=False) 或有效半径 (如果 use_eff=True)。
-                        默认为 10.0 um。
-        angle (float): 曲线的总角度 (单位: 度)。默认为 90.0 度。
-        p (float): 曲线中欧拉部分的比例 (0 < p <= 1)。默认为 0.5。
-        use_eff (bool): 如果为 False，`radius` 是最小曲率半径。
-                        如果为 True，曲线将被缩放以匹配具有 `radius` 和 `angle` 参数的圆弧的端点。
-                        默认为 False。
-        npoints (int | None): 用于生成路径每360度的点数。默认为 None (由gdsfactory自动计算)。
+        radius (float): 最小曲率半径（或有效半径）。单位 μm，默认 10。
+        angle (float): 总弯曲角度（度），默认 90。
+        p (float): 欧拉过渡部分占比，范围 (0, 1]，默认 0.5。
+        flip (bool): 是否上下翻转曲线（y 取负）。默认 False。
+        use_eff (bool): 是否使用等效半径匹配端点。默认 False。
+        npoints (int | None): 每 360° 弯曲的采样点数，None 表示自动估算。
+        direction (str): 曲线方向，可选 "Forward" 或 "Backward"。默认 "Backward"。
 
     返回:
-        Path: 生成的半欧拉弯曲路径对象。
+        Path: 表示半欧拉弯曲的路径对象。
 
     异常:
-        ValueError: 如果 `p` 不在 (0, 1] 范围内。
+        ValueError: 若 `p` 不在 (0, 1] 或 `direction` 非法。
 
     示例:
-        >>> path = euler_Bend_Half(radius=10, angle=45, p=1, use_eff=True)
-        >>> # path.plot() # 在Jupyter等环境中可以绘图查看
+        >>> path = euler_Bend_Half(radius=10, angle=45, p=0.7, use_eff=True, direction="Forward")
+        >>> path.plot()
+    """
+
+    if direction == "Backward":
+        return euler_Bend_Half_Backward(radius,angle,p,flip,use_eff,npoints,)
+    elif direction == "Forward":
+        return euler_Bend_Half_Forward(radius,angle,p,flip,use_eff,npoints,)
+    else:
+        raise ValueError("direction must be 'Forward' or 'Backward'")
+# %% euler_Bend_Half：从圆弧过渡到直线的欧拉路径
+def euler_Bend_Half_Backward(
+        radius: float = 10,
+        angle: float = 90,
+        p: float = 0.5,
+        flip: bool = False,
+        use_eff: bool = False,
+        npoints: int | None = None,
+) -> Path:
+    """
+    生成一个从圆弧逐渐过渡到直线的半欧拉弯曲路径（Euler Bend Half, Backward）。
+
+    该函数生成的路径代表完整欧拉弯曲的一半：起始曲率最大（即圆弧部分），
+    最终逐渐过渡为直线。常用于波导弯曲端或耦合器平滑过渡。
+
+    当 `use_eff=True` 时，`radius` 表示等效曲率半径，曲线端点与同半径圆弧一致；
+    当 `use_eff=False` 时，`radius` 表示最小曲率半径。
+
+    参数:
+        radius (float): 最小或有效曲率半径。单位 μm。
+        angle (float): 弯曲总角度（度）。
+        p (float): 欧拉部分占比，范围 (0, 1]。
+        flip (bool): 是否上下翻转曲线（y 取负）。
+        use_eff (bool): 是否使用等效半径匹配端点。
+        npoints (int | None): 每 360° 弯曲的采样点数，None 自动计算。
+
+    返回:
+        Path: 半欧拉弯曲路径对象。
+
+    异常:
+        ValueError: 若 `p` 不在 (0, 1]。
+
+    示例:
+        >>> path = euler_Bend_Half_Backward(radius=10, angle=90, p=0.5)
+        >>> path.plot()
     """
 
     if (p <= 0) or (p > 1):
@@ -618,9 +675,107 @@ def euler_Bend_Half(
     if mirror:
         P.mirror((1, 0))
     return P
+# 从直线过渡到圆弧的欧拉路径
+def euler_Bend_Half_Forward(
+        radius: float = 10,
+        angle: float = 90,
+        p: float = 0.5,
+        flip: bool = False,
+        use_eff: bool = False,
+        npoints: int | None = None,
+) -> Path:
+    """
+    生成一个从直线逐渐过渡到圆弧的半欧拉弯曲路径（Euler Bend Half, Forward）。
 
+    该函数生成的路径表示欧拉弯曲的前半段：
+    起始为直线（曲率为零），沿程曲率逐渐增大，最终过渡为半径为 `radius` 的圆弧。
+    该形式常用于波导从直线进入弯曲段的平滑连接。
 
-# %% euler_Bend_Half
+    当 `use_eff=True` 时，`radius` 表示等效曲率半径，端点与同半径圆弧一致；
+    当 `use_eff=False` 时，`radius` 表示最小曲率半径。
+
+    参数:
+        radius (float): 最小或有效曲率半径。单位 μm。
+        angle (float): 弯曲总角度（度）。
+        p (float): 欧拉部分占比，范围 (0, 1]。
+        flip (bool): 是否上下翻转曲线（y 取负）。
+        use_eff (bool): 是否使用等效半径匹配端点。
+        npoints (int | None): 每 360° 弯曲的采样点数，None 自动计算。
+
+    返回:
+        Path: 半欧拉弯曲路径对象。
+
+    异常:
+        ValueError: 若 `p` 不在 (0, 1]。
+
+    示例:
+        >>> path = euler_Bend_Half_Forward(radius=10, angle=45, p=0.8, use_eff=False)
+        >>> path.plot()
+    """
+    if (p <= 0) or (p > 1):
+        raise ValueError("`p` 必须在 (0, 1] 之间")
+
+    if angle < 0:
+        mirror = True
+        angle = np.abs(angle)
+    else:
+        mirror = False
+
+    R0 = 1
+    alpha = np.radians(angle * 2)
+    Rp = R0 / np.sqrt(p * alpha)
+    sp = R0 * np.sqrt(p * alpha)
+    s0 = 2 * sp + Rp * alpha * (1 - p)
+
+    # 自动确定采样点数
+    pdk = get_active_pdk()
+    npoints = npoints or abs(int(angle / 360 * radius / pdk.bend_points_distance / 2))
+    npoints = max(npoints, int(360 / angle) + 1)
+
+    num_pts_euler = int(np.round(sp / (s0 / 2) * npoints))
+    num_pts_arc = npoints - num_pts_euler
+    num_pts_euler = max(num_pts_euler, 2)
+
+    # --- 生成欧拉曲线前半段（从直线 → 弯曲）
+    xbend1, ybend1 = _fresnel(R0, sp, num_pts_euler)
+    # 缩放使得终点曲率=1/Rp
+    xbend1 *= R0
+    ybend1 *= R0
+
+    # --- 生成纯圆弧段
+    s = np.linspace(sp, s0 / 2, num_pts_arc)
+    xbend2 = Rp * np.sin((s - sp) / Rp + p * alpha / 2) + xbend1[-1] - Rp * np.sin(p * alpha / 2)
+    ybend2 = Rp * (1 - np.cos((s - sp) / Rp + p * alpha / 2)) + ybend1[-1] - Rp * (1 - np.cos(p * alpha / 2))
+
+    # 合并坐标
+    x = np.concatenate([xbend1, xbend2[1:]])
+    y = np.concatenate([ybend1, ybend2[1:]])
+
+    points = np.array([x, y]).T
+
+    # 缩放匹配真实半径
+    Rmin = Rp
+    Reff = points[-1][1] / (1 - np.cos(np.radians(angle)))
+    scale = radius / (Reff if use_eff else Rmin)
+    points *= scale
+
+    # 若 flip，则翻转曲线方向
+    if flip:
+        points[:, 1] *= -1
+
+    # 输出 Path
+    P = Path()
+    P.points = points
+    P.start_angle = 0
+    P.end_angle = angle
+    P.info["Rmin"] = Rmin * scale
+    P.info["Reff"] = Reff * scale
+    # 若 angle 为负，则镜像
+    if mirror:
+        P.mirror((1, 0))
+    return P
+
+# 部分欧拉弯曲的路径
 def euler_Bend_Part(
         radius1: float = 10.0,
         radius2: float = 20.0,
@@ -630,133 +785,190 @@ def euler_Bend_Part(
         npoints: int | None = None,
 ) -> Path:
     """
-    创建一个欧拉弯曲路径，其曲率从 1/radius1 平滑过渡到 1/radius2。
+    生成一段“线性曲率过渡 + 固定半径圆弧”组合弯曲路径。
 
-    参数:
-        radius1 (float): 起始曲率半径 (单位: um)。默认为 10.0 um。
-        radius2 (float): 结束曲率半径 (单位: um)。默认为 20.0 um。
-        angle (float): 弯曲的总角度 (单位: 度)。默认为 90.0 度。
-        p (float): 欧拉过渡段所占总角度的比例 (0 < p <= 1)。
-                   p=1 表示整个弯曲都是动态曲率过渡。
-                   p<1 表示前 p*angle 的角度是动态曲率过渡，
-                   剩余 (1-p)*angle 的角度是一个曲率为 1/radius2 的圆弧。
-                   默认为 0.5。
-        use_eff (bool): 如果为 True，则尝试缩放路径，使其端点行为类似于某个“有效半径”的圆弧。
-                        此处的“有效半径”可能基于 radius1 或 (radius1+radius2)/2。默认为 False。
-        npoints (int | None): 生成路径的总点数。默认为 None (由gdsfactory自动计算)。
+    说明：
+      - 前 p*angle 的角度使用线性曲率过渡（曲率在弧长上线性插值，从 1/radius1 -> 1/radius2）。
+      - 剩余 (1-p)*angle 为曲率 1/radius2 的圆弧。
+      - 该实现保证位置和切线连续（曲率在连接点处连续）。
+      - 注：这是“线性曲率过渡”模型，不是严格数学意义上的 Clothoid（如果需要严格 clothoid，请告知）。
 
-    返回:
-        Path: 生成的欧拉弯曲路径对象。
-
-    异常:
-        ValueError: 如果 radius1 或 radius2 非正，或者 p 不在 (0, 1] 范围内。
+    参数与返回见原始函数。若输入 angle < 0，则生成的路径将关于 x 轴镜像。
     """
     if radius1 <= 0 or radius2 <= 0:
         raise ValueError("Radius values must be positive")
     if (p <= 0) or (p > 1):
         raise ValueError("euler requires argument `p` be between 0 and 1")
-    angle = float(angle)
-    alpha = np.radians(abs(angle))  # Total angle in radians
+
+    # 规范化角度
     mirror = angle < 0
-    angle = abs(angle)
+    angle_abs = abs(float(angle))
+    alpha = np.radians(angle_abs)  # total angle in radians
 
-    # =========================================================================
-    # 核心修改1: 支持任意半径方向变化的曲率计算
-    # =========================================================================
-    def dynamic_curvature(s: float, s_total: float) -> float:
-        """曲率从 1/radius1 线性过渡到 1/radius2"""
-        return 1 / radius1 + (1 / radius2 - 1 / radius1) * (s / s_total)
+    # 划分欧拉段角度与圆弧段角度 (radians)
+    alpha_euler = p * alpha
+    alpha_arc = alpha - alpha_euler  # 可能为 0
 
-    # =========================================================================
-    # 计算欧拉曲线部分参数
-    # =========================================================================
+    # 若 alpha_euler 非零，则基于线性曲率变化推导 s_total：
+    # 对于 kappa(s) = k1 + (k2-k1)*(s/s_total)
+    # alpha_euler = ∫_0^{s_total} kappa(s) ds = s_total*(k1 + k2)/2
+    k1 = 1.0 / radius1
+    k2 = 1.0 / radius2
 
-    # 计算欧拉曲线总弧长（基于起始曲率radius1）
-    s_total = radius1 * np.sqrt(p * alpha)  # 欧拉部分总弧长
+    if alpha_euler > 0:
+        s_total = 2 * alpha_euler / (k1 + k2)  # 自洽解
+    else:
+        s_total = 0.0
 
-    # =========================================================================
-    # 核心修改2: 通用化积分过程（支持曲率增加或减少）
-    # =========================================================================
-    def generate_euler_curve(num_pts: int) -> tuple[np.ndarray, np.ndarray]:
-        """动态曲率积分（自动处理正反向变化）"""
-        s_values = np.linspace(0, s_total, num_pts)
-        x, y = [], []
-        current_theta = 0.0
-        current_x = 0.0
-        current_y = 0.0
+    # 动态曲率函数（线性随 s）
+    def dynamic_curvature(s: float) -> float:
+        if s_total == 0:
+            return k2
+        return k1 + (k2 - k1) * (s / s_total)
 
-        for s in s_values:
-            curvature = dynamic_curvature(s, s_total)
-            ds = s_total / (num_pts - 1) if num_pts > 1 else 0
-
-            # 始终正向积分，曲率变化方向由dynamic_curvature自动处理
-            dtheta = ds * curvature
-            current_theta += dtheta
-            dx = ds * np.cos(current_theta)
-            dy = ds * np.sin(current_theta)
-            current_x += dx
-            current_y += dy
-
-            x.append(current_x)
-            y.append(current_y)
-
-        return np.array(x), np.array(y)
-
-    # =========================================================================
-    # 生成路径点
-    # =========================================================================
+    # 计算点数
     pdk = get_active_pdk()
-    npoints = npoints or int(abs(angle / 360 * max(radius1, radius2) / pdk.bend_points_distance))
-    npoints = max(npoints, 5)
+    # 若 pdk 未设置 bend_points_distance，则退回到一个默认值保护
+    try:
+        base_dist = float(pdk.bend_points_distance)
+        if base_dist <= 0:
+            base_dist = 0.5
+    except Exception:
+        base_dist = 0.5
 
-    # 分割欧拉曲线和圆弧部分
-    num_pts_euler = int(npoints * p)
-    num_pts_arc = npoints - num_pts_euler
+    if npoints is None:
+        # 依据最大半径近似估计点数（保守估计）
+        est_len = max(radius1, radius2) * alpha / 1.0
+        npoints = max(6, int(np.ceil(est_len / base_dist)))
+    else:
+        npoints = max(6, int(npoints))
 
-    # 生成动态曲率的欧拉曲线部分
-    x_euler, y_euler = generate_euler_curve(num_pts_euler)
+    # 分配欧拉段、圆弧段点数（都至少 2）
+    num_pts_euler = max(2, int(round(npoints * p)))
+    num_pts_arc = max(2, npoints - num_pts_euler)
+    # 若 alpha_arc == 0，则全部给欧拉段
+    if alpha_arc <= 1e-12:
+        num_pts_euler = npoints
+        num_pts_arc = 0
 
-    # 生成圆弧部分（使用radius2作为最终曲率）
-    theta_arc = alpha * (1 - p)
-    theta_values = np.linspace(0, theta_arc, num_pts_arc)
-    R_arc = radius2  # 圆弧部分曲率固定为radius2
+    # ---------------------------
+    # 1) 生成欧拉（线性曲率）段
+    # ---------------------------
+    x_euler = np.zeros(0)
+    y_euler = np.zeros(0)
+    theta = 0.0
+    if num_pts_euler >= 2 and s_total > 0:
+        s_vals = np.linspace(0.0, s_total, num_pts_euler)
+        ds = s_total / (num_pts_euler - 1)
+        xs = []
+        ys = []
+        cur_x = 0.0
+        cur_y = 0.0
+        cur_theta = 0.0
+        for i, s in enumerate(s_vals):
+            # 在每一步使用当前曲率近似（用 s 或 s-ds/2 中点也可）
+            kappa = dynamic_curvature(s)
+            # 对角度增量积分
+            if i == 0:
+                dtheta = 0.0
+            else:
+                dtheta = kappa * ds
+            cur_theta += dtheta
+            # 小步位移
+            cur_x += ds * np.cos(cur_theta)
+            cur_y += ds * np.sin(cur_theta)
+            xs.append(cur_x)
+            ys.append(cur_y)
+        x_euler = np.array(xs)
+        y_euler = np.array(ys)
+        theta = cur_theta  # 欧拉段末端切线角（rad）
+    else:
+        # 没有欧拉段 => 起点位于原点，theta 初始为 0
+        x_euler = np.array([0.0])
+        y_euler = np.array([0.0])
+        theta = 0.0
 
-    # 计算圆弧部分坐标（与欧拉曲线终点平滑连接）
-    x_arc = R_arc * np.sin(theta_values) + x_euler[-1] - R_arc * np.sin(theta_arc)
-    y_arc = R_arc * (1 - np.cos(theta_values)) + y_euler[-1] - R_arc * (1 - np.cos(theta_arc))
+    # ---------------------------
+    # 2) 生成圆弧段（基于 radius2，且与欧拉段末端切线对齐）
+    # ---------------------------
+    x_arc = np.zeros(0)
+    y_arc = np.zeros(0)
+    if num_pts_arc > 0 and alpha_arc > 0:
+        R = radius2
+        # arc angles从 theta 到 theta + alpha_arc
+        phi_vals = np.linspace(theta, theta + alpha_arc, num_pts_arc)
 
-    # 合并坐标点
-    x = np.concatenate([x_euler, x_arc[1:]])
-    y = np.concatenate([y_euler, y_arc[1:]])
+        # 计算圆心位置： center = end_point + R * (-sin(theta), cos(theta))
+        end_x = x_euler[-1]
+        end_y = y_euler[-1]
+        cx = end_x + R * (-np.sin(theta))
+        cy = end_y + R * ( np.cos(theta))
 
-    # =========================================================================
-    # 路径后处理
-    # =========================================================================
+        # 点坐标 param: (cx + R*sin(phi), cy - R*cos(phi))
+        xs = cx + R * np.sin(phi_vals)
+        ys = cy - R * np.cos(phi_vals)
+        # 为避免重复首点，首点与欧拉段末点重复，后续合并时会剔除
+        x_arc = np.array(xs)
+        y_arc = np.array(ys)
+    elif num_pts_arc > 0 and alpha_arc <= 0:
+        # alpha_arc == 0: no arc; handled above
+        x_arc = np.zeros(0)
+        y_arc = np.zeros(0)
+
+    # ---------------------------
+    # 3) 合并并处理重复首点
+    # ---------------------------
+    if x_arc.size == 0:
+        x = x_euler
+        y = y_euler
+    else:
+        # 避免重复欧拉末点与弧首点
+        x = np.concatenate([x_euler, x_arc[1:]])
+        y = np.concatenate([y_euler, y_arc[1:]])
+
     points = np.column_stack([x, y])
 
-    # 计算有效半径（基于终点位置）
+    # ---------------------------
+    # 4) 可选缩放（use_eff）
+    #    说明：此处将路径缩放使其“等效半径(Reff)”接近中间半径 (radius1+radius2)/2
+    # ---------------------------
     end_x, end_y = points[-1]
-    Reff = np.sqrt(end_x ** 2 + end_y ** 2) / (2 * np.sin(alpha / 2))
+    # 保护：若 alpha 非零，计算等效半径（基于圆弧几何的近似）
+    if alpha > 1e-12:
+        Reff = np.sqrt(end_x ** 2 + end_y ** 2) / (2 * np.sin(alpha / 2))
+    else:
+        Reff = (radius1 + radius2) / 2.0
 
-    # 缩放处理（根据use_eff决定是否匹配等效半径）
-    scale_factor = radius1 / Reff if use_eff else 1.0
-    points *= scale_factor
+    if use_eff and Reff > 0:
+        target_Reff = (radius1 + radius2) / 2.0
+        scale_factor = target_Reff / Reff
+        points = points * scale_factor
+        Reff = Reff * scale_factor
+    else:
+        scale_factor = 1.0
 
-    # 创建Path对象
-    path = Path()
-    path.points = points
-    path.start_angle = 0.0
-    path.end_angle = np.degrees(theta_arc)
-
-    # 存储物理参数
+    # ---------------------------
+    # 5) 创建 Path 并记录信息
+    # ---------------------------
+    # 使用 Path(points) 构造（更符合 gdsfactory）
+    path = Path(points.tolist())
+    # 记录一些信息
     path.info.update({
-        "Reff": Reff * scale_factor,
         "R_start": radius1,
         "R_end": radius2,
-        "curvature_start": 1 / radius1,
-        "curvature_end": 1 / radius2
+        "curvature_start": k1,
+        "curvature_end": k2,
+        "alpha_total_deg": angle_abs,
+        "alpha_total_rad": alpha,
+        "alpha_euler_deg": np.degrees(alpha_euler),
+        "alpha_arc_deg": np.degrees(alpha_arc),
+        "s_total_euler": s_total,
+        "Reff_used": Reff,
+        "scale_factor": scale_factor,
+        "p": p,
     })
 
+    # 如果原始 angle 为负数，镜像 x 轴（与原函数行为一致）
     if mirror:
         path.mirror((1, 0))
 
@@ -847,8 +1059,8 @@ def GetFromLayer(
     """
     if FLayer is None:
         FLayer = OLayer
-    CompFinal = gf.Component(CompOriginal.name + "Layer=" + str(OLayer))
-    pols = CompOriginal.get_polygons_points(layers=[OLayer])
+    CompFinal = gf.Component()
+    pols = CompOriginal.get_polygons_points(layers=[OLayer],by="tuple")
     for pol in pols[OLayer]:
         CompFinal.add_polygon(points=pol, layer=FLayer)
     for port in CompOriginal.ports:
