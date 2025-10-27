@@ -319,15 +319,12 @@ def RaceTrackS(
 # %% RaceTrackStrH2
 def RaceTrackStrHC(
         WidthRing: float = 8,
-        WidthHeat: float = 8,
-        WidthRoute: float = 50,
         LengthRun: float = 200,
         RadiusRing: float = 500,
         GapCouple: float = 1,
         LengthCouple: float = 200,
         IsAD: bool = True,
         oplayer: LayerSpec = LAYER.WG,
-        heatlayer: LayerSpec = LAYER.M1,
         HeaterConfig: HeaterConfigClass = None
 ) -> Component:
     """
