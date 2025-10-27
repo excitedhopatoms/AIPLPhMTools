@@ -71,6 +71,7 @@ class HeaterConfigClass:
     LayerHeat: tuple[int,int] = LAYER.M1
     LayerRoute: tuple[int,int] = LAYER.M2
     LayerVia: tuple[int,int] = LAYER.VIA
+    LayerELE: tuple[int,int] = LAYER.M1
 heaterconfig0 = HeaterConfigClass()
 # %% section & crosssection
 S_in_te0 = gf.Section(width=0.5, layer=LAYER.WG, port_names=("o1", "o2"))
@@ -133,6 +134,7 @@ def add_labels_to_ports(
         label_layer: LayerSpec = (512, 8),  # 指定文本标签的层次
         port_type: str = "optical",
         port_filter: str = None,
+        label_on:bool = True,
         **kwargs,
 ):
     """
@@ -154,14 +156,15 @@ def add_labels_to_ports(
     """
     # new_component = component.copy()  # 创建组件的副本
     # component = remove_layer(component, layer=label_layer)
-    ports = component.get_ports_list(port_type=port_type, **kwargs)
-    for port in ports:
-        if port_filter is None:
-            component.add_label(text=port.name, position=port.center, layer=label_layer)
-        else:
-            portname = str(port)
-            if port_filter in portname:
+    if label_on:
+        ports = component.get_ports_list(port_type=port_type, **kwargs)
+        for port in ports:
+            if port_filter is None:
                 component.add_label(text=port.name, position=port.center, layer=label_layer)
+            else:
+                portname = str(port)
+                if port_filter in portname:
+                    component.add_label(text=port.name, position=port.center, layer=label_layer)
     return
 
 # %% original straight
