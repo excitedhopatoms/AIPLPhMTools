@@ -20,7 +20,7 @@ def DoubleRaceTrack(
         DirectionsHeater: [str] = ["up", "up"],
         DirectionsRing: [str] = ["up", "up"],
         oplayer: LayerSpec = LAYER.WG,
-        heater_config: HeaterConfigClass=None,
+        HeaterConfig: HeaterConfigClass=None,
 ) -> Component:
     """
     创建一个双跑道环谐振腔组件。
@@ -73,11 +73,11 @@ def DoubleRaceTrack(
     c = gf.Component()
     if TypeCouple == "p" or TypeCouple == "P":
         ring1 = c << RaceTrackP(
-            WidthRing=WidthRing, WidthNear=WidthNear, GapCouple=GapCouple,HeaterConfig=heater_config,
+            WidthRing=WidthRing, WidthNear=WidthNear, GapCouple=GapCouple,HeaterConfig=HeaterConfig,
             LengthRun=LengthRun, RadiusRing=RadiusRing, AngleCouple=AngleCouple, oplayer=oplayer,DirectionHeater=DirectionsHeater[0],
         )
         ring2 = c << RaceTrackP(
-            WidthRing=WidthRing, WidthNear=WidthNear, GapCouple=GapCouple,HeaterConfig=heater_config,
+            WidthRing=WidthRing, WidthNear=WidthNear, GapCouple=GapCouple,HeaterConfig=HeaterConfig,
             LengthRun=LengthRun + DeltaRoundTrip/2, RadiusRing=RadiusRing, AngleCouple=AngleCouple, oplayer=oplayer,DirectionHeater=DirectionsHeater[1],
         )
     elif TypeCouple == "s" or TypeCouple == "S":
@@ -89,7 +89,7 @@ def DoubleRaceTrack(
             LengthCouple=LengthCouple,
             IsAD=True,
             oplayer=oplayer,
-            HeaterConfig=heater_config,
+            HeaterConfig=HeaterConfig,
             DirectionHeater=DirectionsHeater[0],
         )
         ring2 = c << RaceTrackS(
@@ -100,7 +100,7 @@ def DoubleRaceTrack(
             LengthCouple=LengthCouple,
             IsAD=True,
             oplayer=oplayer,
-            HeaterConfig=heater_config,
+            HeaterConfig=HeaterConfig,
             DirectionHeater=DirectionsHeater[1],
         )
         WidthNear=WidthRing
