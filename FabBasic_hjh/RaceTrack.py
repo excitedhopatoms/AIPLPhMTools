@@ -155,23 +155,14 @@ def RaceTrackP(
 @gf.cell
 def RaceTrackS(
         WidthRing: float = 8,
-        WidthHeat: float = 10,
-        WidthRoute: float = 20,
         LengthRun: float = 200,
         RadiusRing: float = 100,
         GapCouple: float = 1,
         LengthCouple: float = 200,
-        GapHeat: float = 10,
         DeltaHeat: float = 20,
         IsAD: bool = True,
-        IsHeat: bool = True,
-        TypeHeater: str = "center",
         oplayer: LayerSpec = LAYER.WG,
         elelayer: LayerSpec = LAYER.M2,
-        heatlayer: LayerSpec = LAYER.M1,
-        routelayer: LayerSpec = LAYER.M2,
-        vialayer: LayerSpec = LAYER.VIA,
-        Name: str = "RaceTrack_Pulley",
         HeaterConfig: HeaterConfigClass = heaterconfig0,
 ) -> Component:
     """
@@ -222,7 +213,6 @@ def RaceTrackS(
             GapCouple=GapCouple,
             LengthCouple=LengthCouple,
             IsAD=IsAD,
-            IsHeat=IsHeat,
             oplayer=oplayer,
         )
     c = gf.Component()
@@ -239,7 +229,7 @@ def RaceTrackS(
     rring3 = gf.path.arc(radius=RadiusRing, angle=-30)
     rb1 = euler_Bend_Half(radius=RadiusRing, angle=30, p=0.5)
     rb2 = euler_Bend_Half(radius=RadiusRing, angle=-30, p=0.5)
-    rbh1 = euler_Bend_Half(radius=RadiusRing-4*WidthRoute, angle=-60, p=0.5)
+    rbh1 = euler_Bend_Half(radius=RadiusRing-4*HeaterConfig.WidthRoute, angle=-60, p=0.5)
     RingPath1 = rring1 + rb1 + rrun1
     RingPath2 = rring2 + rb2 + rrun1
     HeatPath1 = rring1 + rb1 + rrun1
@@ -285,10 +275,10 @@ def RaceTrackS(
     c.add_port(name="Rcen1", port=RP1.ports["o2"])
     c.add_port(name="Rcen2", port=RP3.ports["o2"])
     # heat part
-    if HeaterConfig.TypeHeater == "ELE" or TypeHeater == "ele":
+    if HeaterConfig.TypeHeater == "ELE":
         ele = c << GSGELE(
             WidthS=20,WidthG=80,GapGS=5,LengthEle=LengthRun+60,IsPad=True,LengthToPad=90,
-            elelayer=elelayer,
+            elelayer=HeaterConfig.LayerELE,
         )
         ele.connect("Oin1", other=RP1.ports["o2"],allow_width_mismatch=True,allow_layer_mismatch=True)
         ele.movey(-LengthRun/2)
@@ -308,7 +298,7 @@ def RaceTrackS(
         h = c << heater
         h.connect("HeatBmid1",c.ports["RingBmid1"],allow_width_mismatch=True,allow_layer_mismatch=True)
         h.mirror_x(h.ports["HeatBmid1"].center[0])
-        if TypeHeater == "side":
+        if HeaterConfig.TypeHeater == "side":
             h.movey(-DeltaHeat)
         heater = snap_all_polygons_iteratively(heater)
     print("length="+str(RingPath1.length()*4))
