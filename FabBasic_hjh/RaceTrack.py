@@ -159,10 +159,8 @@ def RaceTrackS(
         RadiusRing: float = 100,
         GapCouple: float = 1,
         LengthCouple: float = 200,
-        DeltaHeat: float = 20,
         IsAD: bool = True,
         oplayer: LayerSpec = LAYER.WG,
-        elelayer: LayerSpec = LAYER.M2,
         HeaterConfig: HeaterConfigClass = heaterconfig0,
 ) -> Component:
     """
@@ -205,16 +203,17 @@ def RaceTrackS(
         Rcen1, Rcen2: 弯曲中心参考点。
         (以及可能的加热器/电极端口)
     """
-    if HeaterConfig.TypeHeater == "center":
-        return RaceTrackStrHC(
-            WidthRing=WidthRing,
-            LengthRun=LengthRun,
-            RadiusRing=RadiusRing,
-            GapCouple=GapCouple,
-            LengthCouple=LengthCouple,
-            IsAD=IsAD,
-            oplayer=oplayer,
-        )
+    if HeaterConfig:
+        if HeaterConfig.TypeHeater == "center":
+            return RaceTrackStrHC(
+                WidthRing=WidthRing,
+                LengthRun=LengthRun,
+                RadiusRing=RadiusRing,
+                GapCouple=GapCouple,
+                LengthCouple=LengthCouple,
+                IsAD=IsAD,
+                oplayer=oplayer,
+            )
     c = gf.Component()
     layer = oplayer
     secring = gf.Section(width=WidthRing, offset=0, layer=layer, port_names=("o1", "o2"))
@@ -229,11 +228,8 @@ def RaceTrackS(
     rring3 = gf.path.arc(radius=RadiusRing, angle=-30)
     rb1 = euler_Bend_Half(radius=RadiusRing, angle=30, p=0.5)
     rb2 = euler_Bend_Half(radius=RadiusRing, angle=-30, p=0.5)
-    rbh1 = euler_Bend_Half(radius=RadiusRing-4*HeaterConfig.WidthRoute, angle=-60, p=0.5)
     RingPath1 = rring1 + rb1 + rrun1
     RingPath2 = rring2 + rb2 + rrun1
-    HeatPath1 = rring1 + rb1 + rrun1
-    HeatPath2 = rring3 + rbh1
     RP1 = CRaceTrack << gf.path.extrude(RingPath1, cross_section=wgring)
     RP2 = CRaceTrack << gf.path.extrude(RingPath2, cross_section=wgring)
     RP3 = CRaceTrack << gf.path.extrude(RingPath1, cross_section=wgring)
@@ -275,32 +271,36 @@ def RaceTrackS(
     c.add_port(name="Rcen1", port=RP1.ports["o2"])
     c.add_port(name="Rcen2", port=RP3.ports["o2"])
     # heat part
-    if HeaterConfig.TypeHeater == "ELE":
-        ele = c << GSGELE(
-            WidthS=20,WidthG=80,GapGS=5,LengthEle=LengthRun+60,IsPad=True,LengthToPad=90,
-            elelayer=HeaterConfig.LayerELE,
-        )
-        ele.connect("Oin1", other=RP1.ports["o2"],allow_width_mismatch=True,allow_layer_mismatch=True)
-        ele.movey(-LengthRun/2)
-    else:
-        heater = gf.Component()
-        RHP1 = heater << DifferentHeater(PathHeat=HeatPath1,WidthWG=WidthRing,HeaterConfig=HeaterConfig)
-        RHP2 = heater << DifferentHeater(PathHeat=HeatPath1,WidthWG=WidthRing,HeaterConfig=HeaterConfig)
-        RHP3 = heater << DifferentHeater(PathHeat=HeatPath2,WidthWG=WidthRing,HeaterConfig=HeaterConfig)
-        RHP4 = heater << DifferentHeater(PathHeat=HeatPath2,WidthWG=WidthRing,HeaterConfig=HeaterConfig)
-        RHP2.connect("HeatOut", other=RHP1.ports["HeatOut"],mirror=True)
-        RHP3.connect("HeatIn", other=RHP1.ports["HeatIn"])
-        RHP4.connect("HeatIn", other=RHP2.ports["HeatIn"],mirror=True)
-        heater.add_port("HeatBmid1", port=RHP1.ports["HeatIn"])
-        heater.add_port("HeatBmin2", port=RHP2.ports["HeatIn"])
-        heater.add_port("HeatIn", port=RHP3.ports["HeatOut"])
-        heater.add_port("HeatOut",port=RHP4.ports["HeatOut"])
-        h = c << heater
-        h.connect("HeatBmid1",c.ports["RingBmid1"],allow_width_mismatch=True,allow_layer_mismatch=True)
-        h.mirror_x(h.ports["HeatBmid1"].center[0])
-        if HeaterConfig.TypeHeater == "side":
-            h.movey(-DeltaHeat)
-        heater = snap_all_polygons_iteratively(heater)
+    if HeaterConfig:
+        rbh1 = euler_Bend_Half(radius=RadiusRing - 4 * HeaterConfig.WidthRoute, angle=-60, p=0.5)
+        HeatPath1 = rring1 + rb1 + rrun1
+        HeatPath2 = rring3 + rbh1
+        if HeaterConfig.TypeHeater == "ELE":
+            ele = c << GSGELE(
+                WidthS=20,WidthG=80,GapGS=5,LengthEle=LengthRun+60,IsPad=True,LengthToPad=90,
+                elelayer=HeaterConfig.LayerELE,
+            )
+            ele.connect("Oin1", other=RP1.ports["o2"],allow_width_mismatch=True,allow_layer_mismatch=True)
+            ele.movey(-LengthRun/2)
+        else:
+            heater = gf.Component()
+            RHP1 = heater << DifferentHeater(PathHeat=HeatPath1,WidthWG=WidthRing,HeaterConfig=HeaterConfig)
+            RHP2 = heater << DifferentHeater(PathHeat=HeatPath1,WidthWG=WidthRing,HeaterConfig=HeaterConfig)
+            RHP3 = heater << DifferentHeater(PathHeat=HeatPath2,WidthWG=WidthRing,HeaterConfig=HeaterConfig)
+            RHP4 = heater << DifferentHeater(PathHeat=HeatPath2,WidthWG=WidthRing,HeaterConfig=HeaterConfig)
+            RHP2.connect("HeatOut", other=RHP1.ports["HeatOut"],mirror=True)
+            RHP3.connect("HeatIn", other=RHP1.ports["HeatIn"])
+            RHP4.connect("HeatIn", other=RHP2.ports["HeatIn"],mirror=True)
+            heater.add_port("HeatBmid1", port=RHP1.ports["HeatIn"])
+            heater.add_port("HeatBmin2", port=RHP2.ports["HeatIn"])
+            heater.add_port("HeatIn", port=RHP3.ports["HeatOut"])
+            heater.add_port("HeatOut",port=RHP4.ports["HeatOut"])
+            h = c << heater
+            h.connect("HeatBmid1",c.ports["RingBmid1"],allow_width_mismatch=True,allow_layer_mismatch=True)
+            h.mirror_x(h.ports["HeatBmid1"].center[0])
+            if HeaterConfig.TypeHeater == "side":
+                h.movey(-HeaterConfig.DeltaHeat)
+            heater = snap_all_polygons_iteratively(heater)
     print("length="+str(RingPath1.length()*4))
     # if IsLabels:
     add_labels_to_ports(c)
