@@ -2,7 +2,7 @@ import csv
 
 from .BasicDefine import *
 from .SnapMerge import *
-
+import re
 
 # %% DBR: 分布式布拉格反射器
 @gf.cell
@@ -781,7 +781,224 @@ def EDBRStrRep(
             c.add_port(name="h2", center=(total_length, 0), width=WidthHeat, orientation=0, layer=routelayer)
     # c.flatten()
     return c
+@gf.cell
+def EDBRFromCsv(
+    csv_path: str,
+    center_wg_width_um: float = None,
+    side_block_width_um: float = None,
+    center_to_block_um: float = None,
+    total_length_um: float = None,
+    taper_length_um: float = 50.0,
+    port_width_um: float = 0.5,
+    add_heater: bool = False,
+    heater_width_um: float = 4.0,
+    heater_route_width_um: float = 10.0,
+    heater_offset_y_um: float = 0.0,
+    wg_layer: tuple = (1, 0),
+    block_layer: tuple = (1, 0),
+    heater_layer: tuple = (2, 0),
+    route_layer: tuple = (3, 0),
+    via_layer: tuple = (4, 0),
+    block_merge_tol_um: float = 0.001,
+) -> gf.Component:
+    """
+    从 CSV 创建 E-DBR 版图。自动识别 PP(对称) 或 LPD(非对称) 格式。
+    """
+    data = _parse_edbr_csv(csv_path)
+    p = data['params']
+    upper_blocks = data['upper_blocks']
+    lower_blocks = data['lower_blocks']
+    fmt = data['format']
 
+    w_wg = center_wg_width_um or p.get('center_waveguide_width_um', 0.8)
+    w_block = side_block_width_um or p.get('side_block_width_um', 0.3)
+    d_ctb = center_to_block_um or p.get('center_to_block_center_distance_um', 0.8)
+    L_total = total_length_um or p.get('total_length_um', 0.0)
 
+    if L_total <= 0:
+        ends = []
+        if len(upper_blocks) > 0: ends.append(upper_blocks[-1, 1])
+        if len(lower_blocks) > 0: ends.append(lower_blocks[-1, 1])
+        L_total = max(ends) if ends else 0
+
+    gap_um = d_ctb - w_wg / 2 - w_block / 2
+
+    print(f"E-DBR ({fmt}): W_wg={w_wg:.3f}, W_blk={w_block:.3f}, "
+          f"gap={gap_um:.3f}, L={L_total:.0f} μm")
+    print(f"  上blocks={len(upper_blocks)}, 下blocks={len(lower_blocks)}")
+
+    upper_blocks = _merge_blocks(upper_blocks, block_merge_tol_um)
+    lower_blocks = _merge_blocks(lower_blocks, block_merge_tol_um)
+
+    c = gf.Component()
+
+    # 中心波导
+    c.add_polygon([
+        (0, -w_wg / 2), (L_total, -w_wg / 2),
+        (L_total, w_wg / 2), (0, w_wg / 2),
+    ], layer=wg_layer)
+
+    # 上侧 blocks
+    y_up = d_ctb
+    for x1, x2 in upper_blocks:
+        c.add_polygon([
+            (x1, y_up - w_block / 2), (x2, y_up - w_block / 2),
+            (x2, y_up + w_block / 2), (x1, y_up + w_block / 2),
+        ], layer=block_layer)
+
+    # 下侧 blocks
+    y_dn = -d_ctb
+    for x1, x2 in lower_blocks:
+        c.add_polygon([
+            (x1, y_dn - w_block / 2), (x2, y_dn - w_block / 2),
+            (x2, y_dn + w_block / 2), (x1, y_dn + w_block / 2),
+        ], layer=block_layer)
+
+    # Taper
+    x_in, x_out = 0.0, L_total
+    w_in, w_out = w_wg, w_wg
+
+    if taper_length_um > 0 and port_width_um != w_wg:
+        c.add_polygon([
+            (-taper_length_um, -port_width_um / 2), (0, -w_wg / 2),
+            (0, w_wg / 2), (-taper_length_um, port_width_um / 2),
+        ], layer=wg_layer)
+        x_in = -taper_length_um
+        w_in = port_width_um
+
+        c.add_polygon([
+            (L_total, -w_wg / 2),
+            (L_total + taper_length_um, -port_width_um / 2),
+            (L_total + taper_length_um, port_width_um / 2),
+            (L_total, w_wg / 2),
+        ], layer=wg_layer)
+        x_out = L_total + taper_length_um
+        w_out = port_width_um
+
+    c.add_port(name="o1", center=(x_in, 0), width=w_in,
+               orientation=180, layer=wg_layer)
+    c.add_port(name="o2", center=(x_out, 0), width=w_out,
+               orientation=0, layer=wg_layer)
+
+    # 加热器
+    if add_heater:
+        yc = heater_offset_y_um
+        c.add_polygon([
+            (0, yc - heater_width_um / 2), (L_total, yc - heater_width_um / 2),
+            (L_total, yc + heater_width_um / 2), (0, yc + heater_width_um / 2),
+        ], layer=heater_layer)
+
+        tl = max((heater_route_width_um - heater_width_um) / 2, 0)
+        if tl > 0:
+            for x0, sign in [(0, -1), (L_total, 1)]:
+                c.add_polygon([
+                    (x0, yc - heater_width_um / 2),
+                    (x0 + sign * tl, yc - heater_route_width_um / 2),
+                    (x0 + sign * tl, yc + heater_route_width_um / 2),
+                    (x0, yc + heater_width_um / 2),
+                ], layer=heater_layer)
+            c.add_port(name="h1", center=(-tl, yc),
+                       width=heater_route_width_um, orientation=180, layer=heater_layer)
+            c.add_port(name="h2", center=(L_total + tl, yc),
+                       width=heater_route_width_um, orientation=0, layer=heater_layer)
+        else:
+            c.add_port(name="h1", center=(0, yc), width=heater_width_um,
+                       orientation=180, layer=heater_layer)
+            c.add_port(name="h2", center=(L_total, yc), width=heater_width_um,
+                       orientation=0, layer=heater_layer)
+
+    return c
+def _parse_edbr_csv(csv_path: str) -> dict:
+    """
+    解析 E-DBR 版图 CSV, 自动识别 PP(2列) 或 LPD(4列) 格式。
+
+    返回:
+        dict: {
+            'params': {...},
+            'format': 'PP' | 'LPD',
+            'upper_blocks': ndarray (N,2),
+            'lower_blocks': ndarray (N,2),
+        }
+    """
+    params = {}
+    rows = []
+    fmt = None
+
+    with open(csv_path, 'r', encoding='utf-8') as f:
+        for line in f:
+            line = line.strip()
+            if not line:
+                continue
+
+            if line.startswith('%'):
+                m = re.match(r'%\s*(\S+)\s*=\s*(.+)', line)
+                if m:
+                    key = m.group(1).strip()
+                    val_str = m.group(2).strip()
+                    try:
+                        params[key] = float(val_str) if '.' in val_str else int(val_str)
+                    except ValueError:
+                        params[key] = val_str
+                continue
+
+            if 'start' in line.lower():
+                ncols = len(line.split(','))
+                fmt = 'LPD' if ncols >= 4 else 'PP'
+                continue
+
+            parts = line.split(',')
+            nums = []
+            for p in parts:
+                p = p.strip()
+                try:
+                    nums.append(float(p)) if p else nums.append(np.nan)
+                except ValueError:
+                    nums.append(np.nan)
+            if nums:
+                rows.append(nums)
+
+    if fmt is None and rows:
+        fmt = 'LPD' if len(rows[0]) >= 4 else 'PP'
+    if fmt is None:
+        fmt = 'LPD' if 'LPD' in str(params.get('apodization_method', '')).upper() else 'PP'
+
+    if fmt == 'LPD':
+        upper_blocks, lower_blocks = [], []
+        for row in rows:
+            if len(row) >= 4:
+                if not np.isnan(row[0]) and not np.isnan(row[1]):
+                    upper_blocks.append([row[0], row[1]])
+                if not np.isnan(row[2]) and not np.isnan(row[3]):
+                    lower_blocks.append([row[2], row[3]])
+            elif len(row) >= 2 and not np.isnan(row[0]):
+                upper_blocks.append([row[0], row[1]])
+        upper_blocks = np.array(upper_blocks) if upper_blocks else np.empty((0, 2))
+        lower_blocks = np.array(lower_blocks) if lower_blocks else np.empty((0, 2))
+    else:
+        blocks = []
+        for row in rows:
+            if len(row) >= 2 and not np.isnan(row[0]) and not np.isnan(row[1]):
+                blocks.append([row[0], row[1]])
+        blocks = np.array(blocks) if blocks else np.empty((0, 2))
+        upper_blocks = blocks
+        lower_blocks = blocks.copy()
+
+    return {
+        'params': params,
+        'format': fmt,
+        'upper_blocks': upper_blocks,
+        'lower_blocks': lower_blocks,
+    }
+
+def _merge_blocks(blocks: np.ndarray, tol: float) -> np.ndarray:
+    if len(blocks) <= 1 or tol <= 0:
+        return blocks
+    merged = [blocks[0].copy()]
+    for i in range(1, len(blocks)):
+        if blocks[i, 0] - merged[-1][1] <= tol:
+            merged[-1][1] = blocks[i, 1]
+        else:
+            merged.append(blocks[i].copy())
+    return np.array(merged)
 # %% 导出所有函数
-__all__ = ['DBR', 'DBRFromCsv', 'DBRFromCsvOffset', 'SGDBRFromCsvOffset', 'EstrDBRFromCsvOffset', 'EDBRStrRep','VSGDBRFromCsvOffset']
+__all__ = ['DBR', 'DBRFromCsv', 'DBRFromCsvOffset', 'SGDBRFromCsvOffset', 'EstrDBRFromCsvOffset', 'EDBRStrRep','VSGDBRFromCsvOffset','EDBRFromCsv']
