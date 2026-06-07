@@ -12,6 +12,7 @@ def SnakeHeater(
         PathHeat: Path = None,
         PortName: list[str] = ["o1", "o2"],
         heatlayer: LayerSpec = LAYER.M1,
+        offset: float = 0,
 ) -> Component:
     """
     创建一个蛇形（或梳状）加热器。
@@ -41,11 +42,12 @@ def SnakeHeater(
     S_heat = gf.Section(width=WidthHeat, offset=0, layer=heatlayer, port_names=(PortName[0], PortName[1]))
     S_test = gf.Section(width=1, offset=0, layer=(1, 100), port_names=(PortName[0], PortName[1]))
     CAP_Rin_comp = gf.Component()
-    CAP_R0 = CAP_Rin_comp << GfCStraight(width=GapHeat, length=WidthHeat - WidthWG, layer=(1, 10))
+    cut_length = max(WidthHeat - WidthWG, 0.001)
+    CAP_R0 = CAP_Rin_comp << GfCStraight(width=GapHeat, length=cut_length, layer=(1, 10))
     CAP_R0.rotate(90).movey(WidthWG / 2)
     CAP_Rout_comp = gf.Component()
-    CAP_R1 = CAP_Rout_comp << GfCStraight(width=GapHeat, length=WidthHeat - WidthWG, layer=(1, 10))
-    CAP_R1.rotate(90).movey(-(WidthHeat - WidthWG) - WidthWG / 2)
+    CAP_R1 = CAP_Rout_comp << GfCStraight(width=GapHeat, length=cut_length, layer=(1, 10))
+    CAP_R1.rotate(90).movey(-cut_length - WidthWG / 2)
     via = gf.cross_section.ComponentAlongPath(
         component=gf.c.rectangle(size=(1, 1), centered=True), spacing=5, padding=2
     )
@@ -123,7 +125,8 @@ def DifferentHeater(
             - "HeatIn", "HeatOut": 主加热区域（中心条）的（概念性）输入/输出。
     """
     h = gf.Component()
-    # 从配置对象中提取参数
+    if HeaterConfig is None:
+        HeaterConfig = heaterconfig0
     TypeHeater = HeaterConfig.TypeHeater
     WidthHeat = HeaterConfig.WidthHeat
     WidthRoute = HeaterConfig.WidthRoute
@@ -142,7 +145,7 @@ def DifferentHeater(
     elif TypeHeater == "snake":
         # 蛇形加热电极
         HPart = h << SnakeHeater(WidthHeat, WidthWG, GapHeat, PathHeat, ["o1", "o2"], heatlayer)
-        h.add_port(name="HeatIn", port=HPart.ports["o2"])  # 添加加热输入端口
+        h.add_port(name="HeatIn", port=HPart.ports["o1"])  # 添加加热输入端口
         h.add_port(name="HeatOut", port=HPart.ports["o2"])  # 添加加热输出端口
     elif TypeHeater == "side":
         # 侧边加热电极
@@ -160,16 +163,16 @@ def DifferentHeater(
         # 两侧边加热电极
         section1 = gf.Section(width=WidthHeat, offset=DeltaHeat, layer=heatlayer, port_names=("Uo1", "Uo2"))
         section2 = gf.Section(width=WidthHeat, offset=-DeltaHeat, layer=heatlayer, port_names=("Do1", "Do2"))
-        CrossSection = gf.CrossSection(sections=(section1, section2,))
+        section3 = gf.Section(width=0.01, offset=0, layer=vialayer, port_names=("o1", "o2"))
+        CrossSection = gf.CrossSection(sections=(section1, section2, section3))
         HPart = h << gf.path.extrude(PathHeat, cross_section=CrossSection)  # 创建左侧加热电极
         h.add_port(name="HeatLIn", port=HPart.ports["Uo1"])  # 添加加热输入端口
         h.add_port(name="HeatLOut", port=HPart.ports["Uo2"])  # 添加加热输出端口
         h.add_port(name="HeatRIn", port=HPart.ports["Do1"])  # 添加加热输入端口
         h.add_port(name="HeatROut", port=HPart.ports["Do2"])  # 添加加热输出端口
-        h.add_port(name="HeatIn", width=WidthWG, layer=heatlayer,
-                   center=np.array(h.ports["HeatLIn"].center) / 2 + np.array(h.ports["HeatRIn"].center / 2))  # 添加加热输入端口
-        h.add_port(name="HeatOut", width=WidthWG, layer=heatlayer,
-                   center=np.array(h.ports["HeatLOut"].center) / 2 + np.array(h.ports["HeatROut"].center / 2))  # 添加加热输出端口
+        h.add_port(name="HeatIn", port=HPart.ports["o1"])  # 添加加热输入端口
+        h.add_port(name="HeatOut", port=HPart.ports["o2"])  # 添加加热输出端口
+        h.remove_layers(layers=[vialayer,])
     elif TypeHeater == "multi":
         if isinstance(WidthHeat, (list, tuple)) or hasattr(WidthHeat, "__iter__"):
             noh = len(WidthHeat)
@@ -221,7 +224,7 @@ def DifferentHeater(
         S_heat = gf.Section(width=WidthHeat, offset=0, layer=heatlayer, port_names=("o1", "o2"))
         S_route1 = gf.Section(width=WidthRoute, offset=DeltaHeat, layer=routelayer, port_names=("r1o1", "r1o2"))
         S_route2 = gf.Section(width=WidthRoute, offset=-(DeltaHeat), layer=routelayer, port_names=("r2o1", "r2o2"))
-        S_hmid = gf.Section(width=0, layer=(512, 8))
+        S_hmid = gf.Section(width=0.001, layer=(512, 8))
         CAP_Rin_comp = gf.Component()
         CAP_H0 = CAP_Rin_comp << GfCStraight(width=WidthRoute, length=DeltaHeat, layer=heatlayer)
         CAP_R0 = CAP_Rin_comp << GfCStraight(width=WidthRoute, length=DeltaHeat, layer=routelayer)
@@ -244,8 +247,33 @@ def DifferentHeater(
         # heat component
         Hp1 = h << gf.path.extrude(PathHeat, cross_section=X_Heat)
         Hc1 = gf.path.extrude(PathHeat, cross_section=X_RnoH)
-        Hvia = h << ViaArray(Hc1, WidthVia=WidthVia, Spacing=Spacing, vialayer=vialayer, arraylayer=heatlayer)
+        Hc1.flatten()
         h << Hc1
+        via = GfCStraight(width=WidthVia, length=WidthVia, layer=vialayer)
+        viabox = via.bbox()
+        Btmp = Hc1.copy()
+        Br = Btmp.get_region(layer=heatlayer)
+        Br.size(-2 * 1000)
+        Bpoly = gf.Component()
+        Bpoly.add_polygon(Br, layer=heatlayer)
+        b_polys = Bpoly.get_polygons_points(by='tuple')
+        heatlayer_key = tuple(heatlayer) if not isinstance(heatlayer, tuple) else heatlayer
+        if heatlayer_key in b_polys:
+            for poly in b_polys[heatlayer_key]:
+                b_shapely = unary_union([Polygon(poly)])
+                min_x, min_y, max_x, max_y = b_shapely.bounds
+                via_size = WidthVia
+                cols = int((max_x - min_x - via_size) // Spacing) + 5
+                rows = int((max_y - min_y - via_size) // Spacing) + 5
+                x_centers = min_x + via_size / 2 + Spacing * np.arange(cols)
+                y_centers = min_y + via_size / 2 + Spacing * np.arange(rows)
+                for x in x_centers:
+                    for y in y_centers:
+                        a_shapely = box(viabox.left + x, viabox.bottom + y, viabox.right + x, viabox.top + y)
+                        if b_shapely.contains(a_shapely):
+                            via_ref = h << via
+                            via_ref.movex(x)
+                            via_ref.movey(y)
         h.add_port(name="HeatLIn", port=Hp1.ports["r1o1"])  # 添加加热输入端口
         h.add_port(name="HeatLOut", port=Hp1.ports["r1o2"])  # 添加加热输出端口
         h.add_port(name="HeatRIn", port=Hp1.ports["r2o1"])  # 添加加热输入端口
@@ -311,7 +339,8 @@ def ViaArray(
     # B.show()
     # B.offset(layer=arraylayer,distance=-Enclosure)
     b_polys = B.get_polygons_points(by='tuple')
-    for poly in b_polys[arraylayer]:
+    arraylayer_key = tuple(arraylayer) if not isinstance(arraylayer, tuple) else arraylayer
+    for poly in b_polys[arraylayer_key]:
         # shape=Polygon(poly)
         # b_shapely = poly
         b_shapely = unary_union([Polygon(poly)])
@@ -370,13 +399,14 @@ def ViaArray_optimized(
     Br.size(-Enclosure * 1000)
     B.add_polygon(Br, layer=arraylayer)
     b_polys = B.get_polygons_points(by='tuple')
+    arraylayer_key = tuple(arraylayer) if not isinstance(arraylayer, tuple) else arraylayer
 
-    if arraylayer not in b_polys or not b_polys[arraylayer]:
+    if arraylayer_key not in b_polys or not b_polys[arraylayer_key]:
         return via_array
 
 
     # 合并所有 polygon 为 shapely 区域
-    b_shapely = unary_union([Polygon(poly) for poly in b_polys[arraylayer]])
+    b_shapely = unary_union([Polygon(poly) for poly in b_polys[arraylayer_key]])
     if b_shapely.is_empty:
         return via_array
 

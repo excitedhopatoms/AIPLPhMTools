@@ -89,7 +89,7 @@ def TCRingBoomerangT1(
         (以及从 `RingBoomerang` 继承的加热器端口和可能的其他参考端口)
     """
     sr = gf.Component()
-    ring = gf.Component("Ring")
+    ring = gf.Component("TCRingBoomerangT1_ring")
     ring0 = ring << RingBoomerang(
         WidthRingIn=width_ringin, WidthRingOut=width_ringout, WidthHeat=width_heat, WidthStraight=width_straight,
         WidthRoute=width_route, WidthVia=width_via,
@@ -129,12 +129,12 @@ def TCRingBoomerangT1(
     # add port
     ring.add_port("RingInput", port=ring0.ports["Input"])
     for port in ring0.ports:
-        if "Heat" in port:
-            ring.add_port(port, port=ring0.ports[port])
-        if "Add" in port:
-            ring.add_port(port, port=ring0.ports[port])
-        if "Drop" in port:
-            ring.add_port(port, port=ring0.ports[port])
+        if "Heat" in port.name:
+            ring.add_port(port.name, port=port)
+        if "Add" in port.name:
+            ring.add_port(port.name, port=port)
+        if "Drop" in port.name:
+            ring.add_port(port.name, port=port)
     comp_Ring = sr << ring
 
     # input
@@ -153,29 +153,24 @@ def TCRingBoomerangT1(
     tdpring.movex(length_total - tdpring.ports['o2'].center[0])
     # through
     toutring = sr << tout
-    delta = toutring.ports["o2"].center - toutring.ports["o1"].center
+    delta = np.array(toutring.ports["o2"].center) - np.array(toutring.ports["o1"].center)
     toutring.connect("o1", other=comp_Ring.ports["o2"])
     toutring.movex(length_total - toutring.ports["o2"].center[0])
     sr.add_port("through", port=toutring.ports["o2"])
     # route
-    str_tout2r = gf.routing.get_bundle([toutring.ports["o1"], comp_Ring.ports["o1"], tdpring.ports['o1']],
-                                       [comp_Ring.ports["o2"], tinring.ports["o2"], comp_Ring.ports['o4']],
-                                       layer=oplayer, width=width_single, radius=r_euler_min)
-    for route in str_tout2r:
-        sr.add(route.references)
-    str_tout2r = gf.routing.get_bundle([comp_Ring.ports["o3"]], [tadring.ports["o2"]],
-                                       layer=oplayer, width=width_single, radius=r_euler_min)
-    for route in str_tout2r:
-        sr.add(route.references)
+    str_tout2r_1 = gf.routing.route_single(sr, toutring.ports["o1"], comp_Ring.ports["o2"], layer=oplayer, route_width=width_single, radius=r_euler_min)
+    str_tout2r_2 = gf.routing.route_single(sr, comp_Ring.ports["o1"], tinring.ports["o2"], layer=oplayer, route_width=width_single, radius=r_euler_min)
+    str_tout2r_3 = gf.routing.route_single(sr, tdpring.ports['o1'], comp_Ring.ports['o4'], layer=oplayer, route_width=width_single, radius=r_euler_min)
+    str_tout2r_4 = gf.routing.route_single(sr, comp_Ring.ports["o3"], tadring.ports["o2"], layer=oplayer, route_width=width_single, radius=r_euler_min)
     # add port
 
     for port in comp_Ring.ports:
-        if "Heat" in port:
-            sr.add_port(port, port=comp_Ring.ports[port])
-        if "Add" in port:
-            sr.add_port(port, port=comp_Ring.ports[port])
-        if "Drop" in port:
-            sr.add_port(port, port=comp_Ring.ports[port])
+        if "Heat" in port.name:
+            sr.add_port(port.name, port=port)
+        if "Add" in port.name:
+            sr.add_port(port.name, port=port)
+        if "Drop" in port.name:
+            sr.add_port(port.name, port=port)
     add_labels_to_ports(sr)
     return sr
 
@@ -238,8 +233,8 @@ def TCRingDouBoomerangT1(
         R1length, R2length: (如果RingDouBoomerang提供) 两个Boomerang单元的路径长度。
     """
     sr = gf.Component()
-    ring = gf.Component("Ring")
-    ring0 = ring << RingDouBoomerang(
+    ring = gf.Component("TCRingDouBoomerangT1_ring")
+    ring_comp = RingDouBoomerang(
         WidthRingIn=width_ringin, WidthRingOut=width_ringout, WidthHeat=width_heat, WidthStraight=width_straight,
         WidthRoute=width_route, WidthVia=width_via,
         LengthTaper=length_taper, LengthBridge2=length_bridge2, LengthBridge1=length_bridge1,
@@ -248,6 +243,7 @@ def TCRingDouBoomerangT1(
         RadiusRing=r_ring, RadiusEuler=r_euler_boom, DeltaLB2=delta_lb2,
         oplayer=oplayer, heatlayer=heatlayer, TypeHeater=type_heater
     )
+    ring0 = ring << ring_comp
     # input
     taper_s2n1 = ring << gf.c.taper(width1=width_single, width2=width_straight, length=length_taper, layer=oplayer)
     taper_s2n1.connect("o2", ring0.ports["Input"])
@@ -281,12 +277,12 @@ def TCRingDouBoomerangT1(
     # add port
     ring.add_port("RingInput", port=ring0.ports["Input"])
     for port in ring0.ports:
-        if "Heat" in port:
-            ring.add_port(port, port=ring0.ports[port])
-        if "Add" in port:
-            ring.add_port(port, port=ring0.ports[port])
-        if "Drop" in port:
-            ring.add_port(port, port=ring0.ports[port])
+        if "Heat" in port.name:
+            ring.add_port(port.name, port=port)
+        if "Add" in port.name:
+            ring.add_port(port.name, port=port)
+        if "Drop" in port.name:
+            ring.add_port(port.name, port=port)
     comp_Ring = sr << ring
 
     # input
@@ -311,31 +307,22 @@ def TCRingDouBoomerangT1(
     toutring.movex(length_total - toutring.ports["o2"].center[0])
     sr.add_port("through", port=toutring.ports["o2"])
     # route
-    str_tout2r = gf.routing.get_bundle([comp_Ring.ports["o1"], tdpring.ports['o1']],
-                                       [tinring.ports["o2"], comp_Ring.ports['o4']],
-                                       layer=oplayer, width=width_single, radius=r_euler_min)
-    for route in str_tout2r:
-        sr.add(route.references)
-    str_tout2r = gf.routing.get_bundle([toutring.ports["o1"]], [comp_Ring.ports["o2"]],
-                                       layer=oplayer, width=width_single, radius=r_euler_min)
-    for route in str_tout2r:
-        sr.add(route.references)
-    str_tout2r = gf.routing.get_bundle([tadring.ports["o2"]], [comp_Ring.ports["o3"]],
-                                       layer=oplayer, width=width_single, radius=r_euler_min)
-    for route in str_tout2r:
-        sr.add(route.references)
+    str_tout2r_1 = gf.routing.route_single(sr, comp_Ring.ports["o1"], tinring.ports["o2"], layer=oplayer, route_width=width_single, radius=r_euler_min)
+    str_tout2r_2 = gf.routing.route_single(sr, tdpring.ports['o1'], comp_Ring.ports['o4'], layer=oplayer, route_width=width_single, radius=r_euler_min)
+    str_tout2r_3 = gf.routing.route_single(sr, toutring.ports["o1"], comp_Ring.ports["o2"], layer=oplayer, route_width=width_single, radius=r_euler_min)
+    str_tout2r_4 = gf.routing.route_single(sr, tadring.ports["o2"], comp_Ring.ports["o3"], layer=oplayer, route_width=width_single, radius=r_euler_min)
     # add port
 
     for port in comp_Ring.ports:
-        if "Heat" in port:
-            sr.add_port(port, port=comp_Ring.ports[port])
-        if "Add" in port:
-            sr.add_port(port, port=comp_Ring.ports[port])
-        if "Drop" in port:
-            sr.add_port(port, port=comp_Ring.ports[port])
+        if "Heat" in port.name:
+            sr.add_port(port.name, port=port)
+        if "Add" in port.name:
+            sr.add_port(port.name, port=port)
+        if "Drop" in port.name:
+            sr.add_port(port.name, port=port)
     add_labels_to_ports(sr)
-    sr.info['R1length'] = ring0.info['R1length']
-    sr.info['R2length'] = ring0.info['R2length']
+    sr.info['R1length'] = ring_comp.info['R1length']
+    sr.info['R2length'] = ring_comp.info['R2length']
     return sr
 
 
@@ -397,8 +384,8 @@ def TCRingTriBoomerangT1(
         R1length, R2length, R3length: (如果RingTriBoomerang提供) 三个Boomerang单元的路径长度。
     """
     sr = gf.Component()
-    ring = gf.Component("Ring")
-    ring0 = ring << RingTriBoomerang(
+    ring = gf.Component("TCRingTriBoomerangT1_ring")
+    ring_comp = RingTriBoomerang(
         WidthRingIn=width_ringin, WidthRingOut=width_ringout, WidthHeat=width_heat, WidthStraight=width_straight,
         WidthRoute=width_route, WidthVia=width_via,
         LengthTaper=length_taper, LengthBridge2=length_bridge2, LengthBridge1=length_bridge1,
@@ -407,6 +394,7 @@ def TCRingTriBoomerangT1(
         RadiusRing=r_ring, RadiusEuler=r_euler_boom, DeltaLB2=delta_lb2,
         oplayer=oplayer, heatlayer=heatlayer, TypeHeater=type_heater
     )
+    ring0 = ring << ring_comp
     # input
     taper_s2n1 = ring << gf.c.taper(width1=width_single, width2=width_straight, length=length_taper, layer=oplayer)
     taper_s2n1.connect("o2", ring0.ports["Input"])
@@ -443,12 +431,12 @@ def TCRingTriBoomerangT1(
     # add port
     ring.add_port("RingInput", port=ring0.ports["Input"])
     for port in ring0.ports:
-        if "Heat" in port:
-            ring.add_port(port, port=ring0.ports[port])
-        if "Add" in port:
-            ring.add_port(port, port=ring0.ports[port])
-        if "Drop" in port:
-            ring.add_port(port, port=ring0.ports[port])
+        if "Heat" in port.name:
+            ring.add_port(port.name, port=port)
+        if "Add" in port.name:
+            ring.add_port(port.name, port=port)
+        if "Drop" in port.name:
+            ring.add_port(port.name, port=port)
     comp_Ring = sr << ring
 
     # port edge io
@@ -474,27 +462,22 @@ def TCRingTriBoomerangT1(
     toutring.movex(length_total - toutring.ports["o2"].center[0])
     sr.add_port("through", port=toutring.ports["o2"])
     # # route
-    str_tout2r = gf.routing.get_bundle([toutring.ports["o1"], comp_Ring.ports["o3"], tdpring.ports['o1']],
-                                       [comp_Ring.ports["o4"], tinring.ports["o2"], comp_Ring.ports['o2']],
-                                       layer=oplayer, width=width_single, radius=r_euler_min)
-    for route in str_tout2r:
-        sr.add(route.references)
-    str_tout2r = gf.routing.get_bundle([tadring.ports["o2"]], [comp_Ring.ports["o1"]],
-                                       layer=oplayer, width=width_single, radius=r_euler_min)
-    for route in str_tout2r:
-        sr.add(route.references)
+    str_tout2r_1 = gf.routing.route_single(sr, toutring.ports["o1"], comp_Ring.ports["o4"], layer=oplayer, route_width=width_single, radius=r_euler_min)
+    str_tout2r_2 = gf.routing.route_single(sr, comp_Ring.ports["o3"], tinring.ports["o2"], layer=oplayer, route_width=width_single, radius=r_euler_min)
+    str_tout2r_3 = gf.routing.route_single(sr, tdpring.ports['o1'], comp_Ring.ports['o2'], layer=oplayer, route_width=width_single, radius=r_euler_min)
+    str_tout2r_4 = gf.routing.route_single(sr, tadring.ports["o2"], comp_Ring.ports["o1"], layer=oplayer, route_width=width_single, radius=r_euler_min)
     # add port
     for port in comp_Ring.ports:
-        if "Heat" in port:
-            sr.add_port(port, port=comp_Ring.ports[port])
-        if "Add" in port:
-            sr.add_port(port, port=comp_Ring.ports[port])
-        if "Drop" in port:
-            sr.add_port(port, port=comp_Ring.ports[port])
+        if "Heat" in port.name:
+            sr.add_port(port.name, port=port)
+        if "Add" in port.name:
+            sr.add_port(port.name, port=port)
+        if "Drop" in port.name:
+            sr.add_port(port.name, port=port)
     add_labels_to_ports(sr)
-    sr.info['R1length'] = ring0.info['R1length']
-    sr.info['R2length'] = ring0.info['R2length']
-    sr.info['R3length'] = ring0.info['R3length']
+    sr.info['R1length'] = ring_comp.info['R1length']
+    sr.info['R2length'] = ring_comp.info['R2length']
+    sr.info['R3length'] = ring_comp.info['R3length']
     return sr
 
 
@@ -580,14 +563,19 @@ def TCCoupleDouRingT1(
     S_single = gf.Section(width=width_single, layer=oplayer, port_names=['o1', 'o2'])
     X_single = gf.CrossSection(sections=[S_single])
     ring0 = ring << CoupleRingDRT1(
-        RadiusRing1=r_ring1, WidthRing1=width_ring1, WidthNear1=width_near1, WidthHeat1=width_heat1, GapRB1=gap_rc1,
-        DeltaHeat1=delta_heat1,
+        RadiusRing1=r_ring1, WidthRing1=width_ring1, WidthNear1=width_near1, GapRB1=gap_rc1,
         AngleCouple1=angle_rc1,
-        RadiusRing2=r_ring2, WidthRing2=width_ring2, WidthNear2=width_near2, WidthHeat2=width_heat2, GapRB2=gap_rc2,
-        DeltaHeat2=delta_heat2, LengthNear2=length_near2,
+        RadiusRing2=r_ring2, WidthRing2=width_ring2, WidthNear2=width_near2, GapRB2=gap_rc2,
+        LengthNear2=length_near2,
         GapRR=gap_rr, AngleR12=angle_rr,IsAD=is_ad,
-        TypeHeaterR1=type_heater1, TypeHeaterR2=type_heater2, GapHeat1=gap_heat1,
-        IsHeat=is_heat, oplayer=oplayer, heatlayer=heatlayer, DirectionsHeater=['down', 'down']
+        oplayer=oplayer, DirectionsHeater=['down', 'down'],
+        HeaterConfigRing1=HeaterConfigClass(
+            TypeHeater=type_heater1, WidthHeat=width_heat1, DeltaHeat=delta_heat1,
+            GapHeat=gap_heat1, LayerHeat=heatlayer,
+        ),
+        HeaterConfigRing2=HeaterConfigClass(
+            TypeHeater=type_heater2, WidthHeat=width_heat2, DeltaHeat=delta_heat2,
+        ),
     )
     # input through
     taper_s2n1 = ring << gf.c.taper(width1=width_single, width2=width_near1, length=length_taper, layer=oplayer)
@@ -795,9 +783,12 @@ def TCCoupleDouRaceTrackT1(
         RadiusRing=r_ring, WidthRing=width_ring,WidthNear=width_near,AngleCouple=angle_rc,
         GapCoupleOut=gap_rc,GapCoupleIn=gap_rr,
         LengthRun=length_run,LengthCoupleIn=length_rr,LengthCoupleOut=length_rc,DeltaRun=delta_run,
-        DeltaHeat=delta_heat,WidthHeat=width_heat, GapHeat=gap_heat,
-        TypeHeater=type_heater,TypeCouple=type_couple,
-        IsHeat=is_heat, oplayer=oplayer, heatlayer=heatlayer, DirectionsHeater=['down', 'down']
+        TypeCouple=type_couple,
+        oplayer=oplayer, DirectionsHeater=['down', 'down'],
+        HeaterConfig=HeaterConfigClass(
+            TypeHeater=type_heater, WidthHeat=width_heat, DeltaHeat=delta_heat,
+            GapHeat=gap_heat, LayerHeat=heatlayer,
+        ),
     )
     ring0.mirror_y(ring0.ports["R1Input"].center[1])
     # input through
@@ -917,16 +908,16 @@ def TCCoupleDouRaceTrackT1(
     ## route
     gf.routing.route_single(sr,
         toutring.ports["o1"],CCRing.ports["o2"],
-        layer=oplayer, route_width=width_single, radius=r_euler_min)
+        cross_section=X_single, radius=r_euler_min)
     gf.routing.route_single(sr,
         CCRing.ports["o1"],tinring.ports["o2"],
-        layer=oplayer, route_width=width_single, radius=r_euler_min)
+        cross_section=X_single, radius=r_euler_min)
     gf.routing.route_single(sr,
         tdpring.ports['o1'],bend_s_dp.ports["o2"],
-        layer=oplayer, route_width=width_single, radius=r_euler_min)
+        cross_section=X_single, radius=r_euler_min)
     gf.routing.route_single(sr,
         CCRing.ports["o4"],tadring.ports['o2'],
-        layer=oplayer, route_width=width_single, radius=r_euler_min)
+        cross_section=X_single, radius=r_euler_min)
     # gf.routing.route_bundle(sr,
     #     [tdpring.ports['o1'], CCRing.ports["o4"]],
     #     [bend_s_dp.ports["o2"], tadring.ports['o2']],
@@ -937,7 +928,7 @@ def TCCoupleDouRaceTrackT1(
     add_labels_to_ports(sr, (512, 8))
     return sr
 # TCCoupleDouRaceTrackT2: Total component Coupled racetrack cavity use CoupledRaceTrack
-@gf.cell
+@gf.cell(check_instances=False)
 def TCCoupleDouRaceTrackT2(
         r_ring: float = 120,
         r_euler_min: float = 100,
@@ -998,9 +989,12 @@ def TCCoupleDouRaceTrackT2(
         RadiusRing=r_ring, WidthRing=width_ring,WidthNear=width_near,AngleCouple=angle_rc,
         GapCoupleOut=gap_rc,GapCoupleIn=gap_rr,
         LengthRun=length_run,LengthCoupleIn=length_rr,LengthCoupleOut=length_rc,DeltaRun=delta_run,
-        DeltaHeat=delta_heat,WidthHeat=width_heat, GapHeat=gap_heat,
-        TypeHeater=type_heater,TypeCouple=type_couple,
-        IsHeat=is_heat, oplayer=oplayer, heatlayer=heatlayer, DirectionsHeater=['down', 'down']
+        TypeCouple=type_couple,
+        oplayer=oplayer, DirectionsHeater=['down', 'down'],
+        HeaterConfig=HeaterConfigClass(
+            TypeHeater=type_heater, WidthHeat=width_heat, DeltaHeat=delta_heat,
+            GapHeat=gap_heat, LayerHeat=heatlayer,
+        ),
     )
 
     # ring0.mirror_y(ring0.ports["R1Input"].center[1])

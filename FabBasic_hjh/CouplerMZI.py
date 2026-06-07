@@ -155,8 +155,21 @@ def DMZI(
     c.add_port(name="Bridge2", port=CW2.ports["out"])
     # if heater
     if HeaterConfig:
+        HeaterConfig = HeaterConfigClass(
+            TypeHeater=HeaterConfig.TypeHeater,
+            WidthHeat=HeaterConfig.WidthHeat,
+            WidthRoute=20,
+            WidthVia=HeaterConfig.WidthVia,
+            GapHeat=HeaterConfig.GapHeat,
+            DeltaHeat=HeaterConfig.DeltaHeat,
+            Spacing=HeaterConfig.Spacing,
+            LayerHeat=HeaterConfig.LayerHeat,
+            LayerRoute=HeaterConfig.LayerRoute,
+            LayerVia=HeaterConfig.LayerVia,
+            LayerELE=HeaterConfig.LayerELE,
+        )
         heater = DifferentHeater(PathHeat=coupheat,
-                                 WidthWG=WidthWG, WidthRoute=20,HeaterConfig=HeaterConfig)
+                                 WidthWG=WidthWG, HeaterConfig=HeaterConfig)
         heaterL = c << heater
         heaterR = c << heater
         heaterL.connect("HeatOut", other=CBs1.ports["o2"], allow_width_mismatch=True, allow_layer_mismatch=True,
@@ -275,8 +288,21 @@ def PMZI(
     c.add_port(name="Output1", port=Coup1.ports["in2"])
     # if heater
     if HeaterConfig:
-        heater = DifferentHeater(PathHeat=path_heat,HeaterConfig=HeaterConfig,
-                                 WidthWG=WidthNear, WidthRoute=20,)
+        HeaterConfig = HeaterConfigClass(
+            TypeHeater=HeaterConfig.TypeHeater,
+            WidthHeat=HeaterConfig.WidthHeat,
+            WidthRoute=20,
+            WidthVia=HeaterConfig.WidthVia,
+            GapHeat=HeaterConfig.GapHeat,
+            DeltaHeat=HeaterConfig.DeltaHeat,
+            Spacing=HeaterConfig.Spacing,
+            LayerHeat=HeaterConfig.LayerHeat,
+            LayerRoute=HeaterConfig.LayerRoute,
+            LayerVia=HeaterConfig.LayerVia,
+            LayerELE=HeaterConfig.LayerELE,
+        )
+        heater = DifferentHeater(PathHeat=path_heat, HeaterConfig=HeaterConfig,
+                                 WidthWG=WidthNear)
         heaterL = c.add_ref(heater)
         heaterR = c.add_ref(heater)
         heaterL.connect("HeatOut", other=taper_2.ports["o2"], allow_width_mismatch=True, allow_layer_mismatch=True,
@@ -326,6 +352,8 @@ def PMZIHSn(
                    (注意：原代码中其他类似的 HSn 函数返回 (Component, HeaterComponent)，
                     但此函数直接调用 PMZI，PMZI 返回单个 Component。行为可能需要统一。)
     """
+    if HeaterConfig is None:
+        HeaterConfig = HeaterConfigClass()
     HeaterConfig0 = HeaterConfigClass(
         TypeHeater="snake",
         WidthHeat=HeaterConfig.WidthHeat,
@@ -412,8 +440,7 @@ def SagnacRing(
     bendpath_ring2out = euler_Bend_Half(angle=AngleIn, radius=RadiusBend, p=1, use_eff=False)
     bend_ring2out = c << gf.path.extrude(bendpath_ring2out, width=WidthIn, layer=oplayer)
     bend_ring2out.connect("o1", other=PC.ports["in1"],mirror=True)
-    gf.routing.route_single(c,bend_ring2coup.ports["o2"], taper_coup2ring.ports["o2"], route_width=WidthIn,radius=RadiusBend*1.5,
-                                      layer=oplayer)
+    route = gf.routing.route_single(c, bend_ring2coup.ports["o2"], taper_coup2ring.ports["o2"], cross_section=make_cs(WidthIn, oplayer), radius=RadiusBend)
     # for route in routering:
     #     c.add(route.references)
     bend = c << GfCBendEuler(angle=90, width=WidthIn, layer=oplayer, radius=RadiusBend, p=1,with_arc_floorplan=False)

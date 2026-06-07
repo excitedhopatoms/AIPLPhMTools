@@ -93,7 +93,7 @@ def DoubleRingPulley(
         bendl2.connect("o1", bendl1.ports["o2"])
         bendr1.connect("o2", ring2.ports["Drop"])
         bendr2.connect("o2", bendr1.ports["o1"])
-        route = gf.routing.route_single(c, bendl2.ports["o2"], bendr2.ports["o1"], route_width=WidthNear, layer=oplayer)
+        route = gf.routing.route_single(c, bendl2.ports["o2"], bendr2.ports["o1"], cross_section=make_cs(WidthNear, oplayer), radius=RadiusR2R)
         # c.add(route.references)
         # c.remove(str_R2R)
 
@@ -205,7 +205,7 @@ def DoubleRingPulley2_1HSn(
 
 
 # %% ADRAPRADR: ADRing + APRing + ADRing (with crossing ?)
-@gf.cell
+@gf.cell(check_instances=False)
 def ADRAPRADR(
         WidthRing: float = 1,
         WidthNear: float = 0.9,
@@ -284,10 +284,8 @@ def ADRAPRADR(
         bend_r22c.connect("o1", str_r22c.ports["o2"])
         crossing.connect("o1", bend_r12c.ports["o1"], allow_width_mismatch=True, allow_layer_mismatch=True)
         crossing.movey(bend_r22c.ports["o2"].center[1] - crossing.ports["o4"].center[1])
-        route_cr1 = gf.routing.get_route(crossing.ports["o1"], bend_r12c.ports["o1"], width=WidthNear, layer=oplayer)
-        route_cr2 = gf.routing.get_route(crossing.ports["o4"], bend_r22c.ports["o2"], width=WidthNear, layer=oplayer)
-        TriRing.add(route_cr1.references)
-        TriRing.add(route_cr2.references)
+        gf.routing.route_single(TriRing, crossing.ports["o1"], bend_r12c.ports["o1"], route_width=WidthNear, layer=oplayer)
+        gf.routing.route_single(TriRing, crossing.ports["o4"], bend_r22c.ports["o2"], route_width=WidthNear, layer=oplayer)
         TriRing.add_port(name="co2", port=crossing.ports["o2"])
         TriRing.add_port(name="co3", port=crossing.ports["o3"])
 
@@ -525,8 +523,9 @@ def CoupleRingDRT1(
         DirectionHeater=DirectionsHeater[1]
     )
 
-    ring2h = c << GetFromLayer(ring2_hc, OLayer=HeaterConfigRing2.LayerHeat)
-    ring2h.move(np.array(ring2.ports["RingC"].center) - np.array(ring2h.ports["RingC"].center))
+    if HeaterConfigRing2 is not None:
+        ring2h = c << GetFromLayer(ring2_hc, OLayer=HeaterConfigRing2.LayerHeat)
+        ring2h.move(np.array(ring2.ports["RingC"].center) - np.array(ring2h.ports["RingC"].center))
 
     # c.add_port(name="R1Add", port=ring1.ports["Add"])
     # c.add_port(name="R1Drop", port=ring1.ports["Drop"])
@@ -540,9 +539,10 @@ def CoupleRingDRT1(
     for port in ring1.ports:
         if "Heat" in port.name:
             c.add_port(name="R1" + port.name, port=port)
-    for port in ring2h.ports:
-        if "Heat" in port.name:
-            c.add_port(name="R2" + port.name, port=port)
+    if HeaterConfigRing2 is not None:
+        for port in ring2h.ports:
+            if "Heat" in port.name:
+                c.add_port(name="R2" + port.name, port=port)
     # add_labels_to_ports(c,label_layer=(412,8))
     c.flatten()
     return c

@@ -80,13 +80,15 @@ def DBR(
         r2.connect(port="o1", other=r1.ports["o2"], allow_width_mismatch=True)
         op.add_port("o1", port=r1.ports["o1"])
         op.add_port("o2", port=r2.ports["o2"])
-        c.add_array(op, columns=Period, rows=1, spacing=(Length2 + Length1, 100))
+        for i in range(Period):
+            ref = c << op
+            ref.movex(i * (Length1 + Length2))
         c.add_port(name="o1", port=r1.ports["o1"])
         c.add_port(name="o2", port=r2.ports["o2"], center=[(Length1 + Length2) * Period, 0])
 
     if IsHeat:
         # 添加加热器
-        length_dbr = c.ports["o2"].center - c.ports["o1"].center
+        length_dbr = np.array(c.ports["o2"].center) - np.array(c.ports["o1"].center)
         heater = c << GfCStraight(width=WidthHeat, length=length_dbr[0], layer=heatlayer)
         heater.connect("o1", c.ports["o1"], allow_width_mismatch=True, allow_layer_mismatch=True,
                        allow_type_mismatch=True)

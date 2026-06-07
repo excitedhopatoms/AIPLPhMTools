@@ -95,11 +95,14 @@ def DoubleRingMemyshev(
     taper1 = c << gf.c.taper(width1=width_single, width2=width_near, layer=oplayer, length=length_taper)
     taper1_2 = c << gf.c.taper(width2=width_single, width1=width_near, layer=oplayer, length=length_taper)
     ring1 = c << RingPulleyT1(
-        WidthRing=width_ring, WidthNear=width_near, WidthHeat=width_heat,
-        RadiusRing=r_ring, GapRing=gap_rc, GapHeat=gap_heat,
+        WidthRing=width_ring, WidthNear=width_near,
+        RadiusRing=r_ring, GapRing=gap_rc,
         AngleCouple=angle_rc, IsAD=True,
-        oplayer=oplayer, heatlayer=heatlayer, IsHeat=True, TypeHeater=type_ringheater, DeltaHeat=delta_heat,
-        DirectionHeater='down'
+        oplayer=oplayer, DirectionHeater='down',
+        HeaterConfig=HeaterConfigClass(
+            TypeHeater=type_ringheater, WidthHeat=width_heat, DeltaHeat=delta_heat,
+            GapHeat=gap_heat, LayerHeat=heatlayer,
+        )
     )
     str1.connect('o1', coupler.ports["o2"])
     taper1.connect('o1', str1.ports["o2"])
@@ -111,11 +114,14 @@ def DoubleRingMemyshev(
     taper2 = c << gf.c.taper(width1=width_single, width2=width_near, layer=oplayer, length=length_taper)
     taper2_2 = c << gf.c.taper(width2=width_single, width1=width_near, layer=oplayer, length=length_taper)
     ring2 = c << RingPulleyT1(
-        WidthRing=width_ring, WidthNear=width_near, WidthHeat=width_heat,
-        RadiusRing=r_ring + radius_delta, GapRing=gap_rc, GapHeat=gap_heat,
+        WidthRing=width_ring, WidthNear=width_near,
+        RadiusRing=r_ring + radius_delta, GapRing=gap_rc,
         AngleCouple=angle_rc,
-        oplayer=oplayer, heatlayer=heatlayer, IsHeat=True, TypeHeater=type_ringheater, DeltaHeat=delta_heat,
-        DirectionHeater='down'
+        oplayer=oplayer, DirectionHeater='down',
+        HeaterConfig=HeaterConfigClass(
+            TypeHeater=type_ringheater, WidthHeat=width_heat, DeltaHeat=delta_heat,
+            GapHeat=gap_heat, LayerHeat=heatlayer,
+        )
     )
     str2.connect('o1', coupler.ports["o3"])
     taper2.connect('o1', str2.ports["o2"])
@@ -131,11 +137,11 @@ def DoubleRingMemyshev(
     c.add_port('Reflect1Out', port=reflecter1.ports["o2"])
     c.add_port('Reflect2Out', port=reflecter2.ports["o2"])
     for port in ring1.ports:
-        if "Heat" in port:
-            c.add_port("R1" + port, port=ring1.ports[port])
+        if "Heat" in port.name:
+            c.add_port("R1" + port.name, port=port)
     for port in ring2.ports:
-        if "Heat" in port:
-            c.add_port("R2" + port, port=ring2.ports[port])
+        if "Heat" in port.name:
+            c.add_port("R2" + port.name, port=port)
     add_labels_to_ports(c)
     return c
 

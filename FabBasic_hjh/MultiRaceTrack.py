@@ -90,7 +90,6 @@ def DoubleRaceTrack(
             IsAD=True,
             oplayer=oplayer,
             HeaterConfig=HeaterConfig,
-            DirectionHeater=DirectionsHeater[0],
         )
         ring2 = c << RaceTrackS(
             WidthRing=WidthRing,
@@ -101,7 +100,6 @@ def DoubleRaceTrack(
             IsAD=True,
             oplayer=oplayer,
             HeaterConfig=HeaterConfig,
-            DirectionHeater=DirectionsHeater[1],
         )
         WidthNear=WidthRing
     if TypeR2R == "straight":
@@ -123,7 +121,7 @@ def DoubleRaceTrack(
         bendl2.connect("o1", bendl1.ports["o2"])
         bendr1.connect("o2", ring2.ports["Drop"])
         bendr2.connect("o2", bendr1.ports["o1"])
-        route = gf.routing.route_single(c, bendl2.ports["o2"], bendr2.ports["o1"], route_width=WidthNear, layer=oplayer)
+        route = gf.routing.route_single_sbend(c, bendl2.ports["o2"], bendr2.ports["o1"], cross_section=make_cs(WidthNear, oplayer))
         # c.add(route.references)
         c.remove(str_R2R)
 
@@ -201,14 +199,14 @@ def CoupleDouRaceTrack(
             WidthRing= WidthRing,
             LengthRun= LengthRun,
             RadiusRing= RadiusRing,GapCouple= GapCoupleOut,LengthCouple= LengthCoupleOut,
-            HeaterConfig=HeaterConfig,DirectionsHeater=DirectionsHeater[0],
+            HeaterConfig=HeaterConfig,
             IsAD= False,
             oplayer= oplayer)
         racetrack2 = c << RaceTrackS(
             WidthRing= WidthRing,
             LengthRun= LengthRun+DeltaRun,
             RadiusRing= RadiusRing,GapCouple= GapCoupleOut,LengthCouple= LengthCoupleOut,
-            HeaterConfig=HeaterConfig, DirectionsHeater=DirectionsHeater[1],
+            HeaterConfig=HeaterConfig,
             IsAD= False,
             oplayer= oplayer)
         racetrack1.connect("RingSmid1", other=racetrack2.ports["RingSmid1"])
@@ -218,12 +216,12 @@ def CoupleDouRaceTrack(
         racetrack1 = c << RaceTrackP(
             WidthRing=WidthRing, WidthNear=WidthNear, GapCouple=GapCoupleOut,
             LengthRun=LengthRun, RadiusRing=RadiusRing, AngleCouple=AngleCouple, oplayer=oplayer,IsAD=False,
-            HeaterConfig=HeaterConfig, DirectionsHeater=DirectionsHeater[0],
+            HeaterConfig=HeaterConfig, DirectionHeater=DirectionsHeater[0],
         )
         racetrack2 = c << RaceTrackP(
             WidthRing=WidthRing, WidthNear=WidthNear, GapCouple=GapCoupleOut,
             LengthRun=LengthRun + DeltaRun, RadiusRing=RadiusRing, AngleCouple=AngleCouple, oplayer=oplayer,IsAD=False,
-            HeaterConfig=HeaterConfig, DirectionsHeater=DirectionsHeater[1],
+            HeaterConfig=HeaterConfig, DirectionHeater=DirectionsHeater[1],
         )
         racetrack1.connect("RingSmid1", other=racetrack2.ports["RingSmid1"])
         racetrack1.movex(+WidthRing + GapCoupleIn)

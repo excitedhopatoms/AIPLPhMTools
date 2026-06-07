@@ -2,10 +2,11 @@ from collections.abc import Callable
 
 import gdsfactory as gf
 import numpy as np
+import kfactory as kf
 from gdsfactory.component import Component,ComponentAllAngle
 from gdsfactory.component_layout import rotate_points
 from gdsfactory.generic_tech import get_generic_pdk
-from gdsfactory.path import Path, _fresnel
+from gdsfactory.path import Path
 from gdsfactory.pdk import get_active_pdk
 from gdsfactory.technology.layer_map import LayerMap
 from gdsfactory.typings import Layer, LayerSpec, LayerSpecs, CrossSectionSpec
@@ -13,6 +14,25 @@ from dataclasses import dataclass
 from typing import Union, Sequence
 PDK = get_generic_pdk()
 PDK.activate()
+
+
+def _fresnel(R0, s, num_pts):
+    t = np.linspace(0, s, num_pts)
+    if num_pts < 2:
+        return np.array([0.0]), np.array([0.0])
+    dt = t[1] - t[0]
+    cos_vals = np.cos(t**2 / (2 * R0**2))
+    sin_vals = np.sin(t**2 / (2 * R0**2))
+    x = np.zeros(num_pts)
+    y = np.zeros(num_pts)
+    for i in range(1, num_pts):
+        x[i] = x[i - 1] + (cos_vals[i - 1] + cos_vals[i]) * dt / 2
+        y[i] = y[i - 1] + (sin_vals[i - 1] + sin_vals[i]) * dt / 2
+    return x, y
+
+
+def make_cs(width, layer):
+    return gf.CrossSection(sections=[gf.Section(width=width, layer=layer, port_names=("o1", "o2"))])
 
 
 # layer define
@@ -65,13 +85,20 @@ class HeaterConfigClass:
     WidthHeat: Union[float, Sequence[float]] = 4
     WidthRoute: float = 1
     WidthVia: float = 0.26
-    GapHeat: float = 3 # 两个heater的间隔
-    DeltaHeat: Union[float, Sequence[float]] = 2 # 距离中心波导的距离
-    Spacing: float = 1.1 # Via的spacing
+    GapHeat: float = 2
+    DeltaHeat: Union[float, Sequence[float]] = 10
+    Spacing: float = 1.1
     LayerHeat: tuple[int,int] = LAYER.M1
     LayerRoute: tuple[int,int] = LAYER.M2
     LayerVia: tuple[int,int] = LAYER.VIA
     LayerELE: tuple[int,int] = LAYER.M1
+    Coverage: str = "half"
+
+    def __post_init__(self):
+        for field_name in ('WidthHeat', 'DeltaHeat'):
+            value = getattr(self, field_name)
+            if isinstance(value, list):
+                object.__setattr__(self, field_name, tuple(value))
 heaterconfig0 = HeaterConfigClass()
 # %% section & crosssection
 S_in_te0 = gf.Section(width=0.5, layer=LAYER.WG, port_names=("o1", "o2"))
@@ -117,16 +144,30 @@ def remove_layer(
     返回:
         Component: 一个移除了指定图层多边形的新 gdsfactory 组件。
     """
-    c = gf.Component()
-    layers = component.layers
-    for L in layers:
-        if L != layer:
-            polygons = component.get_polygons(by="tuple",layers=[L])
-            for polygon in polygons[L]:
-                c.add_polygon(polygon, layer=L)
-    for port in component.ports:
-        c.add_port(name=port.name, port=component.ports[port.name])
-    return c
+    if isinstance(component, ComponentAllAngle):
+        c = ComponentAllAngle()
+        for vinst in component.vinsts:
+            new_vinst = c.create_vinst(vinst.cell)
+            new_vinst.dcplx_trans = vinst.dcplx_trans.dup()
+        for L in component.layers:
+            if L != layer:
+                for shape in component.shapes(component.kcl.layer(L)):
+                    if shape.is_polygon():
+                        c.shapes(component.kcl.layer(L)).insert(shape.polygon)
+        for port in component.ports:
+            c.add_port(name=port.name, port=component.ports[port.name])
+        return c
+    else:
+        c = gf.Component()
+        layers = component.layers
+        for L in layers:
+            if L != layer:
+                polygons = component.get_polygons(by="tuple",layers=[L])
+                for polygon in polygons[L]:
+                    c.add_polygon(polygon, layer=L)
+        for port in component.ports:
+            c.add_port(name=port.name, port=component.ports[port.name])
+        return c
 # %% add labels
 '''add labels to optical ports'''
 def add_labels_to_ports(
@@ -339,8 +380,8 @@ def Crossing_taper(
     add_labels_to_ports(Crossing)
     return Crossing
 
-
-@gf.cell()
+# 使用 @gf.cell 或 @gf.vcell 装饰最外层函数
+@gf.cell 
 def TaperRsoa(
         AngleRsoa: float = 13,
         WidthRsoa: float = 8,
@@ -348,38 +389,40 @@ def TaperRsoa(
         LengthRsoa: float = 200,
         LengthAdd: float = 100,
         RadiusBend: float = 50,
-        layer: LayerSpec = LAYER.WG,
+        layer: LayerSpec = "WG", 
         layers: LayerSpecs | None = None,
 ) -> Component:
     """
-    创建一个锥形波导组件，可能用于反射型半导体光放大器 (RSOA) 的端面。
-    该组件由一个欧拉弯曲、一个锥形波导和一个直波导段组成。
-
-    参数:
-        AngleRsoa (float): 初始欧拉弯曲的角度 (单位: 度)。默认为 13.0 度。
-        WidthRsoa (float): 锥形波导较宽端的宽度 (也是末端直波导的宽度)。默认为 8.0 um。
-        WidthWg (float): 锥形波导较窄端的宽度 (也是欧拉弯曲的宽度)。默认为 0.8 um。
-        LengthRsoa (float): 锥形部分的长度。默认为 200.0 um。
-        LengthAdd (float): 宽端额外直波导部分的长度。默认为 100.0 um。
-        RadiusBend (float): 初始欧拉弯曲的半径。默认为 50.0 um。
-        layer (LayerSpec): 所有波导组件的 GDS 图层。默认为 LAYER.WG。
-        Name (str): 组件的名称。默认为 "taper_rsoa"。
-
-    返回:
-        Component: 生成的 RSOA 锥形结构组件。
-
-    端口:
-        o1: 位于宽直波导段末端的光学端口。
-        o2: 位于欧拉弯曲起始端的光学端口。
+    带有 @gf.vcell 装饰器的 TaperRsoa 组件。
+    它在内部处理了非正交角度的拼接，对外输出一个带缓存和标准参数的 Component。
     """
+    
+    # 1. 外部的标椎 Component，它会被 @gf.vcell 自动接管并缓存
     c = gf.Component()
-    ebend = c << gf.components.bend_euler(angle=-AngleRsoa, width=WidthWg, radius=RadiusBend, layer=layer)
-    rtaper = c << gf.components.taper(length=LengthRsoa, width1=WidthWg, width2=WidthRsoa, layer=layer)
-    rstr = c << gf.components.straight(length=LengthAdd, width=WidthRsoa, layer=layer)
+
+    # 2. 内部的全角度容器，作为一个临时“工作台”
+    caa = ComponentAllAngle()
+
+    # 3. 在内部工作台中精确生成和拼接
+    ebend = caa.create_vinst(gf.components.bend_euler_all_angle(angle=-AngleRsoa, width=WidthWg, radius=RadiusBend, layer=layer))
+    rtaper = caa.create_vinst(gf.components.taper(length=LengthRsoa, width1=WidthWg, width2=WidthRsoa, layer=layer))
+    rstr = caa.create_vinst(gf.components.straight(length=LengthAdd, cross_section=gf.cross_section.cross_section(width=WidthRsoa, layer=layer)))
+
+    # 内部无缝连接
     rtaper.connect(port="o1", other=ebend.ports["o2"])
     rstr.connect(port="o1", other=rtaper.ports["o2"])
-    c.add_port("o1", port=rstr.ports["o2"])
-    c.add_port("o2", port=ebend.ports["o1"])
+
+    # 为内部容器赋予端口
+    caa.add_port("o1", port=rstr.ports["o2"])
+    caa.add_port("o2", port=ebend.ports["o1"])
+
+    # 4. 将拼接好的工作台作为一个整体 Instance 放入被 @gf.vcell 管理的 c 中
+    caa_inst = c.create_vinst(caa) 
+
+    # 5. 端口映射到外部
+    c.add_port("o1", port=caa_inst.ports["o1"])
+    c.add_port("o2", port=caa_inst.ports["o2"])
+
     return c
 
 
@@ -1014,24 +1057,37 @@ def shift_component(component: Component, dx: float, dy: float) -> Component:
     new_component = Component()  # 创建一个新的组件实例
 
     # 将原始组件的所有元素平移并添加到新组件中
-    for ref in component.references:
+    for ref in component.insts:
         new_component.add_ref(ref.parent).move([dx, dy])
 
-    for polygon in component.polygons:
-        new_component.add_polygon(polygon.points + (dx, dy), layer=polygon.layer)
+    for layer_idx in component.layers:
+        layer_int = component.kcl.layer(layer_idx) if not isinstance(layer_idx, int) else layer_idx
+        for shape in component.each_shape(layer_int):
+            if shape.is_polygon():
+                poly = shape.polygon
+                new_component.shapes(layer_int).insert(poly.transformed(kf.kdb.DTrans(dx, dy)))
 
-    for label in component.labels:
-        new_component.add_label(
-            text=label.text,
-            position=(label.origin[0] + dx, label.origin[1] + dy),
-            layer=label.layer,
-            magnification=label.magnification,
-            rotation=label.rotation,
-        )
+    if hasattr(component, 'labels'):
+        for label in component.labels:
+            new_component.add_label(
+                text=label.text,
+                position=(label.origin[0] + dx, label.origin[1] + dy),
+                layer=label.layer,
+                magnification=label.magnification,
+                rotation=label.rotation,
+            )
 
     # 平移所有端口
-    for port in component.ports.values():
-        new_component.add_port(port=port.copy().move([dx, dy]))
+    for port in component.get_ports_list():
+        new_center = (port.center[0] + dx, port.center[1] + dy)
+        new_component.add_port(
+            name=port.name,
+            center=new_center,
+            width=port.width,
+            orientation=port.orientation,
+            layer=port.layer,
+            port_type=port.port_type,
+        )
 
     return new_component
 
@@ -1060,12 +1116,124 @@ def GetFromLayer(
     if FLayer is None:
         FLayer = OLayer
     CompFinal = gf.Component()
-    pols = CompOriginal.get_polygons_points(layers=[OLayer],by="tuple")
-    for pol in pols[OLayer]:
+    olayer_tuple = tuple(OLayer) if not isinstance(OLayer, tuple) else OLayer
+    pols = CompOriginal.get_polygons_points(layers=[olayer_tuple], by="tuple")
+    for pol in pols[olayer_tuple]:
         CompFinal.add_polygon(points=pol, layer=FLayer)
     for port in CompOriginal.ports:
         CompFinal.add_port(name=port.name, port=port)
     return CompFinal
+
+# %% route_off_grid: off-grid routing helper for ComponentAllAngle
+def route_off_grid(
+        parent: ComponentAllAngle,
+        port1,
+        port2,
+        width: float = None,
+        layer: LayerSpec = None,
+        cross_section: CrossSectionSpec = None,
+        radius: float = 150,
+        **kwargs,
+):
+    """
+    在 ComponentAllAngle 中创建两个端口之间的离网格路由。
+
+    使用 gf.routing.get_route 计算路由路径点，然后用 gf.path 构建路径，
+    最后用 add_ref_off_grid 添加到父组件中，确保所有元素都不被网格捕捉。
+
+    参数:
+        parent: 目标 ComponentAllAngle 父组件。
+        port1: 起始端口。
+        port2: 结束端口。
+        width: 波导宽度（如果未提供 cross_section）。
+        layer: 图层规格（如果未提供 cross_section）。
+        cross_section: 截面规格。
+        radius: 弯曲半径。
+        **kwargs: 传递给 get_route 的其他参数。
+
+    返回:
+        添加的路由引用，如果路由失败则返回 None。
+    """
+    if cross_section is not None:
+        x = gf.get_cross_section(cross_section)
+    elif width is not None and layer is not None:
+        x = make_cs(width, layer)
+    else:
+        raise ValueError("Must provide either cross_section or both width and layer")
+
+    try:
+        route = gf.routing.get_route(
+            port1, port2,
+            cross_section=x,
+            radius=radius,
+            **kwargs,
+        )
+        waypoints = route.waypoints
+    except Exception:
+        return None
+
+    if len(waypoints) < 2:
+        return None
+
+    path = gf.Path()
+    for i, wp in enumerate(waypoints):
+        if i == 0:
+            path.append(gf.path.straight(length=0))
+        else:
+            prev = waypoints[i - 1]
+            dx = wp[0] - prev[0]
+            dy = wp[1] - prev[1]
+            length = np.sqrt(dx**2 + dy**2)
+            if length > 0.001:
+                path.append(gf.path.straight(length=length))
+
+    route_comp = gf.path.extrude(path, cross_section=x)
+    ref = parent.add_ref_off_grid(route_comp)
+    ref.move(waypoints[0])
+    return ref
+
+
+def route_bundle_off_grid(
+        parent: ComponentAllAngle,
+        ports1,
+        ports2,
+        width: float = None,
+        layer: LayerSpec = None,
+        cross_section: CrossSectionSpec = None,
+        radius: float = 150,
+        **kwargs,
+):
+    """
+    在 ComponentAllAngle 中创建多对端口之间的离网格路由。
+
+    对每对端口分别调用 route_off_grid。
+
+    参数:
+        parent: 目标 ComponentAllAngle 父组件。
+        ports1: 起始端口列表。
+        ports2: 结束端口列表。
+        width: 波导宽度。
+        layer: 图层规格。
+        cross_section: 截面规格。
+        radius: 弯曲半径。
+        **kwargs: 传递给 route_off_grid 的其他参数。
+
+    返回:
+        添加的路由引用列表。
+    """
+    refs = []
+    for p1, p2 in zip(ports1, ports2):
+        ref = route_off_grid(
+            parent, p1, p2,
+            width=width, layer=layer,
+            cross_section=cross_section,
+            radius=radius,
+            **kwargs,
+        )
+        if ref is not None:
+            refs.append(ref)
+    return refs
+
 
 # %% TotalComponent
 r_euler_false = 500
