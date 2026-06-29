@@ -3,6 +3,7 @@ from .FabBasic_hjh.BasicDefine import *
 from .FabBasic_hjh.Boomerang import *
 from .FabBasic_hjh.CouplerMZI import *
 from .FabBasic_hjh.DBR import *
+from .FabBasic_hjh.DBR_inv import *
 from .FabBasic_hjh.ELE import *
 from .FabBasic_hjh.ExtCav import *
 from .FabBasic_hjh.Heater import *
