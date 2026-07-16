@@ -143,7 +143,7 @@ def EDBRStrRep_InvertTone(
         Structure.add_port('o1', port=S1.ports['o1'])
         Structure.add_port('o2', port=S2.ports['o2'])
         xmin = Structure.ports['o1'].center[0]
-    print(LengthPeriod)
+    # print(LengthPeriod)
     # ---------------------------------------------------------
     # 2. 核心逻辑：执行单周期布尔相减 (Invert Tone)
     # ---------------------------------------------------------
@@ -154,7 +154,7 @@ def EDBRStrRep_InvertTone(
     temp_bg_comp = gf.Component()
     bg_ref = temp_bg_comp << bg
     # bg_ref.move((xmin, 0))
-    print(xmin)
+    # print(xmin)
     # 将背景与原始单周期相减 (A - B)
     inverted_struct = gf.boolean(
         A=temp_bg_comp, 
