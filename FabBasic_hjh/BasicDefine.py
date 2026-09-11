@@ -88,6 +88,7 @@ class HeaterConfigClass:
     GapHeat: float = 2
     DeltaHeat: Union[float, Sequence[float]] = 10
     Spacing: float = 1.1
+    Partial: float = 1
     LayerHeat: tuple[int,int] = LAYER.M1
     LayerRoute: tuple[int,int] = LAYER.M2
     LayerVia: tuple[int,int] = LAYER.VIA

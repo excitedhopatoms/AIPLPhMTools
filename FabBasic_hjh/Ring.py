@@ -773,7 +773,7 @@ def DifferentHeater_local(
     """
     h = gf.Component()
     # 提取加热器配置参数
-    TypeHeater = HeaterConfig.TypeHeater
+    TypeHeater = HeaterConfig.TypeHeater.strip().lower()
     WidthHeat = HeaterConfig.WidthHeat
     WidthRoute = HeaterConfig.WidthRoute
     WidthVia = HeaterConfig.WidthVia
@@ -783,6 +783,7 @@ def DifferentHeater_local(
     heatlayer = HeaterConfig.LayerHeat
     routelayer = HeaterConfig.LayerRoute
     vialayer = HeaterConfig.LayerVia
+    Partial = HeaterConfig.Partial
     if TypeHeater == "default":
         # ===== 默认加热电极 =====
         heat_path = gf.path.arc(radius=RadiusRing, angle=60)  # 创建加热电极路径
@@ -1098,6 +1099,36 @@ def DifferentHeater_local(
         for port in heater.ports:
             if port.name != "RingL" and port.name != "RingC":
                 c.add_port(name=port.name, port=port)
+    elif TypeHeater == "partial":
+        # ===== 部分圆弧加热电极 =====
+        DeltaHeat=-abs(DeltaHeat)
+        angle_partial = Partial*360
+        heat_path = gf.path.arc(radius=RadiusRing + DeltaHeat, angle=angle_partial/2)  # 创建加热电极路径
+        # heatout_path1 = euler_Bend_Half(radius=RadiusRing / 2, angle=30)  # 创建欧拉弯曲路径
+        # heatout_path2 = euler_Bend_Half(radius=RadiusRing / 2, angle=-30)  # 创建欧拉弯曲路径
+        # heatout_path3 = euler_Bend_Half(radius=RadiusRing / 4, angle=75)  # 创建欧拉弯曲路径
+        # heatout_path4 = euler_Bend_Half(radius=RadiusRing / 4, angle=-60)  # 创建欧拉弯曲路径
+        heatL_comp1 = h << gf.path.extrude(heat_path, width=WidthHeat, layer=heatlayer)  # 创建左侧加热电极
+        heatL_comp1.connect("o1", c.ports["RingC"], allow_layer_mismatch=True, allow_width_mismatch=True,)
+        heatL_comp1.rotate(-90,c.ports["RingC"].center).movey(-DeltaHeat-RadiusRing)
+        heatR_comp1 = h << gf.path.extrude(heat_path, width=WidthHeat, layer=heatlayer)  # 创建左侧加热电极
+        heatR_comp1.connect("o1", heatL_comp1.ports["o1"], allow_layer_mismatch=True, allow_width_mismatch=True,mirror=True)
+        # length = abs(heatL_comp2.ports["o2"].center[0]-heatR_comp2.ports["o2"].center[0])
+        # routepath_straight = gf.path.straight(length=length+0.001)
+        # route_straight = h << gf.path.extrude(routepath_straight, width=WidthHeat, layer=heatlayer)
+        # route_straight.connect("o1",heatL_comp2.ports["o2"])
+        h.add_port(name="HeatIn", port=heatL_comp1.ports["o2"])
+        h.add_port(name="HeatOut", port=heatR_comp1.ports["o2"])
+        # h.add_port(name="RingL", port=c.ports["RingL"])
+        if DirectionHeater == "down":
+            h.mirror_y(c.ports["RingL"].center[1])
+        if RotationHeater != 0:
+            h.rotate(RotationHeater, center=c.ports["RingC"].center)
+        h.flatten()
+        h = snap_all_polygons_iteratively(h)
+        heater = c << h
+        c.add_port(name="HeatIn", port=heater.ports["HeatIn"])
+        c.add_port(name="HeatOut", port=heater.ports["HeatOut"])
     elif TypeHeater == "spilt":
         # ===== 分裂式加热电极 =====
         S_route1 = gf.Section(width=WidthRoute, offset=DeltaHeat, layer=routelayer, port_names=("r1o1", "r1o2"))
