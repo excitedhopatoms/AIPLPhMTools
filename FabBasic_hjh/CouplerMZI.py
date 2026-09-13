@@ -454,9 +454,9 @@ def SagnacRing(
         c.add_port("input", port=taper_in.ports["o1"])
     else:
         c.add_port("input", port=PC.ports["in2"])
-    # c.add_port("output", port=bend.ports["o2"])
+    c.add_port("output", port=PC.ports["in1"])
     c.add_port("o1", port=c.ports["input"])
-    # c.add_port("o2", port=bend.ports["o2"])
+    c.add_port("o2", port=c.ports["output"])
     c.flatten()
     return c
 
