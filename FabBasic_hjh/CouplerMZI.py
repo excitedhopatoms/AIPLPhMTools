@@ -395,12 +395,12 @@ def SagnacRing(
         LengthTaper: float = 200,
         AngleCouple=11,
         AngleIn=60,
+        AngleOutput=90,
         RadiusIn=200,
         RadiusBend=100,
         GapCoup=0.3,
         IsTaperIn: bool = True,
         oplayer: LayerSpec = LAYER.WG,
-
 ) -> Component:
     """
     创建一个 Sagnac 环形干涉仪结构。
@@ -431,29 +431,32 @@ def SagnacRing(
     """
     c = gf.Component()
     PC = c << PulleyCoupler2X2(WidthIn=WidthIn, WidthOut=WidthOut, AngleCouple=AngleCouple, RadiusIn=RadiusIn,
-                               GapCoup=GapCoup, oplayer=oplayer, IsParallel=False, AngleIn=AngleIn)
+                               GapCoup=GapCoup, oplayer=oplayer, IsParallel=False, AngleIn=180)
     taper_coup2ring = c << gf.c.taper(width1=WidthOut, width2=WidthIn, length=LengthTaper, layer=oplayer)
     taper_coup2ring.connect("o1", other=PC.ports["out2"],mirror=True)
-    bendpath_ring2coup = euler_Bend_Half(angle=-AngleIn, radius=RadiusBend, p=1, use_eff=False)
-    bend_ring2coup = c << gf.path.extrude(bendpath_ring2coup, width=WidthIn, layer=oplayer)
-    bend_ring2coup.connect("o1", other=PC.ports["out1"],mirror=True)
-    bendpath_ring2out = euler_Bend_Half(angle=AngleIn, radius=RadiusBend, p=1, use_eff=False)
-    bend_ring2out = c << gf.path.extrude(bendpath_ring2out, width=WidthIn, layer=oplayer)
-    bend_ring2out.connect("o1", other=PC.ports["in1"],mirror=True)
-    route = gf.routing.route_single(c, bend_ring2coup.ports["o2"], taper_coup2ring.ports["o2"], cross_section=make_cs(WidthIn, oplayer), radius=RadiusBend)
+    bendpath_Out2 = gf.path.euler(angle=90, radius=RadiusBend, p=0.3, use_eff=False)
+    bend_Out2 = c << gf.path.extrude(bendpath_Out2, width=WidthIn, layer=oplayer)
+    bend_Out2.connect("o1", other=taper_coup2ring.ports["o2"])
+    # bend_Out1Out2con = c << Connect_ports(taper_coup2ring.ports['o2'],PC.ports["out1"])
+    # bend_Out1Out2con.connect("o1", other=taper_coup2ring.ports["o2"])
+
+    # bendpath_ring2out = euler_Bend_Half(angle=90, radius=RadiusBend, p=1, use_eff=False)
+    # bend_ring2out = c << gf.path.extrude(bendpath_ring2out, width=WidthIn, layer=oplayer)
+    # bend_ring2out.connect("o1", other=PC.ports["out1"],mirror=True)
+    route = gf.routing.route_single(c, bend_Out2.ports["o2"], PC.ports["out1"], cross_section=make_cs(WidthIn, oplayer), radius=RadiusBend)
     # for route in routering:
     #     c.add(route.references)
-    bend = c << GfCBendEuler(angle=90, width=WidthIn, layer=oplayer, radius=RadiusBend, p=1,with_arc_floorplan=False)
-    bend.connect("o1", bend_ring2out.ports["o2"],mirror=True)
+    # bend = c << GfCBendEuler(angle=180-AngleOutput-AngleIn, width=WidthIn, layer=oplayer, radius=RadiusBend, p=1,with_arc_floorplan=False)
+    # bend.connect("o1", bend_ring2out.ports["o2"],mirror=True)
     if IsTaperIn:
         taper_in = c << gf.c.taper(width1=WidthSingle, width2=WidthOut, length=LengthTaper, layer=oplayer)
         taper_in.connect("o2", PC.ports["in2"])
         c.add_port("input", port=taper_in.ports["o1"])
     else:
         c.add_port("input", port=PC.ports["in2"])
-    c.add_port("output", port=bend.ports["o2"])
+    # c.add_port("output", port=bend.ports["o2"])
     c.add_port("o1", port=c.ports["input"])
-    c.add_port("o2", port=bend.ports["o2"])
+    # c.add_port("o2", port=bend.ports["o2"])
     c.flatten()
     return c
 
