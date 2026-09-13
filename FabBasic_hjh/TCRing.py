@@ -952,8 +952,10 @@ def TCRingT1(
         r_euler_min: float = r_euler_true,
         width_ring: float = 1,
         width_near: float = 2,
+        width_near2: float = None,
         width_single: float = 1,
         angle_rc: float = 20,
+        angle_rc2: float = None,
         length_taper: float = 150,
         length_total: float = 10000,
         length_th_horizontal: float = 10,
@@ -961,6 +963,7 @@ def TCRingT1(
         length_busheater: float = 1,
         pos_ring: float = 500,
         gap_rc: float = 1,
+        gap_rc2: float = None,
         tin: Component = taper_in,
         tout: Component = taper_out,
         is_ad: bool = False,
@@ -1011,10 +1014,15 @@ def TCRingT1(
     """
     sr = gf.Component()
     ring = gf.Component()
+    if is_ad:
+        if width_near2 is None:width_near2 = width_near
+        if gap_rc2 is None:gap_rc2 = gap_rc
+        if angle_rc2 is None:angle_rc2 = angle_rc
     ring0 = ring << RingPulleyT1(
-        WidthRing=width_ring, WidthNear=width_near, GapRing=gap_rc,
-        RadiusRing=r_ring, AngleCouple=angle_rc, DirectionHeater=direction_heater,
-        IsAD=is_ad, oplayer=oplayer,HeaterConfig=heater_config_ring,
+        WidthRing=width_ring, RadiusRing=r_ring,
+        WidthNear=width_near, GapRing=gap_rc,AngleCouple=angle_rc,
+        DirectionHeater=direction_heater,IsAD=is_ad, oplayer=oplayer,HeaterConfig=heater_config_ring,
+        WidthNear2=width_near2,GapRing2=gap_rc2,AngleCouple2=angle_rc2,
     )
     taper_s2n1 = ring << gf.c.taper(width1=width_single, width2=width_near, length=length_taper, layer=oplayer)
     taper_s2n1.connect("o2", ring0.ports["Input"])
