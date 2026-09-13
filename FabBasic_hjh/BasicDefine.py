@@ -14,7 +14,7 @@ from dataclasses import dataclass
 from typing import Union, Sequence
 PDK = get_generic_pdk()
 PDK.activate()
-
+from .EulerConnection import connect_ports_euler
 
 def _fresnel(R0, s, num_pts):
     t = np.linspace(0, s, num_pts)
@@ -1017,7 +1017,24 @@ def euler_Bend_Part(
         path.mirror((1, 0))
 
     return path
-
+def Connect_ports(
+    port1,
+    port2,
+    min_radius=50.0,
+    width=None,
+    layer=None,
+    npoints=4000,
+    cross_section=None,
+    allow_large_bend=True,
+):
+    return connect_ports_euler(port1,
+    port2,
+    min_radius,
+    width,
+    layer,
+    npoints,
+    cross_section,
+    allow_large_bend,)
 
 # %% QRcode of team website
 @gf.cell()
