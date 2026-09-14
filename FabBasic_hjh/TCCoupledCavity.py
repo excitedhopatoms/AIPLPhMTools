@@ -490,18 +490,14 @@ def TCCoupleDouRingT1(
         width_heat1: float = 5,
         gap_rc1: float = 1,
         angle_rc1: float = 20,
-        type_heater1: str = "default",  # 控制加热器类型
-        gap_heat1: float = 1,
-        delta_heat1: float = 1,
         r_ring2: float = None,
         width_ring2: float = None,
         width_near2: float = None,
         width_heat2: float = None,
         length_near2: float = 130,
         gap_rc2: float = 1,
-        type_heater2: str = "default",  # 控制加热器类型
-        gap_heat2: float = 0,
-        delta_heat2: float = 0,
+        heaterconfig_ring1:HeaterConfigClass=None,
+        heaterconfig_ring2:HeaterConfigClass=None,
         gap_rr: float = 1,
         angle_rr: float = 30,
         width_single: float = 1,
@@ -569,13 +565,8 @@ def TCCoupleDouRingT1(
         LengthNear2=length_near2,
         GapRR=gap_rr, AngleR12=angle_rr,IsAD=is_ad,
         oplayer=oplayer, DirectionsHeater=['down', 'down'],
-        HeaterConfigRing1=HeaterConfigClass(
-            TypeHeater=type_heater1, WidthHeat=width_heat1, DeltaHeat=delta_heat1,
-            GapHeat=gap_heat1, LayerHeat=heatlayer,
-        ),
-        HeaterConfigRing2=HeaterConfigClass(
-            TypeHeater=type_heater2, WidthHeat=width_heat2, DeltaHeat=delta_heat2,
-        ),
+        HeaterConfigRing1=heaterconfig_ring1,
+        HeaterConfigRing2=heaterconfig_ring2,
     )
     # input through
     taper_s2n1 = ring << gf.c.taper(width1=width_single, width2=width_near1, length=length_taper, layer=oplayer)
