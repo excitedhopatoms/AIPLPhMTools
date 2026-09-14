@@ -538,10 +538,12 @@ def CoupleRingDRT1(
 
     for port in ring1.ports:
         if "Heat" in port.name:
+            c.add_port(name="Ring1" + port.name, port=port)
             c.add_port(name="R1" + port.name, port=port)
     if HeaterConfigRing2 is not None:
         for port in ring2h.ports:
             if "Heat" in port.name:
+                c.add_port(name="Ring2" + port.name, port=port)
                 c.add_port(name="R2" + port.name, port=port)
     # add_labels_to_ports(c,label_layer=(412,8))
     c.flatten()
