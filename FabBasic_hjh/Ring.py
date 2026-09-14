@@ -617,14 +617,12 @@ def RingPulleyT1(
     ring_path90 = gf.path.arc(radius=RadiusRing, angle=90)  # 创建 90 度的圆弧路径
     ring_path_all = ring_path90 + ring_path90 + ring_path90 + ring_path90  # 拼接成完整的环形路径
     ring_comp = c << gf.path.extrude(ring_path_all, width=WidthRing, layer=oplayer)  # 将路径转换为波导
-
     # 创建耦合波导
     couple_path_ring = gf.path.arc(radius=RadiusRing + GapRing + WidthNear / 2 + WidthRing / 2,
                                    angle=AngleCouple / 2)  # 创建耦合圆弧路径
     couple_path_euler = euler_Bend_Half(radius=RadiusRing + GapRing + WidthNear / 2 + WidthRing / 2,
                                         angle=-AngleCouple / 2)  # 创建欧拉弯曲路径
     couple_path = couple_path_ring + couple_path_euler  # 拼接成完整的耦合路径
-
     # 上耦合波导
     upcouple_comp1 = c << gf.path.extrude(couple_path, width=WidthNear, layer=oplayer)  # 创建上耦合波导
     upcouple_comp1.connect("o1", other=ring_comp.ports["o1"], allow_width_mismatch=True)
@@ -903,7 +901,7 @@ def DifferentHeater_local(
         heat_path = gf.path.arc(radius=RadiusRing + DeltaHeat, angle=60)  # 创建加热电极路径
         heatout_path1 = euler_Bend_Half(radius=RadiusRing / 2, angle=30)  # 创建欧拉弯曲路径
         heatout_path2 = euler_Bend_Half(radius=RadiusRing / 2, angle=-30)  # 创建欧拉弯曲路径
-        heatout_path3 = euler_Bend_Half(radius=RadiusRing / 4, angle=75)  # 创建欧拉弯曲路径
+        heatout_path3 = euler_Bend_Half(radius=RadiusRing / 4, angle=-60)  # 创建欧拉弯曲路径
         heatout_path4 = euler_Bend_Half(radius=RadiusRing / 4, angle=-60)  # 创建欧拉弯曲路径
         heatL_comp1 = h << gf.path.extrude(heat_path + heatout_path3, width=WidthHeat, layer=heatlayer)  # 创建左侧加热电极
         heatL_comp1.connect("o1", c.ports["RingL"], allow_layer_mismatch=True, allow_width_mismatch=True,
@@ -935,7 +933,7 @@ def DifferentHeater_local(
         heater = c << h
         c.add_port(name="HeatIn", port=heater.ports["HeatIn"])
         c.add_port(name="HeatOut", port=heater.ports["HeatOut"])
-    elif TypeHeater == "insideP":
+    elif TypeHeater == "insidep":
         # ===== 内部加热电极（平行出） =====
         DeltaHeat=-abs(DeltaHeat)
         heat_path = gf.path.arc(radius=RadiusRing + DeltaHeat, angle=60)  # 创建加热电极路径
@@ -969,7 +967,7 @@ def DifferentHeater_local(
         if RotationHeater != 0:
             h.rotate(RotationHeater, center=c.ports["RingC"].center)
         h.flatten()
-        h = snap_all_polygons_iteratively(h)
+        # h = snap_all_polygons_iteratively(h)
         heater = c << h
         c.add_port(name="HeatIn", port=heater.ports["HeatIn"])
         c.add_port(name="HeatOut", port=heater.ports["HeatOut"])
