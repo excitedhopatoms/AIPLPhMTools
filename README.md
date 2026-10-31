@@ -7,6 +7,13 @@
 [![Python](https://img.shields.io/badge/python-3.10%2B-blue)](https://www.python.org/)
 [![gdsfactory](https://img.shields.io/badge/gdsfactory-9.14%2B-orange)](https://gdsfactory.github.io/gdsfactory/)
 
+> **当前状态（2026-10-31）**
+> 本 README 中的 `layout_engine`、`WangCavity_v2` 属于早期规划，当前仓库
+> 尚未提供；实际可用的是 `GeneralTools/`（通用器件库）与 `SOITools/`（SOI 子库）。
+> 器件清单请以 `ap.list_components()` 为准。导入包不会再创建任何几何。
+> **版图手册**：每个器件的真实版图、端口、参数含义与参数对比见
+> [`docs/index.html`](docs/index.html)（生成方式与发布步骤见 [`docs/README.md`](docs/README.md)）。
+
 ---
 
 
@@ -104,42 +111,42 @@ print(config.waveguide.width_ring)  # 1.0
 
 ```
 AIPLPhMTools/
-├── __init__.py              # 包入口，延迟导入 + 显式导出
-├── FabBasic_hjh/            # 器件库（核心版图组件）
-│   ├── BasicDefine.py       # 基础定义（图层、截面、直波导、弯曲等）
-│   ├── Ring.py              # 环形谐振器（Pulley耦合、山形环、回旋镖环等）
-│   ├── RaceTrack.py         # 跑道型谐振器（Pulley/直线耦合）
-│   ├── CouplerMZI.py        # 耦合器与MZI（定向耦合器、Sagnac环等）
-│   ├── DBR.py               # 分布式布拉格反射器
-│   ├── Heater.py            # 加热器（蛇形加热器、过孔阵列等）
-│   ├── ELE.py               # 电极（GSG高频电极、焊盘等）
-│   ├── Boomerang.py         # 回旋镖谐振器
-│   ├── MultiRing.py         # 多环串联结构
-│   ├── MultiRaceTrack.py    # 多跑道环结构
-│   ├── Isolator.py          # 隔离器
-│   ├── memyshev.py          # Memyshev激光器
-│   ├── ExtCav.py            # 外腔激光器
-│   ├── WangCavity.py        # 王字形微腔（原始版）
-│   ├── WangCavity_v2.py     # 王字形微腔（layout_engine重构版）
-│   ├── TCRing.py            # 环形谐振器测试结构
-│   ├── TCRaceTrack.py       # 跑道环测试结构
+├── __init__.py              # 包入口：导入 GeneralTools 并显式导出
+├── GeneralTools/            # 通用器件库（核心版图组件）
+│   ├── BasicDefine.py       # 图层、截面、直/弯波导、锥、斜端面、Euler 路径
+│   ├── Ring.py              # 环形谐振器（Pulley 耦合、finger 环等）
+│   ├── RaceTrack.py         # 跑道型谐振器（Pulley / 直耦合）
+│   ├── CouplerMZI.py        # 2×2 耦合器、DMZI、PMZI、Sagnac 环
+│   ├── DBR.py / DBR_inv.py  # 常规 DBR、E-DBR、反相 E-DBR
+│   ├── Heater.py            # 加热器、过孔阵列
+│   ├── ELE.py               # GSG 电极、开放焊盘
+│   ├── Boomerang.py         # 回旋镖腔及单/双/三环耦合
+│   ├── MultiRing.py         # 双/三环 Pulley 腔
+│   ├── MultiRaceTrack.py    # 双跑道环腔
+│   ├── Isolator.py          # 环形隔离器原型
+│   ├── memyshev.py          # Memyshev 双环外腔
+│   ├── ExtCav.py            # 外腔激光器核心
+│   ├── GongCavity.py        # 工字形微腔
+│   ├── WangCavity.py        # 王字形微腔
+│   ├── TCRing.py            # 环形测试结构
+│   ├── TCRaceTrack.py       # 跑道测试结构
 │   ├── TCCoupledCavity.py   # 耦合腔测试结构
-│   └── SnapMerge.py         # DRC预处理（多边形合并/对齐）
-└── layout_engine/           # 通用版图绘制引擎
-    ├── errors.py            # 异常体系
-    ├── coordinate.py        # 坐标计算引擎
-    ├── layer_manager.py     # 图层管理器
-    ├── path_utils.py        # 路径构建工具
-    ├── port_utils.py        # 端口管理工具
-    ├── interface.py         # 标准化绘制流程接口
-    ├── validation.py        # 验证框架
-    ├── renderer.py          # 渲染管线
-    ├── config/              # 配置化参数管理
-    │   └── config_manager.py
-    └── elements/            # 可复用版图元素库
-        ├── waveguides.py    # 波导元素
-        ├── couplers.py      # 耦合器元素
-        └── heaters.py       # 加热器集成元素
+│   ├── SnapMerge.py         # 顶点吸附 / 同层合并
+│   ├── EulerConnection.py   # 任意角度端口 Euler 连线
+│   └── _selftest.py         # 全部器件构建自检
+├── SOITools/                # SOI（12 英寸、三层金属）独立命名空间子库
+│   ├── FabBasic.py          # SOI 层号与工艺常数
+│   ├── Geometry.py          # Route、条带、环带、pulley 弧
+│   ├── Routing.py           # Si/SiN 走线 + 开窗 + SINOP
+│   ├── Electrical.py        # 过孔、引线、bond pad、TiN 落点
+│   ├── Ring.py              # RingPulley / RaceTrackPulley
+│   ├── Spiral.py            # 双螺旋腔中心线
+│   ├── Facet.py             # 斜端面
+│   ├── Audit.py             # GDS 审计
+│   ├── Assembly.py          # 端口包装 / connect / PDK 加载
+│   ├── _selftest.py         # SOITools 自检
+│   └── README.md
+└── docs/                    # 版图手册网站（GitHub Pages）
 ```
 
 ---
@@ -986,7 +993,7 @@ wang.show()
 - 使用 `validate_component` 进行构建后验证
 
 ```python
-from AIPLPhMTools.FabBasic_hjh.WangCavity_v2 import WangCavityV2
+from AIPLPhMTools.GeneralTools.WangCavity_v2 import WangCavityV2
 
 wang = WangCavityV2(length_horiz=300, length_vert=350)
 wang.show()
