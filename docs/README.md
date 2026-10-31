@@ -27,7 +27,9 @@ docs/
     ├── img/                   # 默认参数版图
     ├── img/variants/          # 参数对比图
     ├── gds/                   # 默认参数 GDS（gzip）
-    ├── heaters3d-data.js      # 3D 层叠数据（由 GDS 多边形生成）
+    ├── view3d/                # 每个器件一份 3D 层叠数据
+    ├── component3d.js         # 器件页 3D 查看器（可调每层厚度）
+    ├── heaters3d-data.js      # 加热器对比页 3D 数据
     ├── heaters3d.js           # 3D 查看器（canvas，无外部依赖）
     ├── csv/                   # CSV DBR 的演示数据
     └── SOITools/              # SOITools 子库演示图

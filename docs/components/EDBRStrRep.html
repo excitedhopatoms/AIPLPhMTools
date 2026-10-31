@@ -56,6 +56,11 @@ c.write_gds(&quot;EDBRStrRep.gds&quot;)">复制构造代码</button>
 
 c = ap.EDBRStrRep()
 c.write_gds(&quot;EDBRStrRep.gds&quot;)</code></pre>
+<div class="section-head"><h2>3D 层叠视图</h2></div>
+<p class="lead">拖动旋转、滚轮缩放；每一层的厚度都可以单独调整。厚度只用于显示，层叠顺序按图层类型自动排列，不绑定任何具体工艺。</p>
+<div class="c3d"><div class="c3d-stage"><canvas class="c3d-canvas"></canvas><div class="c3d-hint">拖动旋转 · 滚轮缩放 · 双击复位</div></div><aside class="c3d-side"><div class="c3d-actions"><label class="h3d-check"><input type="checkbox" class="c3d-auto"> 自动旋转</label><button class="btn c3d-reset">重置</button></div><div class="c3d-layers"></div><div class="c3d-meta"></div></aside></div>
+<script src="../assets/view3d/EDBRStrRep.js"></script>
+<script src="../assets/component3d.js"></script>
 <div class="section-head"><h2>参数与可选项</h2></div>
 <p class="lead">默认值来自函数签名；说明优先取 docstring，缺失时用通用提示补齐。带 <span class="tag">有对比</span> 的参数在下方有预渲染的版图对比。</p>
 <div class="table-wrap"><table>

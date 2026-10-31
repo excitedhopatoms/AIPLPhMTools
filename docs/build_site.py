@@ -871,6 +871,19 @@ COMPONENT_NOTES = {
 # 加热器 3D 层叠图
 # ---------------------------------------------------------------------------
 # 3D 只做“层序示意”，z 间距被夸张；不是真实膜厚。
+_STACK_ORDER = {
+    (51, 0): -1,
+    (1, 0): 0,
+    (130, 0): 1,
+    (24, 0): 2,
+    (15, 0): 2,
+    (10, 0): 4,
+    (70, 0): 5,
+    (4, 1): 6,
+    (20, 0): 7,
+    (71, 0): 8,
+}
+
 _STACK3D = {
     (1, 0): (0.0, 3.0),
     (130, 0): (0.0, 3.0),
@@ -983,12 +996,16 @@ def extract_3d(c) -> dict | None:
         region = kdb.Region(cell.begin_shapes_rec(li)).merged()
         if region.is_empty():
             continue
-        # VIA 阵列太密（spilt 会有一千多个小孔），3D 里省略，避免糊成一片
-        if key == (70, 0) and region.count() > 400:
-            continue
         z, thick = _STACK3D.get(key, (9.0, 3.0))
+        order = _STACK_ORDER.get(key, 9)
+        # 过密的小图形（例如过孔阵列）抽样显示，保留层叠关系但控制数据量
+        polys_all = list(region.each())
+        limit = 200 if key == (70, 0) else 800
+        if len(polys_all) > limit:
+            step = max(1, len(polys_all) // limit)
+            polys_all = polys_all[::step]
         polys = []
-        for poly in region.each():
+        for poly in polys_all:
             outer = _simplify_contour([(p.x * ly.dbu, p.y * ly.dbu) for p in poly.each_point_hull()])
             if len(outer) < 3:
                 continue
@@ -1003,12 +1020,13 @@ def extract_3d(c) -> dict | None:
         if polys:
             layers.append({
                 "key": f"{key[0]}/{key[1]}", "name": name, "color": color,
-                "alpha": alpha, "z": z, "thickness": thick, "polygons": polys,
+                "alpha": alpha, "z": z, "order": order,
+                "thickness": thick, "display": 1.0, "polygons": polys,
             })
 
     if not layers:
         return None
-    layers.sort(key=lambda d: d["z"])
+    layers.sort(key=lambda d: (d["order"], d["z"]))
     pts = np.asarray(allpts)
     x0, y0 = pts.min(axis=0)
     x1, y1 = pts.max(axis=0)
@@ -1114,6 +1132,23 @@ def build_component(name, factory, sig_source, module, category, note="",
         info["bbox"] = r["bbox"]
         info["size"] = r["size"]
         print(f"  ok {name:28s} ports={len(info['ports']):2d} layers={len(r['layers'])}")
+        try:
+            v3 = extract_3d(c)
+            if v3:
+                vdir = HERE / "assets" / "view3d"
+                vdir.mkdir(parents=True, exist_ok=True)
+                payload = {
+                    "title": name, "note": info["summary"], "code": info["code"],
+                    "layers": v3["layers"], "bbox": v3["bbox"], "size": v3["size"],
+                }
+                (vdir / f"{name}.js").write_text(
+                    "window.VIEW3D = " + json.dumps(payload, ensure_ascii=False,
+                                                   separators=(",", ":")) + ";\n",
+                    encoding="utf-8",
+                )
+                info["view3d"] = f"assets/view3d/{name}.js"
+        except Exception as exc:  # noqa: BLE001
+            print(f"  !! 3D {name}: {type(exc).__name__}: {exc}")
 
     if not allow_no_ports and not info["ports"]:
         info["error"] = info["error"] or "没有端口（通用图元/工具，正常）"
@@ -1375,6 +1410,22 @@ def component_page(comp, comps) -> str:
             '<a href="../heaters3d.html?item=' + hid + '">打开交互式 3D 层叠图</a>'
             '（可拖动旋转、滚轮缩放、看层间距）。</div>'
         )
+
+    if comp.get("view3d"):
+        body.append('<div class="section-head"><h2>3D 层叠视图</h2></div>')
+        body.append('<p class="lead">拖动旋转、滚轮缩放；每一层的厚度都可以单独调整。'
+                    '厚度只用于显示，层叠顺序按图层类型自动排列，不绑定任何具体工艺。</p>')
+        body.append('<div class="c3d">'
+                    '<div class="c3d-stage"><canvas class="c3d-canvas"></canvas>'
+                    '<div class="c3d-hint">拖动旋转 · 滚轮缩放 · 双击复位</div></div>'
+                    '<aside class="c3d-side">'
+                    '<div class="c3d-actions"><label class="h3d-check">'
+                    '<input type="checkbox" class="c3d-auto"> 自动旋转</label>'
+                    '<button class="btn c3d-reset">重置</button></div>'
+                    '<div class="c3d-layers"></div><div class="c3d-meta"></div>'
+                    '</aside></div>')
+        body.append(f'<script src="{rel}{comp["view3d"]}"></script>')
+        body.append(f'<script src="{rel}assets/component3d.js"></script>')
 
     body.append('<div class="section-head"><h2>参数与可选项</h2></div>')
     body.append('<p class="lead">默认值来自函数签名；说明优先取 docstring，缺失时用通用提示补齐。'
@@ -1702,7 +1753,7 @@ def heaters3d_page(data, comps) -> str:
     body = [f'<div class="topline">{breadcrumb(rel)}<div class="gh"><a href="heaters3d.html">◀ 加热器 3D</a></div></div>']
     body.append("<h1>加热器 3D 层叠图</h1>")
     body.append('<p class="lead">拖动旋转、滚轮缩放、双击复位。层与层之间的 z 间距被夸张显示，'
-                '用来观察“波导 / M1 / M2 / 开窗”的上下关系；不是真实膜厚。</p>')
+                '用来观察“波导 / M1 / M2 / 开窗”的上下关系；厚度只是显示参数。</p>')
     body.append('<div class="note">3D 数据由真实 GDS 多边形生成：环/加热条保留孔洞，'
                 'VIA 阵列过密时在 3D 中省略。下面的器件选择来自 DifferentHeater 与环形加热器。</div>')
 

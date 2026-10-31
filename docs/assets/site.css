@@ -395,3 +395,57 @@ details > summary:hover { color: var(--text); }
   .h3d-item { min-width: 190px; }
   .h3d-stage { height: 400px; }
 }
+
+/* ---------- per-component 3D stack ---------- */
+.c3d {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 300px;
+  gap: 16px;
+  margin: 16px 0 6px;
+}
+.c3d-stage {
+  position: relative; height: 470px; overflow: hidden;
+  border: 1px solid #1e293b; border-radius: 14px;
+  background: radial-gradient(circle at 32% 16%, #1e293b 0%, #0b1220 62%, #060a12 100%);
+}
+.c3d-canvas { display: block; width: 100%; height: 100%; cursor: grab; touch-action: none; }
+.c3d-hint {
+  position: absolute; left: 14px; bottom: 12px;
+  color: rgba(226, 232, 240, .65); font-size: 11.5px;
+  background: rgba(15, 23, 42, .55); border: 1px solid rgba(148, 163, 184, .18);
+  border-radius: 99px; padding: 4px 10px; pointer-events: none;
+}
+.c3d-side {
+  background: var(--panel); border: 1px solid var(--border);
+  border-radius: 12px; padding: 13px;
+}
+.c3d-actions {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 10px; margin-bottom: 10px;
+}
+.c3d-actions .btn { padding: 5px 10px; font-size: 12px; }
+.c3d-layers { display: flex; flex-direction: column; gap: 8px; }
+.c3d-layer {
+  display: grid;
+  grid-template-columns: 9px minmax(0, 1fr) 72px 52px;
+  align-items: center; gap: 8px;
+  border-top: 1px solid var(--border-soft); padding-top: 8px;
+}
+.c3d-layer:first-child { border-top: 0; padding-top: 0; }
+.c3d-dot { width: 9px; height: 9px; border-radius: 50%; border: 1px solid rgba(0,0,0,.15); }
+.c3d-name { min-width: 0; }
+.c3d-name strong { display: block; font-size: 12px; line-height: 1.3; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.c3d-name small { display: block; color: var(--muted); font-size: 10.5px; }
+.c3d-range { width: 72px; accent-color: var(--accent); }
+.c3d-num {
+  width: 52px; padding: 2px 4px; border: 1px solid var(--border);
+  border-radius: 5px; font: inherit; font-size: 11px; text-align: right;
+  background: var(--panel-2); color: var(--text);
+}
+.c3d-meta { color: var(--muted); font-size: 11px; margin-top: 10px; line-height: 1.5; }
+
+@media (max-width: 980px) {
+  .c3d { grid-template-columns: 1fr; }
+  .c3d-stage { height: 380px; }
+  .c3d-side { padding: 11px; }
+}
