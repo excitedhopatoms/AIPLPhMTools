@@ -19,6 +19,7 @@ docs/
 ├── index.html                 # 概览
 ├── guide.html                 # 安装、参数约定、图层、自检
 ├── soitools.html              # SOITools 子库
+├── heaters3d.html             # 加热器 3D 层叠图（可拖动旋转）
 ├── components/<器件>.html     # 每个器件一页
 ├── categories/<分类>.html     # 分类索引
 └── assets/
@@ -26,6 +27,8 @@ docs/
     ├── img/                   # 默认参数版图
     ├── img/variants/          # 参数对比图
     ├── gds/                   # 默认参数 GDS（gzip）
+    ├── heaters3d-data.js      # 3D 层叠数据（由 GDS 多边形生成）
+    ├── heaters3d.js           # 3D 查看器（canvas，无外部依赖）
     ├── csv/                   # CSV DBR 的演示数据
     └── SOITools/              # SOITools 子库演示图
 ```

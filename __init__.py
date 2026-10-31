@@ -36,6 +36,7 @@ _MODULES: tuple[str, ...] = (
     "ELE",
     "Boomerang",
     "CouplerMZI",
+    "CoupledCavity",
     "DBR_inv",
     "DBR",
     "GongCavity",
@@ -63,6 +64,7 @@ from .GeneralTools.Heater import *  # noqa: F401,F403
 from .GeneralTools.ELE import *  # noqa: F401,F403
 from .GeneralTools.Boomerang import *  # noqa: F401,F403
 from .GeneralTools.CouplerMZI import *  # noqa: F401,F403
+from .GeneralTools.CoupledCavity import *  # noqa: F401,F403
 from .GeneralTools.DBR_inv import *  # noqa: F401,F403
 from .GeneralTools.DBR import *  # noqa: F401,F403
 from .GeneralTools.GongCavity import *  # noqa: F401,F403

@@ -24,6 +24,7 @@ import enum
 import gzip
 import html
 import inspect
+import json
 import math
 import re
 import shutil
@@ -65,6 +66,7 @@ CATEGORIES = [
     ("rings", "环形谐振器", "Pulley 环、单/双/三环与 finger 环", "RingPulleyT1"),
     ("racetrack", "跑道环", "跑道腔、双跑道腔与锥形耦合入口", "RaceTrackP"),
     ("couplers", "耦合器与 MZI", "Pulley 2×2、DMZI、PMZI 与 Sagnac 环", "DMZI"),
+    ("coupled", "耦合腔", "二阶耦合环滤波器、CROW 与 SCISSOR", "CoupledRingFilter"),
     ("dbr", "DBR 与反射器", "常规 DBR、E-DBR 与反相 E-DBR", "DBR"),
     ("heaters", "加热器与电极", "不同加热器、过孔阵列、焊盘与 GSG", "GSGELE"),
     ("boomerang", "回旋镖腔", "Boomerang 单元及其单/双/三环耦合", "Boomerang"),
@@ -84,6 +86,7 @@ MODULE_CAT = {
     "RaceTrack": "racetrack",
     "MultiRaceTrack": "racetrack",
     "CouplerMZI": "couplers",
+    "CoupledCavity": "coupled",
     "DBR": "dbr",
     "DBR_inv": "dbr",
     "Heater": "heaters",
@@ -567,6 +570,29 @@ VARIANTS: dict[str, list[dict]] = {
         {"param": "DutyCycle", "kwargs": {"DutyCycle": 0.2}, "label": "DutyCycle = 0.2"},
         {"param": "IsHeat", "kwargs": {"IsHeat": True}, "label": "IsHeat = True"},
     ],
+    "CoupledRingFilter": [
+        {"param": "Radius1", "kwargs": {"Radius1": 60}, "label": "Radius1 = 60"},
+        {"param": "Radius1", "kwargs": {"Radius1": 150}, "label": "Radius1 = 150"},
+        {"param": "Radius2", "kwargs": {"Radius2": 110}, "label": "Radius2 = 110（Vernier 失谐）"},
+        {"param": "GapRing", "kwargs": {"GapRing": 0.1}, "label": "GapRing = 0.1（强耦合）"},
+        {"param": "GapRing", "kwargs": {"GapRing": 0.5}, "label": "GapRing = 0.5（弱耦合）"},
+        {"param": "GapBus", "kwargs": {"GapBus": 0.6}, "label": "GapBus = 0.6"},
+        {"param": "IsAddDrop", "kwargs": {"IsAddDrop": False}, "label": "IsAddDrop = False（双端口）"},
+    ],
+    "CROW": [
+        {"param": "NumRings", "kwargs": {"NumRings": 2}, "label": "NumRings = 2（光分子）"},
+        {"param": "NumRings", "kwargs": {"NumRings": 6}, "label": "NumRings = 6"},
+        {"param": "Radius", "kwargs": {"Radius": 30}, "label": "Radius = 30"},
+        {"param": "Radius", "kwargs": {"Radius": 60}, "label": "Radius = 60"},
+        {"param": "GapRing", "kwargs": {"GapRing": 0.5}, "label": "GapRing = 0.5（弱耦合）"},
+    ],
+    "SCISSOR": [
+        {"param": "NumRings", "kwargs": {"NumRings": 2}, "label": "NumRings = 2"},
+        {"param": "NumRings", "kwargs": {"NumRings": 6}, "label": "NumRings = 6"},
+        {"param": "Radius", "kwargs": {"Radius": 30}, "label": "Radius = 30"},
+        {"param": "GapBus", "kwargs": {"GapBus": 0.6}, "label": "GapBus = 0.6"},
+        {"param": "RingGap", "kwargs": {"RingGap": 5}, "label": "RingGap = 5（更独立）"},
+    ],
     "GSGELE": [
         {"param": "IsPad", "kwargs": {"IsPad": True, "LengthEle": 300}, "label": "IsPad = True"},
         {"param": "Is2Pad", "kwargs": {"Is2Pad": True, "LengthEle": 300},
@@ -842,6 +868,180 @@ COMPONENT_NOTES = {
 
 
 # ---------------------------------------------------------------------------
+# 加热器 3D 层叠图
+# ---------------------------------------------------------------------------
+# 3D 只做“层序示意”，z 间距被夸张；不是真实膜厚。
+_STACK3D = {
+    (1, 0): (0.0, 3.0),
+    (130, 0): (0.0, 3.0),
+    (10, 0): (9.0, 4.0),
+    (70, 0): (13.0, 2.0),
+    (4, 1): (17.0, 4.0),
+    (20, 0): (24.0, 1.5),
+    (71, 0): (21.0, 2.0),
+}
+
+HEATER_3D_LINK = {
+    "DifferentHeater": "dh-default",
+    "SnakeHeater": "snake",
+    "RingPulley1HS": "ring-side",
+    "RingPulley1HSn": "ring-snake",
+}
+
+HEATER_3D_ITEMS = {
+    "dh-default": {
+        "title": "DifferentHeater · default",
+        "note": "沿 PathHeat 拉伸的单条 M1 加热条。",
+        "factory": lambda: ap.DifferentHeater(PathHeat=gf.path.straight(length=220)),
+        "code": "ap.DifferentHeater(PathHeat=gf.path.straight(length=220))",
+    },
+    "dh-side": {
+        "title": "DifferentHeater · side",
+        "note": "单侧加热：加热条相对波导中心偏移 DeltaHeat，另一侧不铺金属。",
+        "factory": lambda: ap.DifferentHeater(
+            PathHeat=gf.path.straight(length=220),
+            HeaterConfig=ap.HeaterConfigClass(TypeHeater="side", WidthHeat=6, DeltaHeat=10),
+        ),
+        "code": "ap.DifferentHeater(PathHeat=gf.path.straight(220), HeaterConfig=ap.HeaterConfigClass(TypeHeater='side', WidthHeat=6, DeltaHeat=10))",
+    },
+    "dh-bothside": {
+        "title": "DifferentHeater · bothside",
+        "note": "双侧对称加热：波导两侧各一条 M1，对应两路独立电流。",
+        "factory": lambda: ap.DifferentHeater(
+            PathHeat=gf.path.straight(length=220),
+            HeaterConfig=ap.HeaterConfigClass(TypeHeater="bothside", WidthHeat=4, DeltaHeat=8),
+        ),
+        "code": "ap.DifferentHeater(PathHeat=gf.path.straight(220), HeaterConfig=ap.HeaterConfigClass(TypeHeater='bothside', WidthHeat=4, DeltaHeat=8))",
+    },
+    "dh-multi": {
+        "title": "DifferentHeater · multi",
+        "note": "多条加热条：WidthHeat / DeltaHeat 用元组给出每一对（宽度，偏移）。",
+        "factory": lambda: ap.DifferentHeater(
+            PathHeat=gf.path.straight(length=220),
+            HeaterConfig=ap.HeaterConfigClass(TypeHeater="multi", WidthHeat=(4, 4), DeltaHeat=(-8, 8)),
+        ),
+        "code": "ap.DifferentHeater(PathHeat=gf.path.straight(220), HeaterConfig=ap.HeaterConfigClass(TypeHeater='multi', WidthHeat=(4,4), DeltaHeat=(-8,8)))",
+    },
+    "dh-spilt": {
+        "title": "DifferentHeater · spilt",
+        "note": "主加热条 M1 + 两侧 M2 布线臂；层间过孔阵列太密，3D 中省略 VIA 层。",
+        "factory": lambda: ap.DifferentHeater(
+            PathHeat=gf.path.straight(length=220),
+            HeaterConfig=ap.HeaterConfigClass(TypeHeater="spilt", WidthHeat=6, WidthRoute=10, DeltaHeat=20, GapHeat=3),
+        ),
+        "code": "ap.DifferentHeater(PathHeat=gf.path.straight(220), HeaterConfig=ap.HeaterConfigClass(TypeHeater='spilt', WidthHeat=6, WidthRoute=10, DeltaHeat=20, GapHeat=3))",
+    },
+    "snake": {
+        "title": "SnakeHeater",
+        "note": "蛇形切割加热器：沿路径周期性切掉上下两条槽，增加等效电阻。",
+        "factory": lambda: ap.SnakeHeater(PathHeat=gf.path.straight(length=300), WidthHeat=8, GapHeat=1),
+        "code": "ap.SnakeHeater(PathHeat=gf.path.straight(length=300), WidthHeat=8, GapHeat=1)",
+    },
+    "ring-side": {
+        "title": "RingPulley1HS · 侧加热环",
+        "note": "WG 环 + M1 侧边加热条；3D 中可看到金属层悬在波导层上方。",
+        "factory": lambda: ap.RingPulley1HS(RadiusRing=100),
+        "code": "ap.RingPulley1HS(RadiusRing=100)",
+    },
+    "ring-snake": {
+        "title": "RingPulley1HSn · 蛇形加热环",
+        "note": "WG 环 + M1 蛇形加热器；环周被周期性切割。",
+        "factory": lambda: ap.RingPulley1HSn(RadiusRing=100),
+        "code": "ap.RingPulley1HSn(RadiusRing=100)",
+    },
+}
+
+
+def _simplify_contour(points, max_points=600):
+    """3D 预览用的顶点抽稀；只影响显示，不影响器件本身。"""
+    if len(points) <= max_points:
+        return points
+    step = max(1, len(points) // max_points)
+    out = points[::step]
+    return out if len(out) >= 3 else points
+
+
+def extract_3d(c) -> dict | None:
+    """从一个 Component 提取 3D 层叠数据（外轮廓 + 孔洞 + 层序）。"""
+    tmp = Path(tempfile.mkdtemp()) / "3d.gds"
+    c.write_gds(str(tmp))
+    ly = kdb.Layout()
+    ly.read(str(tmp))
+    try:
+        cell = ly.cell(c.name)
+    except Exception:
+        cell = ly.top_cell()
+
+    layers = []
+    allpts = []
+    for li in ly.layer_indexes():
+        info = ly.get_info(li)
+        key = (info.layer, info.datatype)
+        name, color, alpha = layer_style(key, MAIN_PALETTE)
+        if alpha <= 0:
+            continue
+        region = kdb.Region(cell.begin_shapes_rec(li)).merged()
+        if region.is_empty():
+            continue
+        # VIA 阵列太密（spilt 会有一千多个小孔），3D 里省略，避免糊成一片
+        if key == (70, 0) and region.count() > 400:
+            continue
+        z, thick = _STACK3D.get(key, (9.0, 3.0))
+        polys = []
+        for poly in region.each():
+            outer = _simplify_contour([(p.x * ly.dbu, p.y * ly.dbu) for p in poly.each_point_hull()])
+            if len(outer) < 3:
+                continue
+            holes = []
+            for h in range(poly.holes()):
+                hole = _simplify_contour([(p.x * ly.dbu, p.y * ly.dbu) for p in poly.each_point_hole(h)])
+                if len(hole) >= 3:
+                    holes.append([[round(x, 3), round(y, 3)] for x, y in hole])
+            outer = [[round(x, 3), round(y, 3)] for x, y in outer]
+            polys.append({"outer": outer, "holes": holes})
+            allpts.extend(outer)
+        if polys:
+            layers.append({
+                "key": f"{key[0]}/{key[1]}", "name": name, "color": color,
+                "alpha": alpha, "z": z, "thickness": thick, "polygons": polys,
+            })
+
+    if not layers:
+        return None
+    layers.sort(key=lambda d: d["z"])
+    pts = np.asarray(allpts)
+    x0, y0 = pts.min(axis=0)
+    x1, y1 = pts.max(axis=0)
+    return {
+        "layers": layers,
+        "bbox": [round(float(x0), 3), round(float(y0), 3),
+                 round(float(x1), 3), round(float(y1), 3)],
+        "size": [round(float(x1 - x0), 3), round(float(y1 - y0), 3)],
+    }
+
+
+def build_heater_3d() -> dict:
+    data = {}
+    for key, spec in HEATER_3D_ITEMS.items():
+        try:
+            c = spec["factory"]()
+            info = extract_3d(c)
+            if info is None:
+                print(f"  !! 3D empty: {key}")
+                continue
+            data[key] = {
+                "title": spec["title"], "note": spec["note"], "code": spec["code"],
+                "layers": info["layers"], "bbox": info["bbox"], "size": info["size"],
+            }
+            print(f"  3D {key:14s} layers={[l['name'] for l in info['layers']]}")
+        except Exception as exc:  # noqa: BLE001
+            print(f"  !! 3D {key}: {type(exc).__name__}: {exc}")
+    js = "window.HEATER_3D = " + json.dumps(data, ensure_ascii=False, separators=(",", ":")) + ";\n"
+    (HERE / "assets" / "heaters3d-data.js").write_text(js, encoding="utf-8")
+    return data
+
+
+# ---------------------------------------------------------------------------
 # 构建数据
 # ---------------------------------------------------------------------------
 def component_module(factory) -> str:
@@ -1024,6 +1224,7 @@ def sidebar_html(rel, active_name=None, active_cat=None, comps=None) -> str:
     <a class="nav-top" href="{rel}index.html">概览</a>
     <a class="nav-top" href="{rel}guide.html">快速开始与约定</a>
     <a class="nav-top" href="{rel}soitools.html">SOITools 子库</a>
+    <a class="nav-top" href="{rel}heaters3d.html">加热器 3D</a>
     {''.join(groups)}
     <div class="nav-empty">没有匹配的器件。试试参数名，如 <code>RadiusRing</code>。</div>
   </nav>
@@ -1167,6 +1368,14 @@ def component_page(comp, comps) -> str:
     body.append("</div>")
     body.append(f"<pre><code>{esc(comp['code'])}</code></pre>")
 
+    if comp["name"] in HEATER_3D_LINK:
+        hid = HEATER_3D_LINK[comp["name"]]
+        body.append(
+            '<div class="note green">加热器是叠在波导上的金属层：'
+            '<a href="../heaters3d.html?item=' + hid + '">打开交互式 3D 层叠图</a>'
+            '（可拖动旋转、滚轮缩放、看层间距）。</div>'
+        )
+
     body.append('<div class="section-head"><h2>参数与可选项</h2></div>')
     body.append('<p class="lead">默认值来自函数签名；说明优先取 docstring，缺失时用通用提示补齐。'
                 '带 <span class="tag">有对比</span> 的参数在下方有预渲染的版图对比。</p>')
@@ -1257,6 +1466,9 @@ c.write_gds("ring.gds")
 c2 = ap.RingPulleyT1(RadiusRing=200, IsAD=False)
 c2.write_gds("ring_2port.gds")</code></pre>""")
 
+    body.append('<div class="note"><strong>交互式 3D：</strong>'
+                '加热器的波导 / M1 / M2 / 开窗层叠关系可以拖动旋转查看：'
+                '<a href="heaters3d.html">打开加热器 3D 层叠图</a>。</div>')
     body.append('<div class="note green"><strong>怎么用这本手册：</strong>'
                 '左侧按分类浏览；器件页先看默认版图，再看参数表，'
                 '标有「有对比」的参数展开后有不同取值的版图。所有尺寸单位都是 µm。</div>')
@@ -1331,6 +1543,7 @@ pip install -e .
 │   ├── Ring.py          # Pulley 环及侧/蛇形加热变体
 │   ├── RaceTrack.py     # 跑道腔
 │   ├── CouplerMZI.py    # 2×2 耦合器、DMZI、PMZI、Sagnac
+│   ├── CoupledCavity.py # 二阶耦合环滤波器、CROW、SCISSOR
 │   ├── DBR.py / DBR_inv.py
 │   ├── Heater.py / ELE.py
 │   ├── Boomerang.py / ExtCav.py / memyshev.py / Isolator.py
@@ -1484,13 +1697,55 @@ def build_soitools_images():
 # ---------------------------------------------------------------------------
 # 主流程
 # ---------------------------------------------------------------------------
+def heaters3d_page(data, comps) -> str:
+    rel = ""
+    body = [f'<div class="topline">{breadcrumb(rel)}<div class="gh"><a href="heaters3d.html">◀ 加热器 3D</a></div></div>']
+    body.append("<h1>加热器 3D 层叠图</h1>")
+    body.append('<p class="lead">拖动旋转、滚轮缩放、双击复位。层与层之间的 z 间距被夸张显示，'
+                '用来观察“波导 / M1 / M2 / 开窗”的上下关系；不是真实膜厚。</p>')
+    body.append('<div class="note">3D 数据由真实 GDS 多边形生成：环/加热条保留孔洞，'
+                'VIA 阵列过密时在 3D 中省略。下面的器件选择来自 DifferentHeater 与环形加热器。</div>')
+
+    body.append('<div class="h3d-layout">')
+    body.append('<div class="h3d-list">')
+    for key, item in data.items():
+        first = item["layers"][0] if item["layers"] else {"color": "#64748b"}
+        names = " · ".join(l["name"] for l in item["layers"])
+        body.append(
+            f'<button class="h3d-item" data-id="{key}">'
+            f'<span class="h3d-dot" style="background:{first["color"]}"></span>'
+            f'<span><strong>{esc(item["title"])}</strong><small>{esc(names)}</small></span>'
+            f'</button>'
+        )
+    body.append("</div>")
+
+    body.append('<div class="h3d-main">')
+    body.append('<div class="h3d-stage"><canvas id="h3d-canvas"></canvas>'
+                '<div class="h3d-hint">拖动旋转 · 滚轮缩放 · 双击复位</div></div>')
+    body.append('<div class="h3d-controls">'
+                '<label class="h3d-check"><input type="checkbox" id="h3d-auto"> 自动旋转</label>'
+                '<label class="h3d-range">层间距 <input type="range" id="h3d-explode" '
+                'min="0.5" max="2.5" step="0.1" value="1.0"></label>'
+                '<button class="btn" id="h3d-reset">重置视角</button>'
+                '<span class="h3d-zoom">滚轮缩放</span></div>')
+    body.append('<div class="h3d-info" id="h3d-info"></div>')
+    body.append('<div class="h3d-legend" id="h3d-legend"></div>')
+    body.append("</div></div>")
+    body.append('<script src="assets/heaters3d-data.js"></script>')
+    body.append('<script src="assets/heaters3d.js"></script>')
+    return layout("加热器 3D 层叠图", "\n".join(body), rel, comps=comps,
+                  desc="AIPLPhMTools 加热器层叠结构的交互式 3D 预览")
+
+
 def main() -> int:
     print("Building AIPLPhMTools handbook ...")
     comps = build_all()
-    print(f"components: {len(comps)}")
+    heater3d = build_heater_3d()
+    print(f"components: {len(comps)}, 3D heaters: {len(heater3d)}")
 
     (HERE / "index.html").write_text(overview_page(comps), encoding="utf-8")
     (HERE / "guide.html").write_text(guide_page(comps), encoding="utf-8")
+    (HERE / "heaters3d.html").write_text(heaters3d_page(heater3d, comps), encoding="utf-8")
     (HERE / ".nojekyll").write_text("", encoding="utf-8")
 
     for comp in comps:

@@ -117,6 +117,7 @@ AIPLPhMTools/
 │   ├── Ring.py              # 环形谐振器（Pulley 耦合、finger 环等）
 │   ├── RaceTrack.py         # 跑道型谐振器（Pulley / 直耦合）
 │   ├── CouplerMZI.py        # 2×2 耦合器、DMZI、PMZI、Sagnac 环
+│   ├── CoupledCavity.py     # 二阶耦合环滤波器 / CROW / SCISSOR
 │   ├── DBR.py / DBR_inv.py  # 常规 DBR、E-DBR、反相 E-DBR
 │   ├── Heater.py            # 加热器、过孔阵列
 │   ├── ELE.py               # GSG 电极、开放焊盘
