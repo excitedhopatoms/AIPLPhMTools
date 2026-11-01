@@ -1,0 +1,27 @@
+# CoupledRingFilter 的连通性 LVS
+#
+# 用法：
+#   python -m AIPLPhMTools.lvs --component CoupledRingFilter \
+#       --spec AIPLPhMTools/examples/lvs_coupled_filter.yaml
+#
+# 期望：
+#   - 下总线的 Input / Through 是同一个 net；
+#   - 上总线的 Add / Drop 是同一个 net；
+#   - 上下两条总线互不短路。
+#
+# 端子坐标自动从 Component.ports 读取，所以这里只写 net。
+
+layers:
+  WG: [1, 0]
+
+nets:
+  bottom_bus:
+    layer: WG
+    ports: [Input, Through]
+  top_bus:
+    layer: WG
+    ports: [Add, Drop]
+
+min_width: 0.4
+required_cells: [CoupledRingFilter]
+allow_extra_nets: true

@@ -6,8 +6,166 @@ from .Heater import *
 from .MultiRing import *
 from .MultiRaceTrack import *
 
+def _add_joint(c, port, width: float, layer: LayerSpec, length: float = 0.5) -> None:
+    """[历史补丁，默认不再调用] 在端口处补一个 0.5 µm 矩形焊点。
+
+    旧版用它在 ``connect`` 后手工平移器件，曾留下 <0.1 µm 的缝；补丁会在
+    接口两侧各压 0.25 µm，属于同层额外重叠。现在拼接改为显式 ``connect``
+    + 精确端点校验（``_smooth_join`` 会验证首尾坐标与朝向），不再需要补丁，
+    因此两个外腔函数里已删除调用。保留函数仅供对照旧版 GDS 使用。
+    """
+    th = np.radians(float(port.orientation))
+    dx, dy = np.cos(th), np.sin(th)
+    nx, ny = -dy, dx
+    cx, cy = port.center
+    hl, hw = length / 2.0, width / 2.0
+    pts = [
+        (cx + dx * hl + nx * hw, cy + dy * hl + ny * hw),
+        (cx + dx * hl - nx * hw, cy + dy * hl - ny * hw),
+        (cx - dx * hl - nx * hw, cy - dy * hl - ny * hw),
+        (cx - dx * hl + nx * hw, cy - dy * hl + ny * hw),
+    ]
+    c.add_polygon(pts, layer=layer)
+
+def _smooth_join(
+        c,
+        p1,
+        p2,
+        width: float,
+        layer: LayerSpec,
+        radius: float = 50.0,
+        check_overlap: bool = True,
+) -> Component:
+    """连接外腔回流臂（taper 末端 → ring 输入/输出）。
+
+    三种情况：
+    - 平行端口（如 180°/0°）：优先用一条显式 45° Euler S 弯；水平距离
+      不够时退回 gdsfactory 的 ``route_single_sbend``。这就是 SOI 版图
+      里“只弯一下”的画法；
+    - 历史 135°/0° 几何：使用紧凑 Euler 回路；
+    - 其它角度：直接报错，避免生成切线错误的波导。
+
+    所有分支都保证起点切线 = p1.orientation、终点切线 =
+    p2.orientation + 180°，并在加入前用 ``check_waveguide_overlap``
+    检查与已有同层波导的面积重叠。
+
+    参数:
+        radius: 显式 Euler S 弯的最小弯曲半径。
+        check_overlap: True 时检查新路径与已有 WG 是否重叠。
+    """
+    start = np.array(p1.center, dtype=float)
+    end = np.array(p2.center, dtype=float)
+
+    if abs(float(p1.width) - float(p2.width)) > 1e-9:
+        raise ValueError(
+            "_smooth_join 两端宽度不同，必须先插入 taper 做宽度过渡："
+            f"{float(p1.width)} um -> {float(p2.width)} um"
+        )
+    if abs(width - float(p1.width)) > 1e-9:
+        raise ValueError(
+            f"_smooth_join 的 width={width} 与端口宽度 {float(p1.width)} 不一致"
+        )
+
+    p1_angle = float(p1.orientation) % 360.0
+    p2_angle = float(p2.orientation) % 360.0
+
+    # SOI 版画法：当两端是平行端口（例如 180°/0°）时，直接用 gdsfactory
+    # 的 S-bend 连接，路径短、没有绕环；这也是图中红线的画法。
+    if abs((p1_angle - p2_angle) % 180.0) < 1e-6:
+        # 优先用显式 45° Euler S：水平距离远大于高度差时，这样不会像
+        # route_single_sbend 那样向侧面鼓出、压到 MZI 的 45° 弯。
+        sign = 1.0 if np.cos(np.radians(p1_angle)) > 0 else -1.0
+        dx = end[0] - start[0]
+        dy = end[1] - start[1]
+        lead = (abs(dx) - abs(dy)) / 2.0
+        if sign * dx > 0 and lead > 0.65 * radius:
+            pts = np.array([
+                start,
+                [start[0] + sign * lead, start[1]],
+                [end[0] - sign * lead, end[1]],
+                end,
+            ])
+            path = gf.path.smooth(pts, radius=radius, bend=gf.path.euler)
+            route = gf.path.extrude(path, width=width, layer=layer)
+            if check_overlap:
+                check_waveguide_overlap(c, route, layer=layer)
+            c << route
+            return route
+
+        route_comp = gf.Component()
+        try:
+            gf.routing.route_single_sbend(
+                route_comp, p1, p2,
+                cross_section=gf.CrossSection(
+                    sections=(gf.Section(width=width, layer=layer,
+                                         port_names=("o1", "o2")),)
+                ),
+            )
+            if check_overlap:
+                check_waveguide_overlap(c, route_comp, layer=layer)
+            c.add_ref(route_comp)
+            return route_comp
+        except Exception:
+            # 平行端口但 S-bend 几何放不下时，继续走下面的 Euler 回路。
+            pass
+
+    # 非平行端口（历史 135° taper → 0° ring）使用紧凑 Euler 回路。
+    if not np.isclose(p1_angle, 135.0, atol=1e-6) or not np.isclose(p2_angle, 0.0, atol=1e-6):
+        raise ValueError(
+            "_smooth_join 只支持平行端口，或 p1=135°、p2=0° 的 Euler 回路，"
+            f"当前为 {p1_angle:.6f}°、{p2_angle:.6f}°。"
+        )
+    ang = np.radians(p1_angle)
+    d = np.array([np.cos(ang), np.sin(ang)])
+
+    # 30.6 µm 是 R=50 的 Euler 45° 弯所需切线长；这里留余量。
+    lead = 35.0
+    horizontal = 120.0
+    bottom_drop = 160.0
+    ax, ay = start + d * lead
+    x_down = ax - horizontal
+    y_bottom = ay - bottom_drop
+    # 右侧竖直段的 x 必须同时满足：
+    # 1) 距 p2 至少 130 µm，给终点 90° 弯留直线；
+    # 2) 距左侧下弯点至少 160 µm，给两个连续 90° 弯留直线；
+    # 3) 在 taper 右侧 ≥120 µm，避免竖直段穿过 taper 本体。
+    x_right = max(end[0] + 130.0, x_down + 160.0, start[0] + 120.0)
+
+    pts = np.array([
+        start,
+        [ax, ay],
+        [x_down, ay],
+        [x_down, y_bottom],
+        [x_right, y_bottom],
+        [x_right, end[1]],
+        end,
+    ])
+    path = gf.path.smooth(pts, radius=radius, bend=gf.path.euler)
+    route = gf.path.extrude(path, width=width, layer=layer)
+
+    # 拼接自检：起点/终点必须与端口严格重合，且端口朝向相反。
+    for route_port, target_port in (("o1", p1), ("o2", p2)):
+        rp = route.ports[route_port]
+        if not np.allclose(rp.center, target_port.center, atol=1e-6):
+            raise ValueError(
+                f"_smooth_join 端点不重合：{route_port} @ {rp.center} "
+                f"vs {target_port.name} @ {target_port.center}"
+            )
+        expected = (float(target_port.orientation) + 180.0) % 360.0
+        if abs((float(rp.orientation) - expected + 180.0) % 360.0 - 180.0) > 1e-6:
+            raise ValueError(
+                f"_smooth_join 端点朝向错误：{route_port}={rp.orientation}°，"
+                f"应为 {expected}°（与 {target_port.name} 相反）"
+            )
+
+    if check_overlap:
+        check_waveguide_overlap(c, route, layer=layer)
+
+    c << route
+    return route
+
 # %% 外腔：双环 + PMZI（SiN + 加热器），历史验证版
-@gf.cell
+@gf.cell(check_instances=False)
 def ExtCavDouRing(
         r_ring: float = 200,
         r_euler_false: float = 100,
@@ -23,7 +181,7 @@ def ExtCavDouRing(
         # delta_heat: float = 1,
         angle_rc: float = 20,
         angle_pmzi: float = 20,
-        angle_m2r: float = 45,
+        angle_m2r: float = 0.0,
         length_bend: float = 50,
         length_t_s2n: float = 200,
         length_taper: float = 200,
@@ -69,15 +227,18 @@ def ExtCavDouRing(
                                 GapCoup=gap_mzi,oplayer=oplayer,HeaterConfig=heater_config_mzi
                                 )
     # coupler2x2.mirror_y()
-    bend_cr1_1 = ec_ref.add_ref_off_grid(GfCBendEuler(radius=r_euler_false, angle=-angle_m2r, cross_section=X_NM))
-    bend_cr1_2 = ec_ref.add_ref_off_grid(GfCBendEuler(radius=r_euler_false, angle=angle_m2r, cross_section=X_N))
     str_cr1_1 = ec_ref << GfCStraight(width=width_mzi_near, length=length_cr1, layer=oplayer)
     str_cr1_1.connect("o1", other=coupler2x2.ports["Output1"])
-    bend_cr1_1.connect("o1", other=str_cr1_1.ports["o2"])
     tapercoupler1 = ec_ref << gf.c.taper(width1=width_mzi_near, width2=width_near,
                                          length=min(length_t_s2n, 500 * abs(width_mzi_near - width_near) + 1),
                                          layer=oplayer)
-    tapercoupler1.connect("o1", other=bend_cr1_1.ports["o2"])
+    if abs(float(angle_m2r)) < 1e-12:
+        # 0° 不需要 bend；GfCBendEuler(angle=0) 是空 cell，直接接 straight。
+        tapercoupler1.connect("o1", other=str_cr1_1.ports["o2"])
+    else:
+        bend_cr1_1 = ec_ref.add_ref_off_grid(GfCBendEuler(radius=r_euler_false, angle=-angle_m2r, cross_section=X_NM))
+        bend_cr1_1.connect("o1", other=str_cr1_1.ports["o2"])
+        tapercoupler1.connect("o1", other=bend_cr1_1.ports["o2"])
     tapercoupler2 = ec_ref << gf.c.taper(width1=width_mzi_ring, width2=width_near,
                                          length=min(length_t_s2n, 500 * abs(width_mzi_ring - width_near) + 1),
                                          layer=oplayer)
@@ -94,19 +255,14 @@ def ExtCavDouRing(
         TypeR2R=type_r2r,DirectionsHeater=(direction_rh, direction_rh)
     )
     doublering = ec_ref << ring_ref
-    doublering.connect("o1", tapercoupler2.ports["o2"])
-    doublering.movex(length_cr2)
+    # 输入臂：先用显式直波导连接 taper 与 ring 输入，避免 connect 后 movex 把连接拉断
     str_cr2_1 = ec_ref << GfCStraight(width=width_near, length=length_cr2, layer=oplayer)
     str_cr2_1.connect("o1", tapercoupler2.ports["o2"])
-    delta1 = np.array(bend_cr1_1.ports["o1"].center) - np.array(bend_cr1_1.ports["o2"].center)
-    delta2 = np.array(tapercoupler1.ports["o2"].center) - np.array(doublering.ports["o2"].center)
-    addlength = abs(delta1[1] - delta2[1]) / np.sin(angle_m2r * np.pi / 180)
-    str_tapercoupler = ec_ref << GfCStraight(width=width_near, length=addlength, layer=oplayer)
-    str_tapercoupler.connect("o1", other=tapercoupler1.ports["o2"])
-    bend_cr1_2.connect("o1", other=str_tapercoupler.ports["o2"])
-    str_cr1_2 = ec_ref << GfCStraight(width=width_near, layer=oplayer,
-                                      length=abs(-doublering.ports["o2"].center[0] + bend_cr1_2.ports["o2"].center[0]))
-    str_cr1_2.connect("o1", bend_cr1_2.ports["o2"])
+    doublering.connect("o1", str_cr2_1.ports["o2"])
+    # 返回臂：从 PMZI 另一臂的 taper 末端到 ring 输出，交给 sbend 路由自动对齐，
+    # 不再手工用 addlength + 直波导近似，旧写法会留下 1 nm 或几十 µm 的开口。
+    _smooth_join(ec_ref, tapercoupler1.ports["o2"], doublering.ports["o2"],
+                 width_near, oplayer, radius=50.0)
     ## left
     str_input = list(range(30))
     bend_input = list(range(30))
@@ -164,7 +320,7 @@ def ExtCavDouRing(
     return ec_ref
 
 
-@gf.cell
+@gf.cell(check_instances=False)
 def ExtCavTriRing(
         r_ring: float = 200,
         r_euler_false: float = 100,
@@ -178,7 +334,7 @@ def ExtCavTriRing(
         width_mzi_near: float = 1.2,
         angle_rc: float = 20,
         angle_pmzi: float = 20,
-        angle_m2r: float = 45,
+        angle_m2r: float = 0.0,
         length_bend: float = 50,
         length_t_s2n: float = 200,
         length_taper: float = 200,
@@ -229,15 +385,18 @@ def ExtCavTriRing(
                                 oplayer=oplayer, HeaterConfig=heater_config_mzi
                                 )
     # coupler2x2.mirror_y()
-    bend_cr1_1 = ec_ref.add_ref_off_grid(GfCBendEuler(radius=r_euler_false, angle=-angle_m2r, cross_section=X_NM))
-    bend_cr1_2 = ec_ref.add_ref_off_grid(GfCBendEuler(radius=r_euler_false, angle=angle_m2r, cross_section=X_N))
     str_cr1_1 = ec_ref << GfCStraight(width=width_mzi_near, length=length_cr1, layer=oplayer)
     str_cr1_1.connect("o1", other=coupler2x2.ports["Output1"])
-    bend_cr1_1.connect("o1", other=str_cr1_1.ports["o2"])
     tapercoupler1 = ec_ref << gf.c.taper(width1=width_mzi_near, width2=width_near,
                                          length=min(length_t_s2n, 500 * abs(width_mzi_near - width_near) + 1),
                                          layer=oplayer)
-    tapercoupler1.connect("o1", other=bend_cr1_1.ports["o2"])
+    if abs(float(angle_m2r)) < 1e-12:
+        # 0° 不需要 bend；GfCBendEuler(angle=0) 是空 cell，直接接 straight。
+        tapercoupler1.connect("o1", other=str_cr1_1.ports["o2"])
+    else:
+        bend_cr1_1 = ec_ref.add_ref_off_grid(GfCBendEuler(radius=r_euler_false, angle=-angle_m2r, cross_section=X_NM))
+        bend_cr1_1.connect("o1", other=str_cr1_1.ports["o2"])
+        tapercoupler1.connect("o1", other=bend_cr1_1.ports["o2"])
     tapercoupler2 = ec_ref << gf.c.taper(width1=width_mzi_ring, width2=width_near,
                                          length=min(length_t_s2n, 500 * abs(width_mzi_ring - width_near) + 1),
                                          layer=oplayer)
@@ -256,19 +415,13 @@ def ExtCavTriRing(
         HeaterConfig=heater_config_ring
     )
     doublering = ec_ref << ring_ref
-    doublering.connect("o1", tapercoupler2.ports["o2"])
-    doublering.movex(length_cr2)
+    # 输入臂：显式直波导连接 taper 与 ring 输入，避免 connect 后 movex 拉断
     str_cr2_1 = ec_ref << GfCStraight(width=width_near, length=length_cr2, layer=oplayer)
     str_cr2_1.connect("o1", tapercoupler2.ports["o2"])
-    delta1 = np.array(bend_cr1_1.ports["o1"].center) - np.array(bend_cr1_1.ports["o2"].center)
-    delta2 = np.array(tapercoupler1.ports["o2"].center) - np.array(doublering.ports["o2"].center)
-    addlength = abs(delta1[1] - delta2[1]) / np.sin(angle_m2r * np.pi / 180)
-    str_tapercoupler = ec_ref << GfCStraight(width=width_near, length=addlength, layer=oplayer)
-    str_tapercoupler.connect("o1", other=tapercoupler1.ports["o2"])
-    bend_cr1_2.connect("o1", other=str_tapercoupler.ports["o2"])
-    str_cr1_2 = ec_ref << GfCStraight(width=width_near, layer=oplayer,
-                                      length=max(-doublering.ports["o2"].center[0] + bend_cr1_2.ports["o2"].center[0],0))
-    str_cr1_2.connect("o1", bend_cr1_2.ports["o2"])
+    doublering.connect("o1", str_cr2_1.ports["o2"])
+    # 返回臂：用 sbend 路由从 taper 到 ring 输出，避免手工直波导留下开口
+    _smooth_join(ec_ref, tapercoupler1.ports["o2"], doublering.ports["o2"],
+                 width_near, oplayer, radius=50.0)
     ## left
     str_input = list(range(30))
     bend_input = list(range(30))
@@ -326,7 +479,7 @@ def ExtCavTriRing(
     return ec_ref
 
 # %% ExternalCavity1SiNH:Proven design for SiN+Heater
-@gf.cell
+@gf.cell(check_instances=False)
 def ExtCavDouRing2(
         r_ring: float = 200,
         r_euler_false: float = 100,
@@ -338,7 +491,7 @@ def ExtCavDouRing2(
         width_mzi_near: float = 1.2,
         angle_rc: float = 20,
         angle_pmzi: float = 20,
-        angle_m2r: float = 45,
+        angle_m2r: float = 0.0,
         length_bend: float = 50,
         length_t_s2n: float = 200,
         length_taper: float = 200,
@@ -445,8 +598,6 @@ def ExtCavDouRing3(
     coupler2x2.mirror_y()
     bend_cr1_1 = ec_ref.add_ref_off_grid(GfCBendEuler(radius=r_euler_false, angle=-angle_m2r, width=width_mzi_near, layer=oplayer,
                                         with_arc_floorplan=False))
-    bend_cr1_2 = ec_ref.add_ref_off_grid(GfCBendEuler(radius=r_euler_false, angle=angle_m2r, width=width_near, layer=oplayer,
-                                        with_arc_floorplan=False))
     bend_cr1_1.connect("o1", other=coupler2x2.ports["Output1"])
     tapercoupler1 = ec_ref.create_vinst(gf.c.taper(width1=width_mzi_near, width2=width_near, length=length_t_s2n, layer=oplayer))
     tapercoupler1.connect("o1", other=bend_cr1_1.ports["o2"])
@@ -461,15 +612,18 @@ def ExtCavDouRing3(
         oplayer=oplayer,
     )
     doublering = ec_ref.create_vinst(ring_ref)
-    doublering.connect("o1", bend_c2r.ports["o2"])
+    # 先摆到目标位置，再由下面的 route_off_grid 负责连接；
+    # 旧写法 connect 之后再 movex 会把已经接好的输入臂拉断。
+    # 水平偏移保留旧版的 length_ring2coup；垂直方向额外抬升，避免
+    # ring 的底部总线压到 PMZIHSn 的波导上（默认至少留 50 um）。
     doublering.movex(length_ring2coup)
-    delta1 = np.array(bend_cr1_1.ports["o1"].center) - np.array(bend_cr1_1.ports["o2"].center)
-    delta2 = np.array(tapercoupler1.ports["o2"].center) - np.array(doublering.ports["o2"].center)
-    addlength = abs(delta1[1] - delta2[1]) / np.sin(angle_m2r * np.pi / 180)
-    str_tapercoupler = ec_ref.create_vinst(GfCStraight(width=width_near, length=addlength, layer=oplayer))
-    str_tapercoupler.connect("o1", other=tapercoupler1.ports["o2"])
-    bend_cr1_2.connect("o1", other=str_tapercoupler.ports["o2"])
-    route_off_grid(ec_ref, bend_cr1_2.ports["o2"], doublering.ports["o2"], cross_section=CS_near, radius=r_euler_false)
+    ring_clearance = 50.0
+    dy_clear = coupler2x2.dbbox().top - doublering.dbbox().bottom + ring_clearance
+    if dy_clear > 0:
+        doublering.movey(dy_clear)
+    # 回流臂直接从 taper 末端接到 ring 输出；旧代码用 addlength + 直波导近似，
+    # 会留下几十 µm 的开口，且 bend_cr1_2 本身没有和 taper 相连。
+    route_off_grid(ec_ref, tapercoupler1.ports["o2"], doublering.ports["o2"], cross_section=CS_near, radius=r_euler_false)
     route_off_grid(ec_ref, bend_c2r.ports["o2"], doublering.ports["o1"], cross_section=CS_near, radius=r_euler_false)
     ## input
     str_input = list(range(30))
@@ -498,7 +652,7 @@ def ExtCavDouRing3(
                        allow_type_mismatch=True)
     # add drop
     ## optics
-    ec_ref.add_port("Input", port=str_input[1].ports["o1"])
+    ec_ref.add_port("Input", port=str_input[2].ports["o1"])
     ec_ref.add_port("Output", port=str_output[0].ports["o2"])
     ec_ref.add_port("Ro1", port=doublering.ports["R1Through"])
     ec_ref.add_port("Ro2", port=doublering.ports["R1Add"])
@@ -547,7 +701,7 @@ def ExtCavTriRing2(
         input: 组件的光学输入端口�?        output: 组件的光学输出端口�?        to1, to2: 从三环结构引出的端口?        r1Th, r1Ad, r2Th, r2Ad: 从三环结构的特定环引出的Through和Add端口（经过taper和bend）�?        r1L, r1R, r2L, r2R, r3L, r3R: 三环结构内部加热器（如果存在于ADRAPRADR中）的端口�?        co2, co3: 三环结构连接到交叉波导之前的端口?    """
     ec2_ref = gf.Component(Name)
     if Crossing == None:
-        crossing0 = Crossing_taper(WidthCross=0.8, WidthWg=width_single, LengthTaper=5, oplayer=oplayer)
+        crossing0 = Crossing_taper(WidthCross=0.8, WidthWg=width_near, LengthTaper=5, oplayer=oplayer)
     else:
         crossing0 = Crossing
     TriRing = ec2_ref << ADRAPRADR(WidthRing=width_ring, WidthNear=width_near, WidthSingle=width_single,
@@ -573,12 +727,19 @@ def ExtCavTriRing2(
     taper_n2s_3.connect("o1", TriRing.ports["r2Th"])
     taper_n2s_4 = ec2_ref << taperbend
     taper_n2s_4.connect("o1", TriRing.ports["r2Ad"])
-    # crossing bend
+    # crossing bend: co2/co3 是 width_near，先 taper 到 width_single 再转 45°，
+    # 避免宽度突变。
+    taper_cross = gf.c.taper(width1=width_near, width2=width_single,
+                             length=length_taper / 2, layer=oplayer)
+    taper_co2 = ec2_ref << taper_cross
+    taper_co2.connect("o1", TriRing.ports["co2"])
+    taper_co3 = ec2_ref << taper_cross
+    taper_co3.connect("o1", TriRing.ports["co3"], mirror=True)
     bend45 = GfCBendEuler(width=width_single, radius=120, angle=45, layer=oplayer)
     bend45_o2 = ec2_ref.add_ref_off_grid(bend45)
-    bend45_o2.connect("o1", TriRing.ports["co2"])
+    bend45_o2.connect("o1", taper_co2.ports["o2"])
     bend45_o3 = ec2_ref.add_ref_off_grid(bend45)
-    bend45_o3.connect("o1", TriRing.ports["co3"], mirror=True)
+    bend45_o3.connect("o1", taper_co3.ports["o2"])
     ec2_ref.add_port("input", port=bend45_o2.ports["o2"])
     ec2_ref.add_port("output", port=bend45_o3.ports["o2"])
     # Heater

@@ -274,7 +274,6 @@ def DifferentHeater(
         # heat component
         Hp1 = h << gf.path.extrude(PathHeat, cross_section=X_Heat)
         Hc1 = gf.path.extrude(PathHeat, cross_section=X_RnoH)
-        Hc1.flatten()
         h << Hc1
         via = GfCStraight(width=WidthVia, length=WidthVia, layer=vialayer)
         viabox = via.bbox()

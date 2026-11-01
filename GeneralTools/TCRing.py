@@ -456,7 +456,7 @@ def TCRing1DC(
 
 
 # %% TCRing2: bend PulleyRing
-@gf.cell
+@gf.cell(check_instances=False)
 def TCRing2(
         r_ring: float = 120,
         width_ring: float = 1,
@@ -599,7 +599,7 @@ def TCRing2(
 #
 
 # %% TCRing2_2: pulleyRing taper_s2n after output bend
-@gf.cell
+@gf.cell(check_instances=False)
 def TCRing2_2(
         r_ring: float = 120,
         width_ring: float = 1,
@@ -661,7 +661,7 @@ def TCRing2_2(
 
 
 # %% TCRing2_3: pulleyRing taper_s2n before output bend
-@gf.cell
+@gf.cell(check_instances=False)
 def TCRing2_3(
         r_ring: float = 120,
         width_ring: float = 1,
@@ -1194,7 +1194,7 @@ def TCRingT1(
 
 
 # TCRingT2
-@gf.cell
+@gf.cell(check_instances=False)
 def TCRingT2(
         r_ring: float = 120,
         r_euler_min: float = r_euler_true,

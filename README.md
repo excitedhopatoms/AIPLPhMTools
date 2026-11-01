@@ -114,9 +114,11 @@ AIPLPhMTools/
 ├── __init__.py              # 包入口：导入 GeneralTools 并显式导出
 ├── GeneralTools/            # 通用器件库（核心版图组件）
 │   ├── BasicDefine.py       # 图层、截面、直/弯波导、锥、斜端面、Euler 路径
+│   ├── LayerStack.py        # 从设计手册/映射生成统一 LayerStack
 │   ├── Ring.py              # 环形谐振器（Pulley 耦合、finger 环等）
 │   ├── RaceTrack.py         # 跑道型谐振器（Pulley / 直耦合）
 │   ├── CouplerMZI.py        # 2×2 耦合器、DMZI、PMZI、Sagnac 环
+│   ├── Coupon.py            # 通用两端 coupon 框架（core 可替换）
 │   ├── CoupledCavity.py     # 二阶耦合环滤波器 / CROW / SCISSOR
 │   ├── DBR.py / DBR_inv.py  # 常规 DBR、E-DBR、反相 E-DBR
 │   ├── Heater.py            # 加热器、过孔阵列
@@ -129,7 +131,8 @@ AIPLPhMTools/
 │   ├── ExtCav.py            # 外腔激光器核心
 │   ├── GongCavity.py        # 工字形微腔
 │   ├── WangCavity.py        # 王字形微腔
-│   ├── TCRing.py            # 环形测试结构
+│   ├── TCRing.py            # 单个环测试结构
+│   ├── TestRow.py           # ring coupon 行/色散环阵列统一框架
 │   ├── TCRaceTrack.py       # 跑道测试结构
 │   ├── TCCoupledCavity.py   # 耦合腔测试结构
 │   ├── SnapMerge.py         # 顶点吸附 / 同层合并
@@ -147,6 +150,11 @@ AIPLPhMTools/
 │   ├── Assembly.py          # 端口包装 / connect / PDK 加载
 │   ├── _selftest.py         # SOITools 自检
 │   └── README.md
+├── lvs.py                   # 连通性 LVS 检查（CLI + Python API）
+├── lvs_selftest.py          # LVS 自检（PASS/FAIL 用例）
+├── examples/                # LVS 示例 spec
+│   ├── lvs_coupled_filter.yaml
+│   └── lvs_coupled_filter_bad.yaml
 └── docs/                    # 版图手册网站（GitHub Pages）
 ```
 
@@ -347,9 +355,17 @@ RSOA 特殊锥形波导。
 
 ---
 
-##### `remove_layer(component, layer)`
+##### `remove_layer(component, layer, preserve_hierarchy=True, check_grid=True)`
 
-从组件中移除指定图层的所有几何图形。
+从组件层次中移除指定图层的所有几何图形。默认保留 cell 层次（不再 flatten）：
+只复制含目标图层的 cell，其余子树原样复用；会检查过滤后是否仍有目标图层残留，
+并校验 instance 是否仍落在设计网格上。`preserve_hierarchy=False` 时保留旧的
+flatten 行为，仅用于兼容旧脚本。
+
+##### `check_waveguide_overlap(component, route, layer, min_overlap=1e-3)`
+
+检查一段待添加的波导是否与组件已有同层波导发生面积重叠（短路）。端点 butt
+joint 只共享边，交叠面积为 0；超过容差会抛出 `ValueError` 并给出交叠 bbox。
 
 ---
 
@@ -2374,6 +2390,178 @@ render_to_gds(
 | `add_labels` | `bool` | `True` | 是否添加端口标签 |
 
 **返回值**: `str` — 输出文件路径。
+
+---
+
+## 通用两端 Coupon（中间 core 可替换）
+
+`GeneralTools/Coupon.py` 把 TC 系列反复出现的“core + taper + bend + tin/tout + 对齐总长度”
+收成一个通用函数：
+
+```python
+import AIPLPhMTools as ap
+
+core = ap.RaceTrackP(RadiusRing=200, LengthRun=1000, IsAD=False)
+coupon = ap.Coupon(
+    core=core,
+    core_input="Input",
+    core_output="Through",
+    io_width=1.0,
+    width_in=core.ports["Input"].width,
+    width_out=core.ports["Through"].width,
+    taper_length=500,
+    bend_radius=20,
+    position_taper_in="after_bend",
+    position_taper_out="before_bend",
+    length_total=10000,
+    center_ports=("Rcen1", "Rcen2"),
+    forward_ports=tuple(p.name for p in core.ports),
+    port_prefix="Ring",
+)
+```
+
+中间的 `core` 不限于环：跑道腔、MZI、耦合腔、任意带 `Input/Through` 或
+`o1/o2` 左右端口的 Component 都可以替换。`TCRingCoupon` 是 ring 版本示例：
+
+```python
+coupon = ap.TCRingCoupon(r_ring=150, gap_rc=0.8, is_ad=True)
+```
+
+现有 `TCRing*` / `TCRaceTrack*` / `TCCoupledCavity*` 保留为兼容入口；
+新结构优先用 `Coupon(core=...)` 组装，不再复制 IO/绕线代码。
+
+---
+
+## LayerStack：从设计手册生成统一层对象
+
+`GeneralTools/LayerStack.py` 支持从设计手册的 Markdown 表格或 YAML/JSON 读取层号：
+
+```python
+import AIPLPhMTools as ap
+
+stack = ap.LayerStack.from_design_manual(
+    "AIPLPhMTools/examples/layer_stack_manual.md",
+    section="层号表",
+)
+stack.WG.key          # (1, 0)
+stack.M1.role         # "heater"
+stack.M1.display_thickness
+
+# 没有手册时，用库内常用层生成默认对象
+stack0 = ap.LayerStack.default()
+```
+
+手册表格格式：
+
+```markdown
+| 名称 | layer/datatype | 角色 | 显示厚度 |
+|------|----------------|------|----------|
+| WG | 1/0 | optical | 1.0 |
+| M1 | 10/0 | heater | 1.0 |
+```
+
+`LayerStack` 只统一“名称 → (layer, datatype) / 角色 / 显示厚度”，不绑定具体工艺；
+后续 DRC、LVS、3D 和器件函数都可以逐步改为接收同一个 `stack`。
+
+---
+
+## 测试结构行 / 色散环阵列
+
+`GeneralTools/TestRow.py` 把“画一排 ring”的逻辑从项目脚本收进库：
+
+- `RingCouponSpec`：一颗 ring coupon 的不可变参数（环、耦合、taper、加热器）；
+- `ring_coupon(spec)`：构建单颗 coupon；
+- `RingCouponRow(specs, ...)`：按 `x/y/dx/dy` 排成一行，端口统一为 `R{i}_...`；
+- `DispersionRingRow(gaps, heater_configs, ...)`：202609_SiN730_WYL 中
+  `add_dispersion_rings` 的库内封装，支持每颗 ring 不同 gap/heater，
+  最后一颗自动切到 `no_bend`。
+
+```python
+import AIPLPhMTools as ap
+
+row = ap.DispersionRingRow(
+    gaps=(0.7, 0.7, 0.8, 0.8),
+    heater_configs=(None, None, None, None),
+    width_ring=1.5,
+    width_near=1.27,
+    radius_ring=217,
+    angle_rc=10,
+    pitch=500,
+    y0=4000,
+    dy=20,
+)
+row.write_gds("dispersion_ring_row.gds")
+```
+
+原来项目脚本里的 `for i in range(8): TCRingT1(...)`、`movey(...)`、文字标签和端口
+汇总都收敛到这一层；新增行结构只需要给 `RingCouponSpec` 列表，不再复制循环代码。
+
+---
+
+## LVS 连通性检查
+
+`AIPLPhMTools.lvs` 做的是**端口连通性 LVS**：把版图按层合并成连通块，
+检查原理图 netlist 里的端子是否接对、有没有开路/短路、有没有画错层。
+
+### 直接检查 Python 器件
+
+端子坐标自动从 `Component.ports` 读取，spec 里只写 net：
+
+```yaml
+# examples/lvs_coupled_filter.yaml
+layers:
+  WG: [1, 0]
+
+nets:
+  bottom_bus:
+    layer: WG
+    ports: [Input, Through]
+  top_bus:
+    layer: WG
+    ports: [Add, Drop]
+
+min_width: 0.4
+required_cells: [CoupledRingFilter]
+allow_extra_nets: true
+```
+
+```bash
+python -m AIPLPhMTools.lvs     --component CoupledRingFilter     --spec AIPLPhMTools/examples/lvs_coupled_filter.yaml
+
+# 自检：直波导 PASS、拆两个 net 短路 FAIL、耦合环正确/错误 netlist 各一组
+python -m AIPLPhMTools.lvs_selftest
+```
+
+输出会逐项打印 `PASS/FAIL`，退出码 0/1；加 `--json report.json` 可保存机器可读报告。
+
+### 检查已有 GDS
+
+在 spec 里给出端子的坐标和图层，然后用 `--gds`：
+
+```yaml
+ports:
+  Input:   {layer: WG, xy: [-130, 0]}
+  Through: {layer: WG, xy: [130, 0]}
+  Add:     {layer: WG, xy: [-130, 403.7]}
+  Drop:    {layer: WG, xy: [130, 403.7]}
+```
+
+```bash
+python -m AIPLPhMTools.lvs --gds chip.gds --spec chip_lvs.yaml
+```
+
+### 检查内容
+
+- **open**：同一 net 的端子在同一个连通块；
+- **short**：不同 net 不能落在同一个连通块；
+- **missing**：端子必须落在声明的图层上；
+- **width**：可选 `min_width`，检查端子处线宽；
+- **cell**：可选 `required_cells`，检查 GDS 里是否存在指定器件 cell；
+- **extra nets**：可选 `allow_extra_nets: false`，把未声明的连通块也当失败；
+- **reference**：加 `--reference old.gds`，额外对比逐层面积 / bbox / 连通块数，用于版图回归。
+
+示例里还提供了一个故意写错的 spec（`lvs_coupled_filter_bad.yaml`），
+运行后会得到退出码 1，可用来确认脚本确实能抓到开路/短路。
 
 ---
 

@@ -228,68 +228,160 @@ def ADRAPRADR(
         HeaterConfig: HeaterConfigClass = None,
 ) -> Component:
     """
-    创建一个由三个环组成的谐振结构：两个Add-Drop环（ADR1, ADR2）夹着一个全通环（APR, ring3）。
-    ADR1的Drop连接到APR的Input，APR的Through连接到ADR2的Drop。
-    可以选择是否通过一个交叉波导组件连接ADR1的Input和ADR2的Input。
+    创建一个由三个环组成的谐振结构：两个 Add-Drop 环（ADR1/ADR2）和一个
+    位于它们下方的全通环（APR, ring3）。
+
+    新版布局（避免旧版环互相压住）：
+    - ADR1/ADR2 横向排布，ADR2 用 Drop 对齐后向上镜像；
+    - APR 放在两个 Drop 下方，用两条 45° Euler S 弯分别接 ADR1.Drop
+      和 ADR2.Drop；
+    - 两个 ADR 的 Input 之间放 CrossComp，左右各接一段，剩余两个端口
+      作为 co2/co3。
 
     参数:
-        (大部分参数用于定义内部的 `RingPulley` 和 `RingPulley2` 组件)
-        WidthSingle (float): 当 `IsSquare`=True时，连接到交叉波导的波导宽度 (µm)。
-        LengthR2R (float): ADR1到APR，以及APR到ADR2的连接直波导长度 (µm)。
-        LengthR2C (float): 当 `IsSquare`=True时，从外部到交叉波导的连接直波导长度 (µm)。
-        RadiusCrossBend (float): 当 `IsSquare`=True时，连接到交叉波导的弯曲半径 (µm)。
-        DeltaRadius (float): 中间环 (ring3) 相对于两侧AD环的半径差异 (µm)。
-        AngleCouple3 (float): 中间环 (ring3, 使用RingPulley2) 的耦合角度 (度)。
-        IsSquare (bool): 如果为True，则尝试以方形布局连接ADR1和ADR2的Input端口到提供的`CrossComp`。
-        CrossComp (ComponentSpec | None): 可选的外部交叉波导组件。如果`IsSquare`为True且提供了此组件，
-                                        则会尝试使用它。
+        WidthRing, WidthNear: 环/总线宽度 (µm)。
+        WidthSingle: 保留参数；当前布局的 CrossComp 直接使用 WidthNear。
+        LengthR2R: 两个 AD 环 Drop 间距的**最小值**；实际间距还会根据
+            ring3 宽度自动放大，保证 S 弯能放下。
+        LengthR2C, RadiusCrossBend: 保留参数（旧版方形布局使用），当前
+            交叉波导居中放置，不再用它们生成穿过环的长直波导。
+        RadiusRing: ADR1 半径；ADR2 = RadiusRing + DeltaRadius；
+            ring3 = RadiusRing + DeltaRadius/2。
+        AngleCouple, AngleCouple3: ADR / APR 的耦合角 (度)。
+        IsSquare: True 时用 CrossComp 连接两个 ADR 的 Input；False 时
+            直接暴露两个 Input 为 co2/co3。
+        CrossComp: 2x2 交叉波导；端口宽度必须等于 WidthNear。
 
     返回:
         Component: 生成的 ADR-AP-ADR 结构组件。
 
     端口:
-        (如果IsSquare=False，则没有co2, co3端口，ADR1和ADR2的Input端口直接暴露)
-        co2, co3: (仅当IsSquare=True且CrossComp提供时) 交叉波导的另外两个端口。
-        r1Th, r1Ad: 第一个AD环的Through和Add端口。
-        r2Th, r2Ad: 第二个AD环的Through和Add端口。
-        r1L, r1R, r2L, r2R, r3L, r3R: 三个环的加热器端口（如果IsHeat=True且内部环组件生成这些端口）。
+        co2, co3: 交叉波导的另外两个端口；没有 CrossComp 时为两个
+            ADR 的 Input。
+        r1Th, r1Ad: 第一个 AD 环的 Through/Add。
+        r2Th, r2Ad: 第二个 AD 环的 Through/Add。
+        r1L, r1R, r2L, r2R, r3L, r3R: 三个环的加热器端口。
     """
     TriRing = gf.Component()
+    Ring3Radius = RadiusRing + DeltaRadius / 2
+    route_radius = 50.0
+
+    # 1) 两个 AD 环横向排布；ring2 用 Drop 对齐后向上镜像，和 TriRingPulley
+    #    的干净排法一致。两个 Drop 之间的距离必须足够放中间的全通环及两条
+    #    对角 S 弯，否则会像旧版一样把环压在别的环上。
     ring1 = TriRing << RingPulley(
         IsAD=True, WidthRing=WidthRing, RadiusRing=RadiusRing, oplayer=oplayer, GapRing=GapRing,
-        WidthNear=WidthNear, AngleCouple=AngleCouple,HeaterConfig=HeaterConfig
+        WidthNear=WidthNear, AngleCouple=AngleCouple, HeaterConfig=HeaterConfig
     )
+    spacing = max(float(LengthR2R), 2.0 * Ring3Radius + 300.0)
+    place_r2 = TriRing << GfCStraight(width=WidthNear, length=spacing, layer=oplayer)
+    place_r2.connect("o1", ring1.ports["Drop"])
     ring2 = TriRing << RingPulley(
         IsAD=True, WidthRing=WidthRing, RadiusRing=RadiusRing + DeltaRadius, oplayer=oplayer, GapRing=GapRing,
         WidthNear=WidthNear, AngleCouple=AngleCouple, HeaterConfig=HeaterConfig
     )
-    ring3 = TriRing << RingPulley2(
-        WidthRing=WidthRing, RadiusRing=RadiusRing + DeltaRadius / 2, oplayer=oplayer, GapRing=GapRing,
-        WidthNear=WidthNear, AngleCouple=AngleCouple3, HeaterConfig=HeaterConfig
-    )
-    str_r1r3 = TriRing << GfCStraight(length=LengthR2R, width=WidthNear, layer=oplayer)
-    str_r2r3 = TriRing << GfCStraight(length=LengthR2R, width=WidthNear, layer=oplayer)
-    str_r1r3.connect("o1", ring1.ports["Drop"])
-    ring3.connect("Input", str_r1r3.ports["o2"], mirror=True)
-    str_r2r3.connect("o1", ring3.ports["Through"])
-    ring2.connect("Drop", str_r2r3.ports["o2"])
+    ring2.connect("Drop", place_r2.ports["o2"], allow_width_mismatch=True)
+    ring2.mirror_y(ring2.ports["Drop"].center[1])
+    place_r2.delete()
 
+    # 2) 全通环放在两个 Drop 下方。RingPulley(IsAD=False) 的 Input/Through
+    #    是 0°/180°，可以直接用两条对角 Euler S 弯接回两个 Drop；旧版用
+    #    RingPulley2 的 45° 端口硬接，导致环互相压住。
+    ring3 = TriRing << RingPulley(
+        IsAD=False, WidthRing=WidthRing, RadiusRing=Ring3Radius,
+        oplayer=oplayer, GapRing=GapRing, WidthNear=WidthNear,
+        AngleCouple=AngleCouple3, HeaterConfig=HeaterConfig,
+    )
+    ring1_bb, ring2_bb = ring1.dbbox(), ring2.dbbox()
+    ring3_bb = ring3.dbbox()
+    center_x = (ring1.ports["Drop"].center[0] + ring2.ports["Drop"].center[0]) / 2.0
+    top_y = min(ring1_bb.bottom, ring2_bb.bottom) - 50.0
+    ring3.move((center_x - (ring3_bb.left + ring3_bb.right) / 2.0, top_y - ring3_bb.top))
+
+    def _check_route(route, p0, p1):
+        for route_port, target in (("o1", p0), ("o2", p1)):
+            rp = route.ports[route_port]
+            if not np.allclose(rp.center, target.center, atol=1e-6):
+                raise ValueError(
+                    f"ADRAPRADR 路由端点不重合：{route_port} @ {rp.center} "
+                    f"vs {target.name} @ {target.center}"
+                )
+            expected = (float(target.orientation) + 180.0) % 360.0
+            if abs((float(rp.orientation) - expected + 180.0) % 360.0 - 180.0) > 1e-6:
+                raise ValueError(
+                    f"ADRAPRADR 路由端点朝向错误：{route_port}={rp.orientation}°，"
+                    f"应为 {expected}°（与 {target.name} 相反）"
+                )
+
+    def _horizontal_s_route(p0, p1):
+        """两条水平端口的 Euler S 弯；用 45° 斜段跨越 y 差。"""
+        start = np.array(p0.center, dtype=float)
+        end = np.array(p1.center, dtype=float)
+        sign = 1.0 if abs((float(p0.orientation) % 360.0) - 0.0) < 1e-6 else -1.0
+        dx = end[0] - start[0]
+        dy = end[1] - start[1]
+        if sign * dx <= 0:
+            raise ValueError(
+                "ADRAPRADR: 环间端口方向与相对位置不一致，"
+                f"p0={p0.name}@{p0.center} {p0.orientation}°, p1={p1.name}@{p1.center}"
+            )
+        lead = (abs(dx) - abs(dy)) / 2.0
+        if lead < 0.65 * route_radius:
+            raise ValueError(
+                "ADRAPRADR: 两个 AD 环间距不足，无法放置中间全通环和 Euler S 弯；"
+                f"lead={lead:.3f} um，至少需要 {0.65 * route_radius:.3f} um。"
+            )
+        pts = np.array([
+            start,
+            [start[0] + sign * lead, start[1]],
+            [end[0] - sign * lead, end[1]],
+            end,
+        ])
+        path = gf.path.smooth(pts, radius=route_radius, bend=gf.path.euler)
+        route = gf.path.extrude(path, width=WidthNear, layer=oplayer)
+        _check_route(route, p0, p1)
+        return route
+
+    TriRing << _horizontal_s_route(ring1.ports["Drop"], ring3.ports["Through"])
+    TriRing << _horizontal_s_route(ring2.ports["Drop"], ring3.ports["Input"])
+
+    # 3) 交叉波导放在两个 AD 环 Input 之间，左右各接一段，剩下两个端口
+    #    作为外腔的 co2/co3。这里不再使用 route_single 在同一点重复布线。
     if IsSquare and CrossComp:
         crossing = TriRing << CrossComp
-        str_r12c = TriRing << GfCStraight(length=LengthR2C, width=WidthNear, layer=oplayer)
-        str_r22c = TriRing << GfCStraight(length=LengthR2C, width=WidthNear, layer=oplayer)
-        str_r12c.connect("o2", ring1.ports["Input"])
-        str_r22c.connect("o1", ring2.ports["Input"])
-        bend_r12c = TriRing << gf.c.bend_euler(width=WidthNear, radius=RadiusCrossBend, angle=-90, layer=oplayer)
-        bend_r22c = TriRing << gf.c.bend_euler(width=WidthNear, radius=RadiusCrossBend, angle=-90, layer=oplayer)
-        bend_r12c.connect("o2", str_r12c.ports["o1"])
-        bend_r22c.connect("o1", str_r22c.ports["o2"])
-        crossing.connect("o1", bend_r12c.ports["o1"], allow_width_mismatch=True, allow_layer_mismatch=True)
-        crossing.movey(bend_r22c.ports["o2"].center[1] - crossing.ports["o4"].center[1])
-        gf.routing.route_single(TriRing, crossing.ports["o1"], bend_r12c.ports["o1"], route_width=WidthNear, layer=oplayer)
-        gf.routing.route_single(TriRing, crossing.ports["o4"], bend_r22c.ports["o2"], route_width=WidthNear, layer=oplayer)
+        cross_width = float(crossing.ports["o3"].width)
+        if abs(cross_width - WidthNear) > 1e-9:
+            raise ValueError(
+                "ADRAPRADR: CrossComp 的端口宽度必须等于 WidthNear，"
+                f"当前 {cross_width} vs {WidthNear} um；请先加 taper 或修改 CrossComp。"
+            )
+        left_len = (ring2.ports["Input"].center[0] - ring1.ports["Input"].center[0]) / 2.0
+        # o3 在 crossing 中心的左侧，直波导长度要把这段偏置加回来，
+        # 保证 crossing 中心落在两个 Input 的中点。
+        left_len += crossing.ports["o3"].center[0] - crossing.center[0]
+        left = TriRing << GfCStraight(width=WidthNear, length=left_len, layer=oplayer)
+        left.connect("o1", ring1.ports["Input"])
+        crossing.connect("o3", left.ports["o2"])
+
+        start = np.array(crossing.ports["o1"].center, dtype=float)
+        end = np.array(ring2.ports["Input"].center, dtype=float)
+        lead = 50.0
+        pts = np.array([
+            start,
+            [start[0] + lead, start[1]],
+            [end[0] - lead, end[1]],
+            end,
+        ])
+        path = gf.path.smooth(pts, radius=route_radius, bend=gf.path.euler)
+        right_route = gf.path.extrude(path, width=WidthNear, layer=oplayer)
+        _check_route(right_route, crossing.ports["o1"], ring2.ports["Input"])
+        TriRing << right_route
         TriRing.add_port(name="co2", port=crossing.ports["o2"])
-        TriRing.add_port(name="co3", port=crossing.ports["o3"])
+        TriRing.add_port(name="co3", port=crossing.ports["o4"])
+    else:
+        # 没有交叉波导时，至少把两个 AD 环 Input 暴露出来，避免端口悬空。
+        TriRing.add_port(name="co2", port=ring1.ports["Input"])
+        TriRing.add_port(name="co3", port=ring2.ports["Input"])
 
     TriRing.add_port("r1Th", port=ring1.ports["Through"])
     TriRing.add_port("r1Ad", port=ring1.ports["Add"])
@@ -435,7 +527,7 @@ def TriRingPulley(
     return c
 
 # %% CoupleCavity
-@gf.cell
+@gf.cell(check_instances=False)
 def CoupleRingDRT1(
         WidthRing1: float = 1,
         WidthNear1: float = 0.9,
@@ -548,7 +640,6 @@ def CoupleRingDRT1(
                 c.add_port(name="Ring2" + port.name, port=port)
                 c.add_port(name="R2" + port.name, port=port)
     # add_labels_to_ports(c,label_layer=(412,8))
-    c.flatten()
     return c
 
 

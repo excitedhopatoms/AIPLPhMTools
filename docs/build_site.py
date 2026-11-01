@@ -87,6 +87,7 @@ MODULE_CAT = {
     "MultiRaceTrack": "racetrack",
     "CouplerMZI": "couplers",
     "CoupledCavity": "coupled",
+    "Coupon": "test",
     "DBR": "dbr",
     "DBR_inv": "dbr",
     "Heater": "heaters",
@@ -100,6 +101,7 @@ MODULE_CAT = {
     "TCCoupledCavity": "test",
     "TCRing": "test",
     "TCRaceTrack": "test",
+    "TestRow": "test",
 }
 
 
@@ -593,6 +595,13 @@ VARIANTS: dict[str, list[dict]] = {
         {"param": "GapBus", "kwargs": {"GapBus": 0.6}, "label": "GapBus = 0.6"},
         {"param": "RingGap", "kwargs": {"RingGap": 5}, "label": "RingGap = 5（更独立）"},
     ],
+    "TCRingCoupon": [
+        {"param": "r_ring", "kwargs": {"r_ring": 80}, "label": "r_ring = 80"},
+        {"param": "r_ring", "kwargs": {"r_ring": 200}, "label": "r_ring = 200"},
+        {"param": "gap_rc", "kwargs": {"gap_rc": 0.5}, "label": "gap_rc = 0.5"},
+        {"param": "position_taper_in", "kwargs": {"position_taper_in": "no_bend"}, "label": "输入 no_bend"},
+        {"param": "is_ad", "kwargs": {"is_ad": False}, "label": "is_ad = False"},
+    ],
     "GSGELE": [
         {"param": "IsPad", "kwargs": {"IsPad": True, "LengthEle": 300}, "label": "IsPad = True"},
         {"param": "Is2Pad", "kwargs": {"Is2Pad": True, "LengthEle": 300},
@@ -741,7 +750,23 @@ def _build_via_array(**kw):
     return out
 
 
+def _build_coupon_demo():
+    core = ap.GfCStraight(length=200, width=2)
+    return ap.Coupon(
+        core=core, core_input="o1", core_output="o2",
+        io_width=1.0, width_in=2.0, width_out=2.0,
+        taper_length=100, length_total=1000,
+            center_ports=None, forward_ports=("o1", "o2"), port_prefix="Core",
+    )
+
+
 MANUAL = {
+    "Coupon": {
+        "module": "Coupon", "category": "test",
+        "factory": _build_coupon_demo, "sig": ap.Coupon,
+        "note": "通用两端 coupon：中间 core 只要有左右端口即可。这里用 200 µm 直波导作 core 演示。",
+        "code": "core = ap.GfCStraight(length=200, width=2)\ncoupon = ap.Coupon(core=core, core_input='o1', core_output='o2', io_width=1.0, length_total=1000)",
+    },
     "DifferentHeater": {
         "module": "Heater", "category": "heaters",
         "factory": _build_different_heater, "sig": ap.DifferentHeater,
@@ -1413,7 +1438,8 @@ def component_page(comp, comps) -> str:
 
     if comp.get("view3d"):
         body.append('<div class="section-head"><h2>3D 层叠视图</h2></div>')
-        body.append('<p class="lead">拖动旋转、滚轮缩放；每一层的厚度都可以单独调整。'
+        body.append('<p class="lead">拖动旋转、滚轮缩放；每一层按实体块显示'
+                    '（顶面 + 侧壁，不绘制底面），厚度可以逐层单独调整。'
                     '厚度只用于显示，层叠顺序按图层类型自动排列，不绑定任何具体工艺。</p>')
         body.append('<div class="c3d">'
                     '<div class="c3d-stage"><canvas class="c3d-canvas"></canvas>'
@@ -1594,6 +1620,7 @@ pip install -e .
 │   ├── Ring.py          # Pulley 环及侧/蛇形加热变体
 │   ├── RaceTrack.py     # 跑道腔
 │   ├── CouplerMZI.py    # 2×2 耦合器、DMZI、PMZI、Sagnac
+│   ├── Coupon.py        # 通用两端 coupon（core 可替换）
 │   ├── CoupledCavity.py # 二阶耦合环滤波器、CROW、SCISSOR
 │   ├── DBR.py / DBR_inv.py
 │   ├── Heater.py / ELE.py
@@ -1601,6 +1628,7 @@ pip install -e .
 │   ├── MultiRing.py / MultiRaceTrack.py
 │   ├── GongCavity.py / WangCavity.py
 │   ├── TCRing.py / TCRaceTrack.py / TCCoupledCavity.py
+│   ├── TestRow.py       # ring coupon 行 / 色散环阵列
 │   └── _selftest.py     # 全组件自检
 └── SOITools/            # SOI（12 英寸、三层金属）独立命名空间子库
     ├── FabBasic.py / Geometry.py / Routing.py
@@ -1628,6 +1656,14 @@ c = ap.RingPulleyT1(oplayer=ap.LAYER.CPF)   # 画到氮化硅层</code></pre>"""
     body.append(f'<div class="table-wrap"><table><thead><tr><th>名称</th><th>layer / datatype</th><th>用途</th></tr></thead><tbody>{rows}</tbody></table></div>')
     body.append('<p class="lead">完整层表见 <code>GeneralTools/BasicDefine.py</code> 的 <code>LayerMapUserDef</code>。'
                 'SOITools 子库使用另一套层号（600/631/632/…），见 <a href="soitools.html">SOITools 子库</a>。</p>')
+    body.append("<h2>LayerStack：从设计手册生成</h2>")
+    body.append("""<pre><code>stack = ap.LayerStack.from_design_manual(
+    "AIPLPhMTools/examples/layer_stack_manual.md",
+    section="层号表",
+)
+print(stack.WG.key, stack.M1.role)</code></pre>""")
+    body.append('<div class="note">手册表格只需写“名称 + layer/datatype + 角色 + 显示厚度”；'
+                '显示厚度仅用于 3D，不绑定具体工艺。</div>')
 
     body.append("<h2>自检与 CSV</h2>")
     body.append("""<pre><code># 构建全部公共器件，检查端口/几何/图层
@@ -1638,6 +1674,25 @@ python -m AIPLPhMTools.SOITools._selftest</code></pre>""")
     body.append('<div class="note warn"><strong>CSV 驱动的 DBR：</strong>'
                 '<code>DBRFromCsv*</code> 不再内置作者机器路径。请传入 <code>CSVName=...</code>，'
                 '或设置环境变量 <code>AIPL_DBR_CSV_DIR</code> 指向 CSV 目录。缺少文件时会给出明确报错。</div>')
+
+    body.append("<h2>LVS 连通性检查</h2>")
+    body.append('<p class="lead">把版图按层合并成连通块，再对照 netlist 端子检查 '
+                '<b>open / short / 画错层 / 线宽</b>。端子坐标可以自动从器件端口读取，'
+                '也可以对已有 GDS 手动给出坐标。</p>')
+    body.append("""<pre><code># 直接检查 Python 器件（端子从 Component.ports 自动读取）
+python -m AIPLPhMTools.lvs --component CoupledRingFilter \\
+    --spec AIPLPhMTools/examples/lvs_coupled_filter.yaml
+
+# 检查已有 GDS（spec 里用 ports 给坐标和图层）
+python -m AIPLPhMTools.lvs --gds chip.gds --spec chip_lvs.yaml
+
+# 保存机器可读报告；可选 --reference old.gds 做逐层回归
+python -m AIPLPhMTools.lvs --component CoupledRingFilter \\
+    --spec AIPLPhMTools/examples/lvs_coupled_filter.yaml --json lvs.json</code></pre>""")
+    body.append('<div class="note">spec 只需要写要检查的 net：'
+                '<code>nets: {bottom_bus: [Input, Through], top_bus: [Add, Drop]}</code>。'
+                '未参与 net 的参考端口（例如 <code>RingC</code>）不会被误判。'
+                '<code>allow_extra_nets: false</code> 可把未声明的连通块也当失败。</div>')
 
     body.append("<h2>函数调用约定</h2>")
     body.append('<ul>'
@@ -1752,7 +1807,8 @@ def heaters3d_page(data, comps) -> str:
     rel = ""
     body = [f'<div class="topline">{breadcrumb(rel)}<div class="gh"><a href="heaters3d.html">◀ 加热器 3D</a></div></div>']
     body.append("<h1>加热器 3D 层叠图</h1>")
-    body.append('<p class="lead">拖动旋转、滚轮缩放、双击复位。层与层之间的 z 间距被夸张显示，'
+    body.append('<p class="lead">拖动旋转、滚轮缩放、双击复位；每一层显示顶面与侧壁'
+                '（不绘制底面，避免反射造成重复层错觉）。层与层之间的 z 间距被夸张显示，'
                 '用来观察“波导 / M1 / M2 / 开窗”的上下关系；厚度只是显示参数。</p>')
     body.append('<div class="note">3D 数据由真实 GDS 多边形生成：环/加热条保留孔洞，'
                 'VIA 阵列过密时在 3D 中省略。下面的器件选择来自 DifferentHeater 与环形加热器。</div>')

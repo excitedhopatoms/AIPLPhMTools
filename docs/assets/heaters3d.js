@@ -114,26 +114,40 @@
       var z1 = z0 + layerThickness(layer);
       var alpha = layer.alpha == null ? 0.95 : layer.alpha;
 
-      // 侧壁
-      ctx.globalAlpha = Math.min(1, alpha + 0.05);
-      ctx.fillStyle = shade(layer.color, 0.62);
+      // 只画顶面 + 可见侧壁；剔除背向相机的侧壁，避免投影里出现“阴影/第二层”
+      var sy = Math.sin(yaw), cy = Math.cos(yaw), sp = Math.sin(pitch);
+      ctx.globalAlpha = Math.min(1, alpha + 0.03);
+      ctx.fillStyle = shade(layer.color, 0.88);
       var walls = new Path2D();
+      function addWalls(contour, isHole) {
+        var area2 = 0;
+        for (var n = 0; n < contour.length; n++) {
+          var q0 = contour[n], q1 = contour[(n + 1) % contour.length];
+          area2 += q0[0] * q1[1] - q1[0] * q0[1];
+        }
+        var ccw = area2 > 0;
+        for (var i = 0; i < contour.length; i++) {
+          var a = contour[i];
+          var b = contour[(i + 1) % contour.length];
+          var dx = b[0] - a[0], dy = b[1] - a[1];
+          var nx = ccw ? dy : -dy;
+          var ny = ccw ? -dx : dx;
+          if (isHole) { nx = -nx; ny = -ny; }
+          if (nx * sy * sp + ny * cy * sp >= -1e-9) continue;
+          var p0 = project(a[0], a[1], z0);
+          var p1 = project(b[0], b[1], z0);
+          var p2 = project(b[0], b[1], z1);
+          var p3 = project(a[0], a[1], z1);
+          walls.moveTo(tx + p0[0] * scale, ty + p0[1] * scale);
+          walls.lineTo(tx + p1[0] * scale, ty + p1[1] * scale);
+          walls.lineTo(tx + p2[0] * scale, ty + p2[1] * scale);
+          walls.lineTo(tx + p3[0] * scale, ty + p3[1] * scale);
+          walls.closePath();
+        }
+      }
       layer.polygons.forEach(function (poly) {
-        [poly.outer].concat(poly.holes || []).forEach(function (contour) {
-          for (var i = 0; i < contour.length; i++) {
-            var a = contour[i];
-            var b = contour[(i + 1) % contour.length];
-            var p0 = project(a[0], a[1], z0);
-            var p1 = project(b[0], b[1], z0);
-            var p2 = project(b[0], b[1], z1);
-            var p3 = project(a[0], a[1], z1);
-            walls.moveTo(tx + p0[0] * scale, ty + p0[1] * scale);
-            walls.lineTo(tx + p1[0] * scale, ty + p1[1] * scale);
-            walls.lineTo(tx + p2[0] * scale, ty + p2[1] * scale);
-            walls.lineTo(tx + p3[0] * scale, ty + p3[1] * scale);
-            walls.closePath();
-          }
-        });
+        addWalls(poly.outer, false);
+        (poly.holes || []).forEach(function (hole) { addWalls(hole, true); });
       });
       ctx.fill(walls);
 

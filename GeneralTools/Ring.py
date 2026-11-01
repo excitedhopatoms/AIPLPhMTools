@@ -795,7 +795,6 @@ def DifferentHeater_local(
             h.mirror_y(c.ports["RingL"].center[1])
         if RotationHeater != 0:
             h.rotate(RotationHeater, center=c.ports["RingC"].center)
-        h.flatten()
         h = snap_all_polygons_iteratively(h)
         heater = c << h
         c.add_port(name="HeatIn", port=heater.ports["HeatIn"])
@@ -837,7 +836,6 @@ def DifferentHeater_local(
             h.mirror_y(c.ports["RingL"].center[1])
         if RotationHeater != 0:
             h.rotate(RotationHeater, center=c.ports["RingC"].center)
-        h.flatten()
         h = snap_all_polygons_iteratively(h)
         heater = c << h
         c.add_port(name="HeatIn", port=heater.ports["HeatIn"])
@@ -874,7 +872,6 @@ def DifferentHeater_local(
             h.mirror_y(c.ports["RingL"].center[1])
         if RotationHeater != 0:
             h.rotate(RotationHeater, center=c.ports["RingC"].center)
-        h.flatten()
         h = snap_all_polygons_iteratively(h)
         heater = c << h
         c.add_port(name="HeatIn", port=heater.ports["HeatIn"])
@@ -912,7 +909,6 @@ def DifferentHeater_local(
             h.mirror_y(c.ports["RingL"].center[1])
         if RotationHeater != 0:
             h.rotate(RotationHeater, center=c.ports["RingC"].center)
-        h.flatten()
         h = snap_all_polygons_iteratively(h)
         heater = c << h
         c.add_port(name="HeatIn", port=heater.ports["HeatIn"])
@@ -950,7 +946,6 @@ def DifferentHeater_local(
             h.mirror_y(c.ports["RingL"].center[1])
         if RotationHeater != 0:
             h.rotate(RotationHeater, center=c.ports["RingC"].center)
-        h.flatten()
         # h = snap_all_polygons_iteratively(h)
         heater = c << h
         c.add_port(name="HeatIn", port=heater.ports["HeatIn"])
@@ -1006,7 +1001,6 @@ def DifferentHeater_local(
             h.mirror_y(h.ports["RingC"].center[1])
         if RotationHeater != 0:
             h.rotate(RotationHeater, center=c.ports["RingC"].center)
-        h.flatten()
         h = snap_all_polygons_iteratively(h)
         heater = c << h
         c.add_port(name="HeatIntIn", port=heater.ports["HeatIntIn"])
@@ -1075,7 +1069,6 @@ def DifferentHeater_local(
             h.mirror_y(c.ports["RingL"].center[1])
         if RotationHeater != 0:
             h.rotate(RotationHeater, center=c.ports["RingC"].center)
-        h.flatten()
         h = snap_all_polygons_iteratively(h)
         heater = c << h
         for port in heater.ports:
@@ -1106,7 +1099,6 @@ def DifferentHeater_local(
             h.mirror_y(c.ports["RingL"].center[1])
         if RotationHeater != 0:
             h.rotate(RotationHeater, center=c.ports["RingC"].center)
-        h.flatten()
         h = snap_all_polygons_iteratively(h)
         heater = c << h
         c.add_port(name="HeatIn", port=heater.ports["HeatIn"])
@@ -1143,12 +1135,10 @@ def DifferentHeater_local(
             h.mirror_y(h.ports['RingC'].center[1])
         if RotationHeater != 0:
             h.rotate(RotationHeater, center=c.ports["RingC"].center)
-        h.flatten()
         h = snap_all_polygons_iteratively(h)
         heater = c << h
         c.add_port(name="HeatOut", port=heater.ports["HeatL"])
         c.add_port(name="HeatIn", port=heater.ports["HeatR"])
-    h.flatten()
     h=snap_all_polygons_iteratively(h)
     return h
 

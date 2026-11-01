@@ -44,115 +44,37 @@ def TCRaceTrackP(
         - 'no_bend':     无弯曲，taper 直接连接
     """
 
-    sr = gf.Component()
+    # 中间 core：跑道腔；外围 IO/taper/绕线/端口转发交给通用 Coupon 框架
+    from .Coupon import Coupon
 
-    # 创建核心跑道环
-    ring = sr << RaceTrackP(
-        WidthRing=width_ring, WidthNear=width_near, GapCouple=gap_rc, oplayer=oplayer, RadiusRing=r_ring,
-        AngleCouple=angle_rc, IsAD=False,LengthRun=length_run,
-        HeaterConfig=heater_config,
+    ring = RaceTrackP(
+        WidthRing=width_ring, WidthNear=width_near, GapCouple=gap_rc,
+        oplayer=oplayer, RadiusRing=r_ring, AngleCouple=angle_rc,
+        IsAD=False, LengthRun=length_run, HeaterConfig=heater_config,
     )
-
-    ring.rotate(90).movex(pos_ring)
-
-    # taper 定义
-    taper_in = sr << gf.c.taper(width1=width_single, width2=width_near, length=length_taper, layer=oplayer)
-    taper_out = sr << gf.c.taper(width2=width_single, width1=width_near, length=length_taper, layer=oplayer)
-
-    # ========== 输入端连接 ==========
-    if position_taper_in == "before_bend":
-        # taper -> bend -> ring
-        bend_in = sr << gf.c.bend_euler(width=width_near, angle=-90, radius=r_bend, layer=oplayer,with_arc_floorplan=False)
-        bend_in.connect("o2", other=ring.ports["Input"])
-        taper_in.connect("o2", other=bend_in.ports["o1"])
-        port_in = taper_in.ports["o1"]
-
-    elif position_taper_in == "after_bend":
-        # bend -> taper -> ring
-        bend_in = sr << gf.c.bend_euler(width=width_single, angle=-90, radius=r_bend, layer=oplayer,with_arc_floorplan=False)
-        taper_in.connect("o2", other=ring.ports["Input"])
-        bend_in.connect("o2", other=taper_in.ports["o1"])
-        port_in = bend_in.ports["o1"]
-
-    elif position_taper_in == "no_bend":
-        # taper 直接连接 ring
-        taper_in.connect("o2", other=ring.ports["Input"])
-        port_in = taper_in.ports["o1"]
-
-    else:
-        raise ValueError("position_taper_in 必须是 'before_bend'、'after_bend' 或 'no_bend'")
-
-    # ========== 输出端连接 ==========
-    if position_taper_out == "before_bend":
-        # output-> taper -> bend
-        taper_out.connect("o1", other=ring.ports["Through"])
-        bend_out = sr << gf.c.bend_euler(width=width_single, angle=90, radius=r_bend, layer=oplayer,with_arc_floorplan=False)
-        bend_out.connect("o1", other=taper_out.ports["o2"])
-        port_out = bend_out.ports["o2"]
-
-    elif position_taper_out == "after_bend":
-        # output -> bend -> taper
-        bend_out = sr << gf.c.bend_euler(width=width_near, angle=90, radius=r_bend, layer=oplayer,with_arc_floorplan=False)
-        bend_out.connect("o1", other=ring.ports["Through"])
-        taper_out.connect("o1", other=bend_out.ports["o2"])
-        port_out = taper_out.ports["o2"]
-
-    elif position_taper_out == "no_bend":
-        # taper 直接连接 ring
-        taper_out.connect("o1", other=ring.ports["Through"])
-        port_out = taper_out.ports["o2"]
-
-    else:
-        raise ValueError("position_taper_out 必须是 'before_bend'、'after_bend' 或 'no_bend'")
-
-
-    # ========== 输入端 tin ==========
-    if tin is not None:
-        ctin = sr << tin
-        target_port = port_in
-        ctin.connect("o2", target_port)
-        ctin.movex(-pos_ring)
-
-        route_in = gf.routing.route_single_sbend(
-            sr, ctin.ports["o2"], target_port, cross_section=make_cs(width_single, oplayer)
-        )
-        sr.add_port("input", port=ctin.ports["o1"])
-        sr.add_port("inputo2", port=ctin.ports["o2"])
-    else:
-        sr.add_port("input", port=port_in)
-
-    # ========== 输出端 tout ==========
-    if tout is not None:
-        ctout = sr << tout
-        target_port = port_out
-
-        # 连接 + 平移
-        ctout.connect("o1", other=port_out, allow_width_mismatch=True)
-        ctout.movex(length_total - (ctout.ports["o2"].center[0] - (ctin.ports["o1"].center[0] if tin else 0)))
-        route_out = gf.routing.route_single_sbend(
-            sr, ctout.ports["o1"], target_port, cross_section=make_cs(width_single, oplayer)
-        )
-        sr.add_port("output", port=ctout.ports["o2"])
-        sr.add_port("outputo1", port=ctout.ports["o1"])
-    else:
-        sr.add_port("output", port=port_out)
-
-    # ========== 环中心端口 ==========
-    sr.add_port(
-        "RingC",
-        center=(np.array(ring.ports["Rcen1"].center) + np.array(ring.ports["Rcen2"].center)) / 2,orientation=180,layer=oplayer,width=width_route,
+    return Coupon(
+        core=ring,
+        core_input="Input",
+        core_output="Through",
+        io_width=width_single,
+        width_in=width_near,
+        width_out=width_near,
+        taper_length=length_taper,
+        bend_radius=r_bend,
+        position_taper_in=position_taper_in,
+        position_taper_out=position_taper_out,
+        length_total=length_total,
+        core_x=pos_ring,
+        core_rotation=90,
+        tin=tin,
+        tout=tout,
+        tin_shift_x=-pos_ring,
+        center_ports=("Rcen1", "Rcen2"),
+        center_width=width_route,
+        forward_ports=tuple(p.name for p in ring.ports),
+        port_prefix="Ring",
+        oplayer=oplayer,
     )
-    for port in ring:
-        sr.add_port("Ring"+port.name, port=port)
-    # ========== 封装为   CompOut ==========
-    CompOut = gf.Component()
-    Csr = CompOut << sr
-    Csr.movex(-sr.ports["input"].center[0])
-
-    for port in Csr.ports:
-        CompOut.add_port(port.name, port=port)
-    # add_labels_to_ports(CompOut)
-    return CompOut
 
 # %% TCRaceTrack2_1: racetrack ring,straigh couple straight in
 @gf.cell

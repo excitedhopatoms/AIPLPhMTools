@@ -213,7 +213,7 @@ def CoupleDouRaceTrack(
             IsAD= False,
             oplayer= oplayer)
         racetrack1.connect("RingSmid1", other=racetrack2.ports["RingSmid1"])
-        racetrack1.movex(+WidthRing + GapCoupleIn)
+        racetrack1.movex(+2 * WidthRing + GapCoupleIn)
         racetrack1.movey(-DeltaRun / 2 + LengthCoupleIn - LengthRun)
     elif TypeCouple == "p" or TypeCouple == "P":
         racetrack1 = c << RaceTrackP(
@@ -227,7 +227,7 @@ def CoupleDouRaceTrack(
             HeaterConfig=HeaterConfig, DirectionHeater=DirectionsHeater[1],
         )
         racetrack1.connect("RingSmid1", other=racetrack2.ports["RingSmid1"])
-        racetrack1.movex(+WidthRing + GapCoupleIn)
+        racetrack1.movex(+2 * WidthRing + GapCoupleIn)
         racetrack1.movey(-DeltaRun / 2 + LengthCoupleIn - LengthRun)
         racetrack2.mirror_y(racetrack2.ports["Input"].center[1])
         racetrack1.mirror_y(racetrack2.ports["Input"].center[1])

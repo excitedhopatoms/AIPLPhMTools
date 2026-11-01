@@ -37,6 +37,7 @@ _MODULES: tuple[str, ...] = (
     "Boomerang",
     "CouplerMZI",
     "CoupledCavity",
+    "Coupon",
     "DBR_inv",
     "DBR",
     "GongCavity",
@@ -48,6 +49,7 @@ _MODULES: tuple[str, ...] = (
     "TCCoupledCavity",
     "TCRaceTrack",
     "TCRing",
+    "TestRow",
     "WangCavity",
     "ExtCav",
     "memyshev",
@@ -59,12 +61,14 @@ for _mod_name in _MODULES:
 
 # 兼容历史写法：`from AIPLPhMTools import RingPulley` / `import AIPLPhMTools as ap`
 from .GeneralTools.BasicDefine import *  # noqa: F401,F403
+from .GeneralTools.LayerStack import LayerDef, LayerStack  # noqa: F401
 from .GeneralTools.EulerConnection import connect_ports_euler  # noqa: F401
 from .GeneralTools.Heater import *  # noqa: F401,F403
 from .GeneralTools.ELE import *  # noqa: F401,F403
 from .GeneralTools.Boomerang import *  # noqa: F401,F403
 from .GeneralTools.CouplerMZI import *  # noqa: F401,F403
 from .GeneralTools.CoupledCavity import *  # noqa: F401,F403
+from .GeneralTools.Coupon import *  # noqa: F401,F403
 from .GeneralTools.DBR_inv import *  # noqa: F401,F403
 from .GeneralTools.DBR import *  # noqa: F401,F403
 from .GeneralTools.GongCavity import *  # noqa: F401,F403
@@ -76,6 +80,7 @@ from .GeneralTools.Ring import *  # noqa: F401,F403
 from .GeneralTools.TCCoupledCavity import *  # noqa: F401,F403
 from .GeneralTools.TCRaceTrack import *  # noqa: F401,F403
 from .GeneralTools.TCRing import *  # noqa: F401,F403
+from .GeneralTools.TestRow import *  # noqa: F401,F403
 from .GeneralTools.WangCavity import *  # noqa: F401,F403
 from .GeneralTools.ExtCav import *  # noqa: F401,F403
 from .GeneralTools.memyshev import *  # noqa: F401,F403
@@ -97,6 +102,9 @@ _NON_COMPONENTS = {
     "ViaArray_optimized",
     "ViaArrayParallel",
     "make_flush_inverted_cell",
+    # 配置对象 / 通用框架，不是默认参数可构建的器件
+    "RingCouponSpec",
+    "Coupon",
 }
 
 # BasicDefine 没有定义 __all__（其它模块靠 star-import 取它的内部符号），
@@ -147,7 +155,9 @@ __all__ = [
     "COMPONENTS",
     "HeaterConfigClass",
     "LAYER",
+    "LayerDef",
     "LayerMapUserDef",
+    "LayerStack",
     "get_component",
     "list_components",
     *sorted(COMPONENTS),

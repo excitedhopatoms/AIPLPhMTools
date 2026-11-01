@@ -433,7 +433,7 @@ def WangCavity(
     return c
 
 
-@gf.cell
+@gf.cell(check_instances=False)
 def ExtCavWang(
         r_euler_false: float = 100,
         r_mzi: float = 100,
@@ -530,7 +530,6 @@ def ExtCavWang(
     )
 
     bend_cr1_1 = ec_ref.add_ref_off_grid(GfCBendEuler(radius=r_euler_false, angle=-angle_m2r, cross_section=X_NM))
-    bend_cr1_2 = ec_ref.add_ref_off_grid(GfCBendEuler(radius=r_euler_false, angle=angle_m2r, cross_section=X_N))
     str_cr1_1 = ec_ref << GfCStraight(width=width_mzi_near, length=length_cr1, layer=oplayer)
     str_cr1_1.connect("o1", other=coupler2x2.ports["Output1"])
     bend_cr1_1.connect("o1", other=str_cr1_1.ports["o2"])
@@ -561,24 +560,57 @@ def ExtCavWang(
     )
     wang = ec_ref << wang_ref
 
+    # WangCavity 先接在 taper 末端，再整体平移到 PMZI 上方，保证腔体底部
+    # 与 PMZI 顶部之间至少留 50 um。旧版 connect 后只 movex，腔体底部
+    # 直接压在 PMZI 的波导上。
     wang.connect("Input", tapercoupler2.ports["o2"])
-    wang.movex(length_cr2)
+    dy_clear = coupler2x2.dbbox().top - wang.dbbox().bottom + 50.0
+    wang.movey(dy_clear)
+    wang.movex(150.0 + float(length_cr2))
 
-    str_cr2_1 = ec_ref << GfCStraight(width=width_near, length=length_cr2, layer=oplayer)
-    str_cr2_1.connect("o1", tapercoupler2.ports["o2"])
+    def _add_route(points, p0, p1):
+        path = gf.path.smooth(np.array(points, dtype=float), radius=50.0,
+                              bend=gf.path.euler)
+        route = gf.path.extrude(path, width=width_near, layer=oplayer)
+        for route_port, target in (("o1", p0), ("o2", p1)):
+            rp = route.ports[route_port]
+            if not np.allclose(rp.center, target.center, atol=1e-6):
+                raise ValueError(
+                    f"ExtCavWang 路由端点不重合：{route_port} @ {rp.center} "
+                    f"vs {target.name} @ {target.center}"
+                )
+            expected = (float(target.orientation) + 180.0) % 360.0
+            if abs((float(rp.orientation) - expected + 180.0) % 360.0 - 180.0) > 1e-6:
+                raise ValueError(
+                    f"ExtCavWang 路由端点朝向错误：{route_port}={rp.orientation}°，"
+                    f"应为 {expected}°（与 {target.name} 相反）"
+                )
+        check_waveguide_overlap(ec_ref, route, layer=oplayer)
+        ec_ref << route
+        return route
 
-    delta1 = np.array(bend_cr1_1.ports["o1"].center) - np.array(bend_cr1_1.ports["o2"].center)
-    delta2 = np.array(tapercoupler1.ports["o2"].center) - np.array(wang.ports["Through"].center)
-    addlength = abs(delta1[1] - delta2[1]) / np.sin(angle_m2r * np.pi / 180)
-    str_tapercoupler = ec_ref << GfCStraight(width=width_near, length=addlength, layer=oplayer)
-    str_tapercoupler.connect("o1", other=tapercoupler1.ports["o2"])
-    bend_cr1_2.connect("o1", other=str_tapercoupler.ports["o2"])
+    # 输入臂：从 taper 末端向右、向上、再向右进入 WangCavity.Input。
+    _add_route([
+        tapercoupler2.ports["o2"].center,
+        (350.0, tapercoupler2.ports["o2"].center[1]),
+        (350.0, wang.ports["Input"].center[1]),
+        wang.ports["Input"].center,
+    ], tapercoupler2.ports["o2"], wang.ports["Input"])
 
-    str_cr1_2 = ec_ref << GfCStraight(
-        width=width_near, layer=oplayer,
-        length=abs(-wang.ports["Through"].center[0] + bend_cr1_2.ports["o2"].center[0])
-    )
-    str_cr1_2.move(bend_cr1_2.ports["o2"].center)
+    # 返回臂：从 tapercoupler1 末端沿左上方绕到 WangCavity 上方，再从
+    # 右侧水平接回 Through；旧版用一条 y=213.7 的长直波导直接穿过腔体。
+    p1 = np.array(tapercoupler1.ports["o2"].center, dtype=float)
+    ang = np.radians(float(tapercoupler1.ports["o2"].orientation))
+    a = p1 + 60.0 * np.array([np.cos(ang), np.sin(ang)])
+    _add_route([
+        p1,
+        a,
+        (-420.0, a[1]),
+        (-420.0, 760.0),
+        (900.0, 760.0),
+        (900.0, wang.ports["Through"].center[1]),
+        wang.ports["Through"].center,
+    ], tapercoupler1.ports["o2"], wang.ports["Through"])
 
     str_input = list(range(30))
     str_input[0] = ec_ref << gf.c.taper(

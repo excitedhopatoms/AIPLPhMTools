@@ -78,7 +78,7 @@ def PulleyCoupler2X2(
 
 
 # %% DMZI
-@gf.cell
+@gf.cell(check_instances=False)
 def DMZI(
         WidthWG: float = 0.8,
         LengthCoup: float = 100,
@@ -176,12 +176,11 @@ def DMZI(
         for port in heaterR.ports:
             if "Heat" in port.name:
                 c.add_port("R" + port.name, port=heaterR.ports[port.name])
-    c.flatten()
     return c
 
 
 # %% PMZI:pulley coupler MZI
-@gf.cell
+@gf.cell(check_instances=False)
 def PMZI(
         WidthNear: float = 0.8,
         WidthRing: float = 1,
@@ -296,13 +295,12 @@ def PMZI(
         for port in heaterR.ports:
             if "Heat" in port.name:
                 c.add_port("R" + port.name, port=heaterR.ports[port.name])
-    c.flatten()
     add_labels_to_ports(c)
     return c
 
 
 # %% PMZIHSn:pulley coupler MZI width Snake Heater
-@gf.cell
+@gf.cell(check_instances=False)
 def PMZIHSn(
         WidthNear: float = 0.8,
         WidthRing: float = 1,
@@ -426,7 +424,6 @@ def SagnacRing(
     c.add_port("output", port=PC.ports["in1"])
     c.add_port("o1", port=c.ports["input"])
     c.add_port("o2", port=c.ports["output"])
-    c.flatten()
     return c
 
 

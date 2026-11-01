@@ -739,7 +739,6 @@ def EstrDBRFromCsvOffset(
             c.add_port(name="h2", center=(total_length, 0), width=WidthHeat, orientation=0, layer=routelayer)
 
     # --- 5. 完成 ---
-    c.flatten()
     return c
 
 

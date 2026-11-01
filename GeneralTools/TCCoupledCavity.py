@@ -528,7 +528,7 @@ def TCRingTriBoomerangT1(
 
 
 # TCRingT1: TCRing use RingPulleyT1
-@gf.cell
+@gf.cell(check_instances=False)
 def TCCoupleDouRingT1(
         r_ring1: float = 120,
         width_ring1: float = 1,

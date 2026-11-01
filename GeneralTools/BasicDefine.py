@@ -5,9 +5,12 @@ Euler 半弯路径、QR 码、平移/按层提取等工具函数。
 """
 from collections.abc import Callable
 
+import warnings
+
 import gdsfactory as gf
 import numpy as np
 import kfactory as kf
+from kfactory import kdb
 from gdsfactory.component import Component,ComponentAllAngle
 from gdsfactory.component_layout import rotate_points
 from gdsfactory.generic_tech import get_generic_pdk
@@ -133,22 +136,180 @@ X_out1 = gf.CrossSection(sections=[S_out_te1])
 # 这两个组件在库内从未被引用，已删除；需要 taper 请直接调用 GfCStraight / gf.c.taper。
 
 # remove layer
+def _count_layer_shapes(cell, layer_index: int, _seen=None) -> int:
+    """统计一个 cell（含其所有子 cell）在指定 layer 上的 shape 数量。
+
+    这里必须用 shape 计数而不是多边形面积：端口标签是 Text，面积为 0，
+    但同样属于 ``(512, 8)`` 这类标签层，需要被删除。
+    """
+    if _seen is None:
+        _seen = set()
+    cell_index = cell.kdb_cell.cell_index()
+    if cell_index in _seen:
+        return 0
+    _seen.add(cell_index)
+    count = cell.kdb_cell.shapes(layer_index).size()
+    for inst in cell.insts:
+        count += _count_layer_shapes(inst.cell, layer_index, _seen)
+    for vinst in getattr(cell, "vinsts", ()):
+        count += _count_layer_shapes(vinst.cell, layer_index, _seen)
+    return count
+
+
+def _off_grid_instances(component: Component, grid: float = 0.001):
+    """返回所有不在设计网格上的 instance 位移，用于 remove_layer 后自检。"""
+    offenders = []
+    seen = set()
+
+    def walk(cell):
+        cell_index = cell.kdb_cell.cell_index()
+        if cell_index in seen:
+            return
+        seen.add(cell_index)
+        for inst in cell.insts:
+            tr = inst.dcplx_trans
+            for axis, value in (("x", tr.disp.x), ("y", tr.disp.y)):
+                if abs(value / grid - round(value / grid)) > 1e-6:
+                    offenders.append((cell.name, inst.cell.name, axis, value))
+            walk(inst.cell)
+        for vinst in getattr(cell, "vinsts", ()):
+            tr = vinst.dcplx_trans
+            for axis, value in (("x", tr.disp.x), ("y", tr.disp.y)):
+                if abs(value / grid - round(value / grid)) > 1e-6:
+                    offenders.append((cell.name, vinst.cell.name, axis, value))
+            walk(vinst.cell)
+
+    walk(component)
+    return offenders
+
+
+def _clone_cell_without_layer(cell, layer_index: int, layer: LayerSpec, cache: dict,
+                              cell_cls=Component):
+    """递归复制 cell 层次，并在每一层剔除指定 layer。
+
+    - 子树中完全不含目标 layer 的 cell 直接复用原 cell，不产生多余副本；
+    - 含目标 layer 的 cell 生成 ``<原名>__No<layer>_<datatype>`` 的新 cell，
+      形状、instance、端口逐层复制，因此不会退化成 flatten；
+    - 同一个 cell 在多个父 cell 中复用时走 cache，保持实例共享。
+    """
+    cell_index = cell.kdb_cell.cell_index()
+    if cell_index in cache:
+        return cache[cell_index]
+
+    if _count_layer_shapes(cell, layer_index) == 0:
+        cache[cell_index] = cell
+        return cell
+
+    new_name = f"{cell.name}__No{int(layer[0])}_{int(layer[1])}"
+    existing = cell.kcl.layout.cell(new_name)
+    if existing is not None:
+        # 复用同一确定性名称的过滤 cell（保持端口信息）。
+        new_cell = cell.kcl[new_name]
+        cache[cell_index] = new_cell
+        return new_cell
+
+    new_cell = cell_cls(new_name, kcl=cell.kcl)
+    layer_infos = cell.kcl.layout.layer_infos()
+    n_layers = layer_infos.size() if hasattr(layer_infos, "size") else len(layer_infos)
+    for idx in range(n_layers):
+        if idx == layer_index:
+            continue
+        for shape in cell.kdb_cell.shapes(idx):
+            new_cell.kdb_cell.shapes(idx).insert(shape)
+
+    for inst in cell.insts:
+        child = _clone_cell_without_layer(inst.cell, layer_index, layer, cache, cell_cls)
+        kwargs = {}
+        if inst.na > 1:
+            kwargs.update(a=inst.a, na=inst.na)
+        if inst.nb > 1:
+            kwargs.update(b=inst.b, nb=inst.nb)
+        new_cell.create_inst(child, trans=inst.dcplx_trans, **kwargs)
+
+    # 任意角/off-grid 实例是 vinsts，不在 insts 里；旧实现只复制 insts，
+    # 会把这些 bend 丢掉，导致外腔回流臂和 MZI 末端断开。
+    for vinst in getattr(cell, "vinsts", ()):
+        child = _clone_cell_without_layer(vinst.cell, layer_index, layer, cache, cell_cls)
+        new_vinst = new_cell.create_vinst(child)
+        new_vinst.dcplx_trans = vinst.dcplx_trans.dup()
+
+    for port in cell.ports:
+        try:
+            new_cell.add_port(port=port)
+        except Exception:
+            # 某些内部 cell 的端口只有 layer、没有 cross_section，重建一次。
+            if port.layer is not None:
+                new_cell.add_port(
+                    name=port.name, center=port.center, orientation=port.orientation,
+                    width=port.width, layer=port.layer, port_type=port.port_type,
+                )
+
+    cache[cell_index] = new_cell
+    return new_cell
+
+
 def remove_layer(
         component: Component = None,
-        layer: LayerSpec = (1, 10)
+        layer: LayerSpec = (1, 10),
+        *,
+        preserve_hierarchy: bool = True,
+        check_grid: bool = True,
 ) -> Component:
     """
-    创建一个新的组件，该组件包含输入组件中除了指定图层之外的所有多边形。
-    端口会被复制到新组件。
+    返回一个删除了指定图层的组件副本，默认保留 cell 层次。
+
+    旧实现把所有多边形按 layer 复制到新的顶层组件，等效于 flatten：GDS 中
+    的 instance 全部消失，cell 复用关系也丢失。现在的做法是递归复制
+    “含目标 layer 的 cell”，不含目标 layer 的子树原样复用，因此：
+
+    - 器件内部仍然是一个个 cell instance，不会把整颗版图摊平；
+    - 被删除的 layer 在整条层次里都会被剔除（包括子 cell 内的端口标签）；
+    - 原组件及其缓存 cell 不会被修改。
 
     参数:
-        component (Component): 源 gdsfactory 组件。
-        layer (LayerSpec): 要移除的 GDS 图层 (LayerSpec)。此图层上的多边形将不会被复制。
-                           默认为 (1, 10)。
+        component: 源 gdsfactory 组件。
+        layer: 要删除的 GDS 图层。
+        preserve_hierarchy: True 时按层次复制；False 时保留旧的 flatten 行为，
+            仅用于兼容旧脚本。
+        check_grid: True 时检查过滤后的 instance 位移是否仍在 0.001 µm 网格上；
+            若过滤过程新增了 off-grid instance 会直接报错（原组件本来就有的
+            off-grid instance 只告警，不改变原有行为）。
 
     返回:
-        Component: 一个移除了指定图层多边形的新 gdsfactory 组件。
+        Component: 删除指定图层后的新组件。
     """
+    if component is None:
+        raise ValueError("remove_layer() 需要传入 component")
+
+    layer_tuple = gf.get_layer_tuple(layer)
+    layer_index = component.kcl.layer(*layer_tuple)
+
+    if preserve_hierarchy and not isinstance(component, ComponentAllAngle):
+        before_offgrid = _off_grid_instances(component) if check_grid else []
+        new_component = _clone_cell_without_layer(
+            component, layer_index, layer_tuple, cache={}
+        )
+        if _count_layer_shapes(new_component, layer_index):
+            raise RuntimeError(
+                f"remove_layer: 图层 {layer_tuple} 仍残留在过滤后的层次中"
+            )
+        if check_grid:
+            after_offgrid = _off_grid_instances(new_component)
+            new_offgrid = [item for item in after_offgrid if item not in before_offgrid]
+            if new_offgrid:
+                raise RuntimeError(
+                    "remove_layer: 层次复制过程新增了 off-grid instance，"
+                    f"例如 {new_offgrid[:3]}"
+                )
+            if after_offgrid:
+                warnings.warn(
+                    f"remove_layer: 组件原本有 {len(after_offgrid)} 个 off-grid instance，"
+                    "请确认它们是设计上允许的（check_instances=False）。",
+                    stacklevel=2,
+                )
+        return new_component
+
+    # 兼容分支：ComponentAllAngle 或显式要求 flatten 的旧调用。
     if isinstance(component, ComponentAllAngle):
         c = ComponentAllAngle()
         for vinst in component.vinsts:
@@ -162,17 +323,61 @@ def remove_layer(
         for port in component.ports:
             c.add_port(name=port.name, port=component.ports[port.name])
         return c
-    else:
-        c = gf.Component()
-        layers = component.layers
-        for L in layers:
-            if L != layer:
-                polygons = component.get_polygons(by="tuple",layers=[L])
-                for polygon in polygons[L]:
-                    c.add_polygon(polygon, layer=L)
-        for port in component.ports:
-            c.add_port(name=port.name, port=component.ports[port.name])
-        return c
+
+    c = gf.Component()
+    for L in component.layers:
+        if L != layer:
+            polygons = component.get_polygons(by="tuple", layers=[L])
+            for polygon in polygons[L]:
+                c.add_polygon(polygon, layer=L)
+    for port in component.ports:
+        c.add_port(name=port.name, port=component.ports[port.name])
+    return c
+# %% route overlap check
+def waveguide_region(component: Component, layer: LayerSpec):
+    """返回组件（含子 cell）在指定 layer 上的 KLayout Region。"""
+    layer_tuple = gf.get_layer_tuple(layer)
+    return kdb.Region(
+        component.kdb_cell.begin_shapes_rec(component.kcl.layer(*layer_tuple))
+    )
+
+
+def check_waveguide_overlap(
+        component: Component,
+        route: Component,
+        layer: LayerSpec = (1, 0),
+        min_overlap: float = 1e-3,
+        raise_error: bool = True,
+) -> float:
+    """检查一段新波导是否与组件已有同层波导发生面积重叠。
+
+    端点处“butt joint”只共享一条边，交叠面积严格为 0；如果面积超过
+    ``min_overlap``（单位 µm²），说明路由穿过了已有波导，属于短路。
+
+    参数:
+        component: 已经画好的版图/局部结构（route 尚未加入其中）。
+        route: 待检查的新波导组件。
+        layer: 检查的波导层。
+        min_overlap: 允许的残余交叠面积，默认 1e-3 µm²。
+        raise_error: True 时发现重叠直接抛 ValueError；False 时只返回面积。
+
+    返回:
+        交叠面积（µm²）。
+    """
+    inter = waveguide_region(component, layer) & waveguide_region(route, layer)
+    area = inter.area() * component.kcl.dbu ** 2
+    if area > min_overlap and raise_error:
+        bb = inter.bbox()
+        dbu = component.kcl.dbu
+        raise ValueError(
+            "波导路由与已有结构重叠："
+            f"layer={gf.get_layer_tuple(layer)}, area={area:.6f} um^2, "
+            f"bbox=({bb.left * dbu:.3f}, {bb.bottom * dbu:.3f}; "
+            f"{bb.right * dbu:.3f}, {bb.top * dbu:.3f}) um"
+        )
+    return area
+
+
 # %% add labels
 '''add labels to optical ports'''
 def add_labels_to_ports(
@@ -373,16 +578,20 @@ def Crossing_taper(
     """
     Crossing = gf.Component()
     # 中心正方形：以原点为中心，边长 WidthWg
+    # 中心方块边长必须取 WidthCross：否则四条宽端为 WidthCross 的 taper
+    # 会在四个角互相重叠（同层多余 overlap）。方块取 WidthCross 后，四条臂
+    # 正好各占一条边，不再互相压住。
+    center = max(float(WidthCross), float(WidthWg))
     Crossing.add_polygon(
-        [(-WidthWg / 2, -WidthWg / 2), (WidthWg / 2, -WidthWg / 2),
-         (WidthWg / 2, WidthWg / 2), (-WidthWg / 2, WidthWg / 2)],
+        [(-center / 2, -center / 2), (center / 2, -center / 2),
+         (center / 2, center / 2), (-center / 2, center / 2)],
         layer=oplayer,
     )
     # 四条臂：宽端贴中心方块，窄端朝外；先放 +x 臂，再绕原点旋转 90°
     taper0 = gf.c.taper(width1=WidthCross, width2=WidthWg, length=LengthTaper, layer=oplayer)
     for i in range(4):
         arm = Crossing << taper0
-        arm.movex(WidthWg / 2)
+        arm.movex(center / 2)
         if i:
             arm.rotate(90 * i, center=(0, 0))
         # 窄端（o2）就是对外端口，方向自然朝外
