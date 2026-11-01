@@ -3,7 +3,7 @@
 从 ICRD 项目（`202610_SOI_icrd`，12 英寸 SOI：220 nm Si + 双层 SiN + TiN +
 M1/M2/M3 + ALPAD/COVER）提炼出的可复用部分。**层号与那套流片文件一致**，
 所以这里的每个函数画出来的形状可以直接进 ICRD 的 GDS 且与
-`ICRDPhMTools` 逐层完全一致（见 `_selftest.py` 第 5 项对照）。
+`ICRDPhMTools` 逐层完全一致。
 
 ## 1. 为什么是独立子包
 
@@ -126,12 +126,6 @@ soi.add_annulus(c, 200, 100, 110, 112, 0, 360, soi.TIN)
 
 # 4) 探针焊盘：M2 引线 -> landing="M2"
 soi.add_bond_pad(c, 260, 100, size=60, cover=40, landing="M2")
-```
-
-自检（不需要任何 PDK 宏，并与 `ICRDPhMTools` 逐层对照）：
-
-```bash
-python -m AIPLPhMTools.SOITools._selftest
 ```
 
 ## 7. 与主库的关系 / 后续

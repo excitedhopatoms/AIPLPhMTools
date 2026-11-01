@@ -2,7 +2,7 @@
 
 运行（在包含 AIPLPhMTools 的目录下）::
 
-    python -m AIPLPhMTools.GeneralTools._selftest
+    python -m AIPLPhMTools.selftest.general_tools
 
 检查内容
 --------

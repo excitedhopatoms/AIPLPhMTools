@@ -56,13 +56,15 @@ pip install -e .
 │   ├── MultiRing.py / MultiRaceTrack.py
 │   ├── GongCavity.py / WangCavity.py
 │   ├── TCRing.py / TCRaceTrack.py / TCCoupledCavity.py
-│   ├── TestRow.py       # ring coupon 行 / 色散环阵列
-│   └── _selftest.py     # 全组件自检
+│   └── TestRow.py       # ring coupon 行 / 色散环阵列
 └── SOITools/            # SOI（12 英寸、三层金属）独立命名空间子库
     ├── FabBasic.py / Geometry.py / Routing.py
     ├── Electrical.py / Ring.py / Spiral.py / Facet.py
-    ├── Audit.py / Assembly.py
-    └── _selftest.py     # SOITools 自检</code></pre>
+    └── Audit.py / Assembly.py
+selftest/                 # 自检（不从主包自动导入）
+├── general_tools.py      # 全组件构建/端口/几何检查
+├── soitools.py           # SOITools 几何与层号检查
+└── run_all.py            # 依次运行两组自检</code></pre>
 <h2>参数阅读方式</h2>
 <div class="grid two"><div class="card"><h3>单位</h3><p>所有长度/宽度/间隙/半径均为 µm；角度为度 (°)。端口方向 0° 朝 +x，逆时针为正。</p></div><div class="card"><h3>LayerSpec</h3><p>图层既可写 <code>(layer, datatype)</code>，也可用预设 <code>ap.LAYER.WG</code>。每个器件的图层使用情况在器件页底部列出。</p></div><div class="card"><h3>HeaterConfig</h3><p>加热器不是单个数字，而是一组配置。用 <code>ap.HeaterConfigClass(TypeHeater="side", WidthHeat=6)</code>，或在默认配置上派生：<code>ap.heaterconfig0.with_changes(TypeHeater="snake")</code>。</p></div><div class="card"><h3>None 的含义</h3><p>多数 <code>HeaterConfig=None</code> 表示不画加热器；<code>tin/tout=None</code> 表示使用库内默认 taper。参数表里的默认值以签名原样展示。</p></div></div>
 <pre><code>import AIPLPhMTools as ap
@@ -83,26 +85,16 @@ c = ap.RingPulleyT1(oplayer=ap.LAYER.CPF)   # 画到氮化硅层</code></pre>
 )
 print(stack.WG.key, stack.M1.role)</code></pre>
 <div class="note">手册表格只需写“名称 + layer/datatype + 角色 + 显示厚度”；显示厚度仅用于 3D，不绑定具体工艺。</div>
-<h2>自检与 CSV</h2>
-<pre><code># 构建全部公共器件，检查端口/几何/图层
-python -m AIPLPhMTools.GeneralTools._selftest
+<h2>自检</h2>
+<pre><code># 依次运行 GeneralTools + SOITools
+python -m AIPLPhMTools.selftest.run_all
 
-# SOITools 子库自检（含与 ICRDPhMTools 的逐层对照）
-python -m AIPLPhMTools.SOITools._selftest</code></pre>
+# 或单独运行
+python -m AIPLPhMTools.selftest.general_tools
+python -m AIPLPhMTools.selftest.soitools</code></pre>
+<div class="note">自检代码位于 <code>AIPLPhMTools/selftest/</code>，不会在导入主包时自动执行。</div>
+<h2>CSV 驱动的 DBR</h2>
 <div class="note warn"><strong>CSV 驱动的 DBR：</strong><code>DBRFromCsv*</code> 不再内置作者机器路径。请传入 <code>CSVName=...</code>，或设置环境变量 <code>AIPL_DBR_CSV_DIR</code> 指向 CSV 目录。缺少文件时会给出明确报错。</div>
-<h2>LVS 连通性检查</h2>
-<p class="lead">把版图按层合并成连通块，再对照 netlist 端子检查 <b>open / short / 画错层 / 线宽</b>。端子坐标可以自动从器件端口读取，也可以对已有 GDS 手动给出坐标。</p>
-<pre><code># 直接检查 Python 器件（端子从 Component.ports 自动读取）
-python -m AIPLPhMTools.lvs --component CoupledRingFilter \
-    --spec AIPLPhMTools/examples/lvs_coupled_filter.yaml
-
-# 检查已有 GDS（spec 里用 ports 给坐标和图层）
-python -m AIPLPhMTools.lvs --gds chip.gds --spec chip_lvs.yaml
-
-# 保存机器可读报告；可选 --reference old.gds 做逐层回归
-python -m AIPLPhMTools.lvs --component CoupledRingFilter \
-    --spec AIPLPhMTools/examples/lvs_coupled_filter.yaml --json lvs.json</code></pre>
-<div class="note">spec 只需要写要检查的 net：<code>nets: {bottom_bus: [Input, Through], top_bus: [Add, Drop]}</code>。未参与 net 的参考端口（例如 <code>RingC</code>）不会被误判。<code>allow_extra_nets: false</code> 可把未声明的连通块也当失败。</div>
 <h2>函数调用约定</h2>
 <ul><li>所有公共器件构造函数都返回 <code>gdsfactory.Component</code>；导入包不会创建几何。</li><li>组合器件用 <code>connect()</code> 对齐，不在下游手写绝对坐标。</li><li>需要 <code>PathHeat</code>、<code>CompEn</code> 的辅助绘制函数在参数表里标为「必填」，手册用演示输入生成图像。</li><li>同一进程内可安全地用不同参数反复构建；cell 缓存按参数自动区分。</li></ul>
 <div class="footer">

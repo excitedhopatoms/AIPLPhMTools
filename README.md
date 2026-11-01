@@ -136,8 +136,7 @@ AIPLPhMTools/
 │   ├── TCRaceTrack.py       # 跑道测试结构
 │   ├── TCCoupledCavity.py   # 耦合腔测试结构
 │   ├── SnapMerge.py         # 顶点吸附 / 同层合并
-│   ├── EulerConnection.py   # 任意角度端口 Euler 连线
-│   └── _selftest.py         # 全部器件构建自检
+│   └── EulerConnection.py   # 任意角度端口 Euler 连线
 ├── SOITools/                # SOI（12 英寸、三层金属）独立命名空间子库
 │   ├── FabBasic.py          # SOI 层号与工艺常数
 │   ├── Geometry.py          # Route、条带、环带、pulley 弧
@@ -148,17 +147,30 @@ AIPLPhMTools/
 │   ├── Facet.py             # 斜端面
 │   ├── Audit.py             # GDS 审计
 │   ├── Assembly.py          # 端口包装 / connect / PDK 加载
-│   ├── _selftest.py         # SOITools 自检
 │   └── README.md
-├── lvs.py                   # 连通性 LVS 检查（CLI + Python API）
-├── lvs_selftest.py          # LVS 自检（PASS/FAIL 用例）
-├── examples/                # LVS 示例 spec
-│   ├── lvs_coupled_filter.yaml
-│   └── lvs_coupled_filter_bad.yaml
+├── selftest/                # 自检（不从主包自动导入）
+│   ├── general_tools.py     # 全组件构建/端口/几何检查
+│   ├── soitools.py          # SOITools 几何与层号检查
+│   └── run_all.py           # 依次运行两组自检
+├── examples/                # 设计手册示例（LayerStack）
+│   └── layer_stack_manual.md
 └── docs/                    # 版图手册网站（GitHub Pages）
 ```
 
 ---
+
+## 自检
+
+自检代码集中在 `AIPLPhMTools/selftest/`，不会在导入主包时自动运行：
+
+```bash
+# 依次运行 GeneralTools + SOITools
+python -m AIPLPhMTools.selftest.run_all
+
+# 或单独运行
+python -m AIPLPhMTools.selftest.general_tools
+python -m AIPLPhMTools.selftest.soitools
+```
 
 ## API 参考
 
@@ -2495,73 +2507,6 @@ row.write_gds("dispersion_ring_row.gds")
 
 原来项目脚本里的 `for i in range(8): TCRingT1(...)`、`movey(...)`、文字标签和端口
 汇总都收敛到这一层；新增行结构只需要给 `RingCouponSpec` 列表，不再复制循环代码。
-
----
-
-## LVS 连通性检查
-
-`AIPLPhMTools.lvs` 做的是**端口连通性 LVS**：把版图按层合并成连通块，
-检查原理图 netlist 里的端子是否接对、有没有开路/短路、有没有画错层。
-
-### 直接检查 Python 器件
-
-端子坐标自动从 `Component.ports` 读取，spec 里只写 net：
-
-```yaml
-# examples/lvs_coupled_filter.yaml
-layers:
-  WG: [1, 0]
-
-nets:
-  bottom_bus:
-    layer: WG
-    ports: [Input, Through]
-  top_bus:
-    layer: WG
-    ports: [Add, Drop]
-
-min_width: 0.4
-required_cells: [CoupledRingFilter]
-allow_extra_nets: true
-```
-
-```bash
-python -m AIPLPhMTools.lvs     --component CoupledRingFilter     --spec AIPLPhMTools/examples/lvs_coupled_filter.yaml
-
-# 自检：直波导 PASS、拆两个 net 短路 FAIL、耦合环正确/错误 netlist 各一组
-python -m AIPLPhMTools.lvs_selftest
-```
-
-输出会逐项打印 `PASS/FAIL`，退出码 0/1；加 `--json report.json` 可保存机器可读报告。
-
-### 检查已有 GDS
-
-在 spec 里给出端子的坐标和图层，然后用 `--gds`：
-
-```yaml
-ports:
-  Input:   {layer: WG, xy: [-130, 0]}
-  Through: {layer: WG, xy: [130, 0]}
-  Add:     {layer: WG, xy: [-130, 403.7]}
-  Drop:    {layer: WG, xy: [130, 403.7]}
-```
-
-```bash
-python -m AIPLPhMTools.lvs --gds chip.gds --spec chip_lvs.yaml
-```
-
-### 检查内容
-
-- **open**：同一 net 的端子在同一个连通块；
-- **short**：不同 net 不能落在同一个连通块；
-- **missing**：端子必须落在声明的图层上；
-- **width**：可选 `min_width`，检查端子处线宽；
-- **cell**：可选 `required_cells`，检查 GDS 里是否存在指定器件 cell；
-- **extra nets**：可选 `allow_extra_nets: false`，把未声明的连通块也当失败；
-- **reference**：加 `--reference old.gds`，额外对比逐层面积 / bbox / 连通块数，用于版图回归。
-
-示例里还提供了一个故意写错的 spec（`lvs_coupled_filter_bad.yaml`），
-运行后会得到退出码 1，可用来确认脚本确实能抓到开路/短路。
 
 ---
 

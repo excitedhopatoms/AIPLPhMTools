@@ -1628,13 +1628,15 @@ pip install -e .
 │   ├── MultiRing.py / MultiRaceTrack.py
 │   ├── GongCavity.py / WangCavity.py
 │   ├── TCRing.py / TCRaceTrack.py / TCCoupledCavity.py
-│   ├── TestRow.py       # ring coupon 行 / 色散环阵列
-│   └── _selftest.py     # 全组件自检
+│   └── TestRow.py       # ring coupon 行 / 色散环阵列
 └── SOITools/            # SOI（12 英寸、三层金属）独立命名空间子库
     ├── FabBasic.py / Geometry.py / Routing.py
     ├── Electrical.py / Ring.py / Spiral.py / Facet.py
-    ├── Audit.py / Assembly.py
-    └── _selftest.py     # SOITools 自检</code></pre>""")
+    └── Audit.py / Assembly.py
+selftest/                 # 自检（不从主包自动导入）
+├── general_tools.py      # 全组件构建/端口/几何检查
+├── soitools.py           # SOITools 几何与层号检查
+└── run_all.py            # 依次运行两组自检</code></pre>""")
 
     body.append("<h2>参数阅读方式</h2>")
     body.append('<div class="grid two">'
@@ -1665,34 +1667,20 @@ print(stack.WG.key, stack.M1.role)</code></pre>""")
     body.append('<div class="note">手册表格只需写“名称 + layer/datatype + 角色 + 显示厚度”；'
                 '显示厚度仅用于 3D，不绑定具体工艺。</div>')
 
-    body.append("<h2>自检与 CSV</h2>")
-    body.append("""<pre><code># 构建全部公共器件，检查端口/几何/图层
-python -m AIPLPhMTools.GeneralTools._selftest
+    body.append("<h2>自检</h2>")
+    body.append("""<pre><code># 依次运行 GeneralTools + SOITools
+python -m AIPLPhMTools.selftest.run_all
 
-# SOITools 子库自检（含与 ICRDPhMTools 的逐层对照）
-python -m AIPLPhMTools.SOITools._selftest</code></pre>""")
+# 或单独运行
+python -m AIPLPhMTools.selftest.general_tools
+python -m AIPLPhMTools.selftest.soitools</code></pre>""")
+    body.append('<div class="note">自检代码位于 <code>AIPLPhMTools/selftest/</code>，'
+                '不会在导入主包时自动执行。</div>')
+
+    body.append("<h2>CSV 驱动的 DBR</h2>")
     body.append('<div class="note warn"><strong>CSV 驱动的 DBR：</strong>'
                 '<code>DBRFromCsv*</code> 不再内置作者机器路径。请传入 <code>CSVName=...</code>，'
                 '或设置环境变量 <code>AIPL_DBR_CSV_DIR</code> 指向 CSV 目录。缺少文件时会给出明确报错。</div>')
-
-    body.append("<h2>LVS 连通性检查</h2>")
-    body.append('<p class="lead">把版图按层合并成连通块，再对照 netlist 端子检查 '
-                '<b>open / short / 画错层 / 线宽</b>。端子坐标可以自动从器件端口读取，'
-                '也可以对已有 GDS 手动给出坐标。</p>')
-    body.append("""<pre><code># 直接检查 Python 器件（端子从 Component.ports 自动读取）
-python -m AIPLPhMTools.lvs --component CoupledRingFilter \\
-    --spec AIPLPhMTools/examples/lvs_coupled_filter.yaml
-
-# 检查已有 GDS（spec 里用 ports 给坐标和图层）
-python -m AIPLPhMTools.lvs --gds chip.gds --spec chip_lvs.yaml
-
-# 保存机器可读报告；可选 --reference old.gds 做逐层回归
-python -m AIPLPhMTools.lvs --component CoupledRingFilter \\
-    --spec AIPLPhMTools/examples/lvs_coupled_filter.yaml --json lvs.json</code></pre>""")
-    body.append('<div class="note">spec 只需要写要检查的 net：'
-                '<code>nets: {bottom_bus: [Input, Through], top_bus: [Add, Drop]}</code>。'
-                '未参与 net 的参考端口（例如 <code>RingC</code>）不会被误判。'
-                '<code>allow_extra_nets: false</code> 可把未声明的连通块也当失败。</div>')
 
     body.append("<h2>函数调用约定</h2>")
     body.append('<ul>'

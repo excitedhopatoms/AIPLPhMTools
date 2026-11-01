@@ -2,7 +2,7 @@
 
 运行（在含 ICRDPhMTools 的项目根目录）::
 
-    python -m AIPLPhMTools.SOITools._selftest
+    python -m AIPLPhMTools.selftest.soitools
 
 检查项
 ------
