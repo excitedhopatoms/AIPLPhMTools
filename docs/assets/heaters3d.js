@@ -25,7 +25,10 @@
   var pitch = 1.02;
   var zoom = 1.0;
   var explode = 1.0;
+  var panX = 0;
+  var panY = 0;
   var dragging = false;
+  var dragMode = "rotate";
   var lastX = 0;
   var lastY = 0;
   var W = 1;
@@ -105,8 +108,8 @@
     var dx = Math.max(maxX - minX, 1e-6);
     var dy = Math.max(maxY - minY, 1e-6);
     var scale = Math.min((W - 100) / dx, (H - 92) / dy) * zoom;
-    var tx = (W - dx * scale) / 2 - minX * scale;
-    var ty = (H - dy * scale) / 2 - minY * scale;
+    var tx = (W - dx * scale) / 2 - minX * scale + panX;
+    var ty = (H - dy * scale) / 2 - minY * scale + panY;
 
     // 从下到上画：低层先画，高层覆盖上去；每层先侧壁再顶面
     item.layers.slice().sort(function (a, b) { return a.z - b.z; }).forEach(function (layer) {
@@ -245,17 +248,23 @@
 
   canvas.addEventListener("pointerdown", function (e) {
     dragging = true;
+    dragMode = (e.button === 2 || e.button === 1 || e.shiftKey) ? "pan" : "rotate";
     lastX = e.clientX; lastY = e.clientY;
     canvas.setPointerCapture(e.pointerId);
-    canvas.style.cursor = "grabbing";
+    canvas.style.cursor = dragMode === "pan" ? "move" : "grabbing";
   });
   canvas.addEventListener("pointermove", function (e) {
     if (!dragging) return;
     var dx = e.clientX - lastX;
     var dy = e.clientY - lastY;
     lastX = e.clientX; lastY = e.clientY;
-    yaw += dx * 0.008;
-    pitch = clamp(pitch - dy * 0.007, 0.18, 1.45);
+    if (dragMode === "pan") {
+      panX += dx;
+      panY += dy;
+    } else {
+      yaw += dx * 0.008;
+      pitch = clamp(pitch - dy * 0.007, 0.18, 1.45);
+    }
     draw();
   });
   function endDrag() {
@@ -264,6 +273,7 @@
   }
   canvas.addEventListener("pointerup", endDrag);
   canvas.addEventListener("pointercancel", endDrag);
+  canvas.addEventListener("contextmenu", function (e) { e.preventDefault(); });
 
   canvas.addEventListener("wheel", function (e) {
     e.preventDefault();
@@ -275,6 +285,8 @@
     yaw = -0.62;
     pitch = 1.02;
     zoom = 1.0;
+    panX = 0;
+    panY = 0;
     draw();
   }
   canvas.addEventListener("dblclick", resetView);

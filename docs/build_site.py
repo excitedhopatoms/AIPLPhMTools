@@ -7,13 +7,13 @@
 
 产物在 ``AIPLPhMTools/docs/``：
 
-* ``index.html`` / ``guide.html`` / ``soitools.html``
+* ``index.html`` / ``guide.html`` / ``modules.html`` / ``platforms_soi.html``
 * ``components/<器件>.html``
 * ``categories/<分类>.html``
 * ``assets/img/``          每个器件的默认参数版图 PNG
 * ``assets/img/variants/`` 参数对比 PNG
 * ``assets/gds/``          默认参数 GDS（gzip 压缩，可下载）
-* ``assets/SOITools/``          SOITools 子库演示图
+* ``assets/platforms_soi/``     Platforms/SOI 子库演示图
 
 图像不是示意图：脚本会真正调用器件函数、写出 GDS、再用 KLayout 合并同层
 多边形、Matplotlib 填充渲染。所有尺寸/端口数据也都来自实际构建结果。
@@ -52,9 +52,9 @@ import AIPLPhMTools as ap  # noqa: E402
 IMG = HERE / "assets" / "img"
 IMG_V = IMG / "variants"
 GDS_DIR = HERE / "assets" / "gds"
-SOITOOLS_IMG = HERE / "assets" / "SOITools"
+PLATFORMS_SOI_IMG = HERE / "assets" / "platforms_soi"
 
-for _d in (IMG, IMG_V, GDS_DIR, SOITOOLS_IMG, HERE / "components", HERE / "categories"):
+for _d in (IMG, IMG_V, GDS_DIR, PLATFORMS_SOI_IMG, HERE / "components", HERE / "categories"):
     _d.mkdir(parents=True, exist_ok=True)
 
 
@@ -79,6 +79,68 @@ CAT_NAME = {c[0]: c[1] for c in CATEGORIES}
 CAT_DESC = {c[0]: c[2] for c in CATEGORIES}
 CAT_ORDER = {c[0]: i for i, c in enumerate(CATEGORIES)}
 
+# 与 AIPLPhMTools 重组后的目录一一对应（2026-11-03）。
+# 网页的“模块层级”页、目录树和器件页的“模块”徽标都从这里取。
+MODULE_TREE = [
+    ("Core", "与具体工艺、具体器件无关的底座", [
+        ("Core/BasicDefine.py", "层号接口、截面、直/弯/锥、Euler 路径、route_off_grid"),
+        ("Core/EulerConnection.py", "任意角度端口的 Euler 连线"),
+        ("Core/SnapMerge.py", "顶点吸附 / 同层合并（DRC 预处理）"),
+        ("Core/LayerStack.py", "LayerDef / LayerStack（设计手册与 3D 视图）"),
+    ]),
+    ("Devices", "单器件：返回带端口的 Component", [
+        ("Devices/Ring.py", "Pulley 环及 T1/T2/1DC 等变体"),
+        ("Devices/RaceTrack.py", "跑道腔（弯段/直段耦合）"),
+        ("Devices/CouplerMZI.py", "2×2 耦合器、DMZI、PMZI、Sagnac"),
+        ("Devices/CoupledCavity.py", "二阶耦合环、CROW、SCISSOR"),
+        ("Devices/FeedbackCavity.py", "Add-Drop 微腔、Sagnac 环镜、反馈环"),
+        ("Devices/DBR.py", "常规 / 采样 / E-DBR"),
+        ("Devices/DBR_inv.py", "反相 E-DBR"),
+        ("Devices/Boomerang.py", "回旋镖单元及单/双/三环"),
+        ("Devices/GongCavity.py", "工字形闭合微腔"),
+        ("Devices/memyshev.py", "Memyshev 双环激光器"),
+    ]),
+    ("Assemblies", "多器件装配：仍返回一个 Component", [
+        ("Assemblies/ExtCav.py", "外腔激光器、双环/跑道外腔"),
+        ("Assemblies/MultiRing.py", "串联多环（Vernier）"),
+        ("Assemblies/MultiRaceTrack.py", "串联多跑道腔"),
+        ("Assemblies/Isolator.py", "单环 / 环+隔离器"),
+        ("Assemblies/WangCavity.py", "王字形微腔"),
+    ]),
+    ("TestStructures", "测试与表征结构（TC*）", [
+        ("TestStructures/TCRing.py", "环形谐振器测试结构"),
+        ("TestStructures/TCRaceTrack.py", "跑道腔测试结构"),
+        ("TestStructures/TCCoupledCavity.py", "耦合腔 / 回旋镖测试结构"),
+        ("TestStructures/Coupon.py", "通用两端 coupon"),
+        ("TestStructures/TestRow.py", "测试行 / 阵列"),
+    ]),
+    ("Electrical", "通用加热器与电极（与光子器件解耦）", [
+        ("Electrical/Heater.py", "加热器配置、蛇形加热、过孔阵列"),
+        ("Electrical/ELE.py", "焊盘、GSG 电极"),
+    ]),
+    ("Platforms/SOI", "SOI 12 英寸平台子库（独立层号 600/631/632/…）", [
+        ("Platforms/SOI/FabBasic.py", "SOI 层号表 + 工艺常数"),
+        ("Platforms/SOI/Geometry.py", "Route / taper / strip / add_annulus"),
+        ("Platforms/SOI/Routing.py", "Si / SiN 走线 + 开窗 + SINOP"),
+        ("Platforms/SOI/Electrical.py", "过孔 / 引线 / landing 焊盘"),
+        ("Platforms/SOI/Ring.py", "RingPulley / RaceTrackPulley 宏封装"),
+        ("Platforms/SOI/Spiral.py", "闭合双螺旋腔中心线"),
+        ("Platforms/SOI/Facet.py", "12.9° 斜端面 + 反角弯"),
+        ("Platforms/SOI/PDKPorts.py", "PDK 宏端口表"),
+        ("Platforms/SOI/Assembly.py", "端口包装 / connect / PDK 宏加载"),
+        ("Platforms/SOI/Audit.py", "GDS → shapely 审计"),
+    ]),
+]
+
+def module_anchor(path: str) -> str:
+    return "module-" + re.sub(r"[^A-Za-z0-9]+", "-", path).strip("-")
+
+
+def component_module_path(factory) -> str:
+    """函数真实所在的新路径，例如 Devices/Ring.py。"""
+    full = (getattr(factory, "__module__", "") or "").removeprefix("AIPLPhMTools.")
+    return full.replace(".", "/") + ".py" if full else "AIPLPhMTools/__init__.py"
+
 MODULE_CAT = {
     "BasicDefine": "basic",
     "Ring": "rings",
@@ -94,6 +156,7 @@ MODULE_CAT = {
     "ELE": "heaters",
     "Boomerang": "boomerang",
     "ExtCav": "extcav",
+    "FeedbackCavity": "extcav",
     "memyshev": "extcav",
     "Isolator": "extcav",
     "GongCavity": "microcavity",
@@ -202,7 +265,7 @@ def _nice_length(target):
 
 
 def render_component(c, out_png: Path, gds_gz: Path | None = None,
-                     palette=MAIN_PALETTE) -> dict | None:
+                     palette=MAIN_PALETTE, show_ports: bool = True) -> dict | None:
     """把 Component 渲染成白底 PNG，并返回 bbox / 实际使用图层。"""
     tmp = Path(tempfile.mkdtemp()) / "render.gds"
     c.write_gds(str(tmp))
@@ -276,6 +339,48 @@ def render_component(c, out_png: Path, gds_gz: Path | None = None,
     ax.plot([xa, xa + nice], [ya, ya], color="#111827", lw=2.2, solid_capstyle="butt")
     ax.text(xa + nice / 2, ya + h * 0.012, f"{nice:g} µm", ha="center", va="bottom",
             fontsize=7, color="#111827")
+
+    # 端口位置 + 方向：箭头从端口中心朝外，标签写“名字 角度”。
+    # 这样在网页上能直接判断 IO 是否 0/90/180/270，而不用只查端口表。
+    if show_ports:
+        ports = list(c.ports)
+        if ports:
+            arrow_len = max(max(w, h) * 0.045, 2.0)
+            seen = []
+            for p in ports:
+                try:
+                    cx, cy = float(p.center[0]), float(p.center[1])
+                    ori = float(p.orientation) % 360.0
+                except Exception:
+                    continue
+                ang = np.radians(ori)
+                ex, ey = np.cos(ang), np.sin(ang)
+                ax.annotate(
+                    "", xy=(cx + ex * arrow_len, cy + ey * arrow_len),
+                    xytext=(cx, cy),
+                    arrowprops=dict(arrowstyle="-|>", color="#d946ef",
+                                    lw=1.15, shrinkA=0, shrinkB=0),
+                    annotation_clip=False,
+                )
+                ax.plot([cx], [cy], marker="o", ms=2.4, color="#a21caf",
+                        clip_on=False, zorder=20)
+                # 同一位置的重复端口（例如参考端口）只标一次。
+                if any(abs(cx - sx) < 0.01 and abs(cy - sy) < 0.01
+                       for sx, sy in seen):
+                    continue
+                seen.append((cx, cy))
+                ha = "left" if ex > 0.5 else ("right" if ex < -0.5 else "center")
+                va = "bottom" if ey > 0.5 else ("top" if ey < -0.5 else "center")
+                ax.text(cx + ex * arrow_len * 1.34,
+                        cy + ey * arrow_len * 1.34,
+                        f"{p.name} {ori:g}°", fontsize=5.4, color="#86198f",
+                        ha=ha, va=va, clip_on=False, zorder=21)
+
+    # 端口箭头/标签会伸出原 bbox，稍微放宽视野。
+    if show_ports:
+        pad_x, pad_y = w * 0.10, h * 0.13
+        ax.set_xlim(x0 - pad_x, x1 + pad_x)
+        ax.set_ylim(y0 - pad_y, y1 + pad_y)
 
     out_png.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(str(out_png), bbox_inches="tight", pad_inches=0.05, facecolor="white")
@@ -663,6 +768,43 @@ VARIANTS: dict[str, list[dict]] = {
     "RingTriBoomerang": [
         {"param": "DeltaLB2", "kwargs": {"DeltaLB2": 10}, "label": "DeltaLB2 = 10"},
     ],
+    "FeedbackRing": [
+        {"param": "AngleFeedback", "kwargs": {"AngleFeedback": 30}, "label": "AngleFeedback = 30°"},
+        {"param": "AngleFeedback", "kwargs": {"AngleFeedback": 45}, "label": "AngleFeedback = 45°"},
+        {"param": "AngleFeedback", "kwargs": {"AngleFeedback": 90}, "label": "AngleFeedback = 90°"},
+        {"param": "AngleFeedback", "kwargs": {"AngleFeedback": 135}, "label": "AngleFeedback = 135°"},
+        {"param": "MirrorType", "kwargs": {"MirrorType": "pdc"}, "label": "pulley DC mirror"},
+    ],
+    "OptFeedbackRing": [
+        {"param": "AngleFeedback", "kwargs": {"AngleFeedback": 45}, "label": "Opt · AngleFeedback = 45°"},
+        {"param": "AngleFeedback", "kwargs": {"AngleFeedback": 90}, "label": "Opt · AngleFeedback = 90°"},
+        {"param": "AngleFeedback", "kwargs": {"AngleFeedback": 135}, "label": "Opt · AngleFeedback = 135°"},
+        {"param": "MirrorType", "kwargs": {"MirrorType": "pdc"}, "label": "Opt · pulley DC mirror"},
+    ],
+    "OptMMISagnacLoop": [
+        {"param": "Radius", "kwargs": {"Radius": 52}, "label": "Radius = 52 um"},
+        {"param": "Radius", "kwargs": {"Radius": 80}, "label": "Radius = 80 um"},
+        {"param": "RadiusMin",
+         "kwargs": {"RadiusMin": 11},
+         "label": "RadiusMin = 11 um (Si)"},
+        {"param": "LoopShape",
+         "kwargs": {"LoopShape": "euler"},
+         "label": "LoopShape = euler (larger)"},
+    ],
+    "OptPDCSagnacLoop": [
+        {"param": "AngleCouple", "kwargs": {"AngleCouple": 11}, "label": "AngleCouple = 11°"},
+        {"param": "AngleCouple", "kwargs": {"AngleCouple": 20}, "label": "AngleCouple = 20°"},
+        {"param": "Radius", "kwargs": {"Radius": 60}, "label": "Radius = 60 um"},
+        {"param": "RadiusMin",
+         "kwargs": {"RadiusMin": 30},
+         "label": "RadiusMin = 30 um (Si)"},
+        {"param": "LoopShape",
+         "kwargs": {"LoopShape": "euler"},
+         "label": "LoopShape = euler (larger)"},
+        {"param": "WidthLoop",
+         "kwargs": {"Width": 1.55, "WidthLoop": 2.0, "AngleCouple": 11, "RadiusIn": 200},
+         "label": "Width 1.55 -> loop 2.0"},
+    ],
     "ExtCavDouRing": [
         {"param": "r_ring", "kwargs": {"r_ring": 100}, "label": "r_ring = 100"},
         {"param": "r_ring", "kwargs": {"r_ring": 300}, "label": "r_ring = 300"},
@@ -762,13 +904,13 @@ def _build_coupon_demo():
 
 MANUAL = {
     "Coupon": {
-        "module": "Coupon", "category": "test",
+        "module": "Coupon", "module_path": "TestStructures/Coupon.py", "category": "test",
         "factory": _build_coupon_demo, "sig": ap.Coupon,
         "note": "通用两端 coupon：中间 core 只要有左右端口即可。这里用 200 µm 直波导作 core 演示。",
         "code": "core = ap.GfCStraight(length=200, width=2)\ncoupon = ap.Coupon(core=core, core_input='o1', core_output='o2', io_width=1.0, length_total=1000)",
     },
     "DifferentHeater": {
-        "module": "Heater", "category": "heaters",
+        "module": "Heater", "module_path": "Electrical/Heater.py", "category": "heaters",
         "factory": _build_different_heater, "sig": ap.DifferentHeater,
         "note": "PathHeat 必须由调用者给出；这里统一用 220 µm 直波导演示。TypeHeater 决定加热条是单条、侧边、双侧、多条还是蛇形切割。",
         "code": "import gdsfactory as gf\n\nc = ap.DifferentHeater(PathHeat=gf.path.straight(length=220))",
@@ -784,7 +926,7 @@ MANUAL = {
         ],
     },
     "SnakeHeater": {
-        "module": "Heater", "category": "heaters",
+        "module": "Heater", "module_path": "Electrical/Heater.py", "category": "heaters",
         "factory": _build_snake_heater, "sig": ap.SnakeHeater,
         "note": "蛇形加热器沿 PathHeat 周期性切除上下两条槽；WidthHeat 越大、槽越深，等效电阻越高。",
         "code": "import gdsfactory as gf\n\nc = ap.SnakeHeater(PathHeat=gf.path.straight(length=300))",
@@ -795,7 +937,7 @@ MANUAL = {
         ],
     },
     "ViaArray": {
-        "module": "Heater", "category": "heaters",
+        "module": "Heater", "module_path": "Electrical/Heater.py", "category": "heaters",
         "factory": _build_via_array, "sig": ap.ViaArray,
         "note": "在给定组件某个图层（这里是 110×60 µm 的 M1 矩形）内部按 Enclosure 内缩后布孔；演示图同时显示源区域与过孔。",
         "allow_no_ports": True,
@@ -808,7 +950,7 @@ MANUAL = {
         ],
     },
     "TWQRcode": {
-        "module": "BasicDefine", "category": "tools",
+        "module": "BasicDefine", "module_path": "Core/BasicDefine.py", "category": "tools",
         "factory": ap.TWQRcode, "sig": ap.TWQRcode,
         "note": "把团队网址打成 QR 码放在版图上；没有光学/电学端口。Size 是单个码点尺寸 (µm)。",
         "code": "c = ap.TWQRcode(Size=10)",
@@ -1099,7 +1241,7 @@ def category_of(name, factory, module, override=None):
 
 
 def build_component(name, factory, sig_source, module, category, note="",
-                    code_override=None, allow_no_ports=False) -> dict:
+                    code_override=None, allow_no_ports=False, module_path=None) -> dict:
     doc = clean_doc(inspect.getdoc(sig_source))
     docs = parse_param_docs(doc)
     sig = inspect.signature(sig_source)
@@ -1123,7 +1265,8 @@ def build_component(name, factory, sig_source, module, category, note="",
             "import AIPLPhMTools as ap\n\n" + code_override)
     else:
         code = default_code
-    info = {"name": name, "module": module, "category": category,
+    info = {"name": name, "module": module, "module_path": module_path or f"{module}.py",
+            "category": category,
             "summary": summary_of(doc), "doc": doc, "params": params,
             "ports": [], "layers": [], "bbox": None, "size": None,
             "image": None, "gds": None, "variants": [], "note": note,
@@ -1216,7 +1359,8 @@ def build_all() -> list[dict]:
         cat = category_of(name, default_factory, module)
         note = CSV_NOTE if name in CSV_BUILDERS else COMPONENT_NOTES.get(name, "")
         comp = build_component(name, factory, default_factory, module, cat,
-                               note=note, code_override=CSV_CODES.get(name))
+                               note=note, code_override=CSV_CODES.get(name),
+                               module_path=component_module_path(default_factory))
         build_variants(comp, factory, VARIANTS.get(name))
         comps.append(comp)
 
@@ -1225,6 +1369,7 @@ def build_all() -> list[dict]:
             name, spec["factory"], spec["sig"], spec["module"], spec["category"],
             note=spec.get("note", ""), code_override=spec.get("code"),
             allow_no_ports=spec.get("allow_no_ports", False),
+            module_path=spec.get("module_path"),
         )
         build_variants(comp, spec["factory"], spec.get("variants"))
         comps.append(comp)
@@ -1283,7 +1428,8 @@ def sidebar_html(rel, active_name=None, active_cat=None, comps=None) -> str:
   <nav>
     <a class="nav-top" href="{rel}index.html">概览</a>
     <a class="nav-top" href="{rel}guide.html">快速开始与约定</a>
-    <a class="nav-top" href="{rel}soitools.html">SOITools 子库</a>
+    <a class="nav-top" href="{rel}modules.html">模块层级</a>
+    <a class="nav-top" href="{rel}platforms_soi.html">SOI 平台子库</a>
     <a class="nav-top" href="{rel}heaters3d.html">加热器 3D</a>
     {''.join(groups)}
     <div class="nav-empty">没有匹配的器件。试试参数名，如 <code>RadiusRing</code>。</div>
@@ -1404,7 +1550,9 @@ def component_page(comp, comps) -> str:
     body.append(f'<p class="lead">{esc(comp["summary"] or "该器件没有 docstring。")}</p>')
     body.append('<div class="meta-row">')
     body.append(f'<span class="badge blue">{esc(CAT_NAME[comp["category"]])}</span>')
-    body.append(f'<span class="badge">模块 {esc(comp["module"])}</span>')
+    mp = comp.get("module_path") or comp["module"]
+    body.append(f'<span class="badge">模块 '
+                f'<a href="../modules.html#{module_anchor(mp)}">{esc(mp)}</a></span>')
     body.append(f'<span class="badge">{len(comp["ports"])} 个端口</span>')
     body.append(f'<span class="badge">尺寸 {esc(fmt_size(comp))}</span>')
     if comp["variants"]:
@@ -1433,17 +1581,17 @@ def component_page(comp, comps) -> str:
         body.append(
             '<div class="note green">加热器是叠在波导上的金属层：'
             '<a href="../heaters3d.html?item=' + hid + '">打开交互式 3D 层叠图</a>'
-            '（可拖动旋转、滚轮缩放、看层间距）。</div>'
+            '（左键旋转、右键/Shift 拖动平移、滚轮缩放，可看层间距）。</div>'
         )
 
     if comp.get("view3d"):
         body.append('<div class="section-head"><h2>3D 层叠视图</h2></div>')
-        body.append('<p class="lead">拖动旋转、滚轮缩放；每一层按实体块显示'
+        body.append('<p class="lead">左键旋转、右键/Shift 拖动平移、滚轮缩放；每一层按实体块显示'
                     '（顶面 + 侧壁，不绘制底面），厚度可以逐层单独调整。'
                     '厚度只用于显示，层叠顺序按图层类型自动排列，不绑定任何具体工艺。</p>')
         body.append('<div class="c3d">'
                     '<div class="c3d-stage"><canvas class="c3d-canvas"></canvas>'
-                    '<div class="c3d-hint">拖动旋转 · 滚轮缩放 · 双击复位</div></div>'
+                    '<div class="c3d-hint">左键旋转 · 右键/Shift 拖动平移 · 滚轮缩放 · 双击复位</div></div>'
                     '<aside class="c3d-side">'
                     '<div class="c3d-actions"><label class="h3d-check">'
                     '<input type="checkbox" class="c3d-auto"> 自动旋转</label>'
@@ -1504,7 +1652,9 @@ def category_page(cid, comps) -> str:
     items = [c for c in comps if c["category"] == cid]
     body = [f'<div class="topline">{breadcrumb(rel, cat=cid)}</div>']
     body.append(f"<h1>{esc(CAT_NAME[cid])}</h1>")
-    body.append(f'<p class="lead">{esc(CAT_DESC[cid])}。共 {len(items)} 个器件。</p>')
+    mods = sorted({(c.get("module_path") or c["module"]).split("/")[0] for c in items})
+    body.append(f'<p class="lead">{esc(CAT_DESC[cid])}。共 {len(items)} 个器件，'
+                f'涉及模块：{esc(" / ".join(mods))}。</p>')
     body.append('<div class="grid auto">')
     body.append("".join(comp_card(c, rel) for c in items))
     body.append("</div>")
@@ -1517,13 +1667,14 @@ def overview_page(comps) -> str:
     total_params = sum(len(c["params"]) for c in comps)
     total_variants = sum(len(c["variants"]) for c in comps)
     body = [f"""<section class="hero">
-  <div class="meta-row"><span class="badge blue">gdsfactory v9</span><span class="badge">GeneralTools</span><span class="badge purple">SOITools 子库</span></div>
+  <div class="meta-row"><span class="badge blue">gdsfactory v9</span><span class="badge">Core · Devices · Assemblies · TestStructures · Electrical</span><span class="badge purple">Platforms/SOI 子库</span></div>
   <h1>AIPLPhMTools 版图手册</h1>
   <p class="lead">每一个构造函数的真实版图、端口、参数含义，以及关键可选项的版图对比。
   图像来自实际构建的 GDS，不是示意图。</p>
   <div class="stats">
     <div class="stat"><b>{len(comps)}</b><span>可绘制器件</span></div>
-    <div class="stat"><b>{len(CATEGORIES)}</b><span>分类</span></div>
+    <div class="stat"><b>{len(MODULE_TREE)}</b><span>顶层模块</span></div>
+    <div class="stat"><b>{len(CATEGORIES)}</b><span>功能分类</span></div>
     <div class="stat"><b>{total_params}</b><span>参数条目</span></div>
     <div class="stat"><b>{total_variants}</b><span>参数对比图</span></div>
   </div>
@@ -1547,8 +1698,9 @@ c2.write_gds("ring_2port.gds")</code></pre>""")
                 '加热器的波导 / M1 / M2 / 开窗层叠关系可以拖动旋转查看：'
                 '<a href="heaters3d.html">打开加热器 3D 层叠图</a>。</div>')
     body.append('<div class="note green"><strong>怎么用这本手册：</strong>'
-                '左侧按分类浏览；器件页先看默认版图，再看参数表，'
-                '标有「有对比」的参数展开后有不同取值的版图。所有尺寸单位都是 µm。</div>')
+                '左侧「模块层级」按代码目录（Core / Devices / Assemblies / TestStructures / '
+                'Electrical / Platforms/SOI）浏览，下面的分类按功能浏览；器件页先看默认版图，'
+                '再看参数表，标有「有对比」的参数展开后有不同取值的版图。所有尺寸单位都是 µm。</div>')
 
     body.append('<div class="section-head"><h2>按分类浏览</h2></div><div class="grid auto">')
     for cid, cname, cdesc, thumb_name in CATEGORIES:
@@ -1562,6 +1714,22 @@ c2.write_gds("ring_2port.gds")</code></pre>""")
   <strong>{esc(cname)}</strong>
   <p>{esc(cdesc)}</p>
   <div class="card-meta"><span>{len(items)} 个器件</span><span>查看全部 →</span></div>
+</a>""")
+    body.append("</div>")
+
+    by_path: dict[str, list] = {}
+    for c in comps:
+        by_path.setdefault(c.get("module_path") or c["module"], []).append(c)
+    body.append('<div class="section-head"><h2>按模块浏览</h2>'
+                '<a href="modules.html">完整目录与层级 →</a></div><div class="grid auto">')
+    for group, gdesc, files in MODULE_TREE:
+        n = sum(len(by_path.get(path, [])) for path, _ in files)
+        unit = f"{len(files)} 个文件 · {n} 个器件" if n else f"{len(files)} 个文件 · 平台层"
+        body.append(f"""<a class="comp-card" href="modules.html#module-{module_anchor(group)[7:]}">
+  <div class="thumb"><span class="type">{unit}</span></div>
+  <strong>{esc(group)}/</strong>
+  <p>{esc(gdesc)}</p>
+  <div class="card-meta"><span>{len(files)} 个模块文件</span><span>查看 →</span></div>
 </a>""")
     body.append("</div>")
 
@@ -1580,6 +1748,71 @@ c2.write_gds("ring_2port.gds")</code></pre>""")
     body.append("</div>")
     return layout("AIPLPhMTools 版图手册", "\n".join(body), rel, comps=comps,
                   desc="AIPLPhMTools 器件版图、端口与参数对照手册")
+
+
+def modules_page(comps) -> str:
+    rel = ""
+    by_path: dict[str, list] = {}
+    for c in comps:
+        by_path.setdefault(c.get("module_path") or c["module"], []).append(c)
+
+    total_files = sum(len(files) for _, _, files in MODULE_TREE)
+    body = [f'<div class="topline">{breadcrumb(rel)}</div>']
+    body.append("<h1>模块层级</h1>")
+    body.append('<p class="lead">按 <code>AIPLPhMTools</code> 重组后的真实目录组织：'
+                '左栏的分类是“按功能浏览”，本页是“按代码模块浏览”。'
+                f'共 {len(MODULE_TREE)} 个顶层模块、{total_files} 个模块文件、'
+                f'{len(comps)} 个可绘制器件。</p>')
+    body.append('<div class="note">旧路径 <code>AIPLPhMTools.GeneralTools.*</code> 与 '
+                '<code>AIPLPhMTools.SOITools.*</code> 仍可用，但只是<b>一个版本的兼容 shim</b>；'
+                '新代码请使用下表的新路径。SOI 平台的文件不返回 Component，'
+                '用法见 <a href="platforms_soi.html">Platforms/SOI 子库</a>。</div>')
+
+    # 目录树
+    lines = ["AIPLPhMTools/"]
+    for gi, (group, _, files) in enumerate(MODULE_TREE):
+        g_last = gi == len(MODULE_TREE) - 1
+        n = sum(len(by_path.get(path, [])) for path, _ in files)
+        tail = f"{n} 个器件" if n else ("子库，见专页" if group == "Platforms/SOI" else "无独立器件")
+        lines.append(f"{'└──' if g_last else '├──'} {group + '/':<30}{tail}")
+        for fi, (path, _) in enumerate(files):
+            f_last = fi == len(files) - 1
+            prefix = "    " if g_last else "│   "
+            name = path[len(group) + 1:]
+            m = len(by_path.get(path, []))
+            tail_file = (f"{m} 个器件" if m
+                         else ("见专页" if group == "Platforms/SOI" else "—"))
+            lines.append(f"{prefix}{'└──' if f_last else '├──'} {name:<26}{tail_file}")
+    body.append(f'<pre><code>{esc(chr(10).join(lines))}</code></pre>')
+
+    for group, desc, files in MODULE_TREE:
+        n = sum(len(by_path.get(path, [])) for path, _ in files)
+        body.append(f'<div class="section-head" id="module-{module_anchor(group)[7:]}">'
+                    f'<h2>{esc(group)}/</h2><span class="type">{n} 个器件</span></div>')
+        body.append(f'<p class="lead">{esc(desc)}。</p>')
+        rows = []
+        for path, fdesc in files:
+            items = by_path.get(path, [])
+            if items:
+                refs = "、".join(
+                    f'<a href="components/{esc(c["name"])}.html"><code>{esc(c["name"])}</code></a>'
+                    for c in sorted(items, key=lambda x: x["name"].lower()))
+            elif group == "Platforms/SOI":
+                refs = f'<a href="platforms_soi.html">用法与图层 →</a>'
+            else:
+                refs = '<span class="type">—</span>'
+            rows.append(
+                f'<tr id="{module_anchor(path)}"><td><code>{esc(path)}</code></td>'
+                f'<td>{esc(fdesc)}</td><td>{refs}</td></tr>')
+        body.append('<div class="table-wrap"><table><thead><tr>'
+                    '<th>文件</th><th>职责</th><th>本页器件</th></tr></thead>'
+                    f'<tbody>{"".join(rows)}</tbody></table></div>')
+
+    body.append('<div class="note green">器件页顶部的「模块」徽标会链回本页对应文件；'
+                '包入口仍可用 <code>import AIPLPhMTools as ap; ap.list_components()</code> '
+                '查看全部器件。</div>')
+    return layout("模块层级", "\n".join(body), rel, comps=comps,
+                  desc="AIPLPhMTools 重组后的模块目录与器件分布")
 
 
 def guide_page(comps) -> str:
@@ -1615,28 +1848,37 @@ pip install -e .
 
     body.append("<h2>目录结构</h2>")
     body.append("""<pre><code>AIPLPhMTools/
-├── GeneralTools/        # 通用器件库（本手册的绝大部分内容）
-│   ├── BasicDefine.py   # LAYER、截面、直/弯波导、锥、斜端面、Euler 路径
-│   ├── Ring.py          # Pulley 环及侧/蛇形加热变体
-│   ├── RaceTrack.py     # 跑道腔
-│   ├── CouplerMZI.py    # 2×2 耦合器、DMZI、PMZI、Sagnac
-│   ├── Coupon.py        # 通用两端 coupon（core 可替换）
-│   ├── CoupledCavity.py # 二阶耦合环滤波器、CROW、SCISSOR
+├── Core/                # 与工艺无关的底座
+│   ├── BasicDefine.py   # 层号接口、截面、直/弯/锥、斜端面、Euler 路径、route_off_grid
+│   ├── EulerConnection.py  # 任意角度端口的 Euler 连线
+│   ├── SnapMerge.py     # 顶点吸附 / 同层合并（DRC 预处理）
+│   └── LayerStack.py    # LayerDef / LayerStack（手册与 3D 视图）
+├── Devices/             # 单器件：返回带端口的 Component
+│   ├── Ring.py / RaceTrack.py
+│   ├── CouplerMZI.py / CoupledCavity.py / FeedbackCavity.py
 │   ├── DBR.py / DBR_inv.py
-│   ├── Heater.py / ELE.py
-│   ├── Boomerang.py / ExtCav.py / memyshev.py / Isolator.py
-│   ├── MultiRing.py / MultiRaceTrack.py
-│   ├── GongCavity.py / WangCavity.py
+│   └── Boomerang.py / GongCavity.py / memyshev.py
+├── Assemblies/          # 多器件装配：仍返回 Component
+│   ├── ExtCav.py / Isolator.py / WangCavity.py
+│   └── MultiRing.py / MultiRaceTrack.py
+├── TestStructures/      # 测试/表征结构（TC*）
 │   ├── TCRing.py / TCRaceTrack.py / TCCoupledCavity.py
-│   └── TestRow.py       # ring coupon 行 / 色散环阵列
-└── SOITools/            # SOI（12 英寸、三层金属）独立命名空间子库
-    ├── FabBasic.py / Geometry.py / Routing.py
-    ├── Electrical.py / Ring.py / Spiral.py / Facet.py
-    └── Audit.py / Assembly.py
-selftest/                 # 自检（不从主包自动导入）
-├── general_tools.py      # 全组件构建/端口/几何检查
-├── soitools.py           # SOITools 几何与层号检查
-└── run_all.py            # 依次运行两组自检</code></pre>""")
+│   └── Coupon.py / TestRow.py
+├── Electrical/          # 通用加热器与电极
+│   └── Heater.py / ELE.py
+├── Platforms/SOI/       # SOI（12 英寸、三层金属）平台子库
+│   ├── FabBasic.py / Geometry.py / Routing.py / Electrical.py
+│   ├── Ring.py / Spiral.py / Facet.py
+│   └── PDKPorts.py / Assembly.py / Audit.py
+├── GeneralTools/        # 旧路径兼容 shim（一个版本周期）
+├── SOITools/            # 旧路径兼容 shim（一个版本周期）
+├── selftest/            # 自检（导入主包时不自动运行）
+│   ├── general_tools.py # 通用器件构建/端口/几何检查
+│   ├── soitools.py      # SOI 平台几何与层号检查
+│   └── run_all.py       # 依次运行两组自检
+└── docs/                # 本手册（由 build_site.py 生成）</code></pre>""")
+    body.append('<div class="note">网页左侧的 <a href="modules.html"><b>模块层级</b></a> '
+                '按这份目录逐文件列出器件；器件页顶部的「模块」徽标也会链回对应文件。</div>')
 
     body.append("<h2>参数阅读方式</h2>")
     body.append('<div class="grid two">'
@@ -1656,8 +1898,9 @@ c = ap.RingPulleyT1(oplayer=ap.LAYER.CPF)   # 画到氮化硅层</code></pre>"""
 
     body.append("<h2>常用图层</h2>")
     body.append(f'<div class="table-wrap"><table><thead><tr><th>名称</th><th>layer / datatype</th><th>用途</th></tr></thead><tbody>{rows}</tbody></table></div>')
-    body.append('<p class="lead">完整层表见 <code>GeneralTools/BasicDefine.py</code> 的 <code>LayerMapUserDef</code>。'
-                'SOITools 子库使用另一套层号（600/631/632/…），见 <a href="soitools.html">SOITools 子库</a>。</p>')
+    body.append('<p class="lead">完整层表见 <code>Core/BasicDefine.py</code> 的 <code>LayerMapUserDef</code>。'
+                'SOI 平台子库使用另一套层号（600/631/632/…），见 '
+                '<a href="platforms_soi.html">Platforms/SOI 子库</a>。</p>')
     body.append("<h2>LayerStack：从设计手册生成</h2>")
     body.append("""<pre><code>stack = ap.LayerStack.from_design_manual(
     "AIPLPhMTools/examples/layer_stack_manual.md",
@@ -1668,7 +1911,7 @@ print(stack.WG.key, stack.M1.role)</code></pre>""")
                 '显示厚度仅用于 3D，不绑定具体工艺。</div>')
 
     body.append("<h2>自检</h2>")
-    body.append("""<pre><code># 依次运行 GeneralTools + SOITools
+    body.append("""<pre><code># 依次运行通用器件 + SOI 平台子库
 python -m AIPLPhMTools.selftest.run_all
 
 # 或单独运行
@@ -1693,31 +1936,37 @@ python -m AIPLPhMTools.selftest.soitools</code></pre>""")
     return layout("快速开始与约定", "\n".join(body), rel, comps=comps)
 
 
-def soitools_page(comps) -> str:
+def platforms_soi_page(comps) -> str:
     rel = ""
-    import AIPLPhMTools.SOITools as soi
+    from AIPLPhMTools.Platforms import SOI as soi
 
     funcs = [
-        ("Route", "切线连续的走线构造器：straight / turn / s_bend"),
-        ("add_si_route", "Si 走线：芯层 600/1 + 10 µm 开窗 600/10"),
-        ("add_sin_route", "SiN 走线：芯 + 631/10、632/10、600/10 开窗 + SINOP"),
-        ("add_sin_route_taper", "SiN 宽度过渡（环总线 / spiral 总线 → 单模）"),
-        ("add_si_link", "两个 Si 端口之间自动选直线 / S 弯 / 掉头 C 形"),
-        ("add_annulus", "圆弧环带（TiN 环形加热器、金属环）"),
-        ("via_array", "过孔阵列"),
-        ("add_bond_pad", "探针焊盘；landing='M1'/'M2'/'M3' 只画本端需要的落点"),
-        ("add_heat_landing", "TiN 加热器落点"),
-        ("RingPulley", "单侧 pulley 耦合环（需要 PDK 宏目录）"),
-        ("RaceTrackPulley", "跑道腔，弯段 pulley 耦合（需要 PDK 宏目录）"),
-        ("centerline", "Spiral：闭合双螺旋腔中心线"),
-        ("GdsAudit", "GDS → shapely：并集、连通网、线宽与断言"),
+        ("Platforms/SOI/Geometry.py", "Route", "切线连续的走线构造器：straight / turn / s_bend"),
+        ("Platforms/SOI/Routing.py", "add_si_route", "Si 走线：芯层 600/1 + 10 µm 开窗 600/10"),
+        ("Platforms/SOI/Routing.py", "add_sin_route",
+         "SiN 走线：芯 + 631/10、632/10、600/10 开窗 + SINOP"),
+        ("Platforms/SOI/Routing.py", "add_sin_route_taper",
+         "SiN 宽度过渡（环总线 / spiral 总线 → 单模）"),
+        ("Platforms/SOI/Routing.py", "add_si_link",
+         "两个 Si 端口之间自动选直线 / S 弯 / 掉头 C 形"),
+        ("Platforms/SOI/Geometry.py", "add_annulus", "圆弧环带（TiN 环形加热器、金属环）"),
+        ("Platforms/SOI/Electrical.py", "via_array", "过孔阵列"),
+        ("Platforms/SOI/Electrical.py", "add_bond_pad",
+         "探针焊盘；landing='M1'/'M2'/'M3' 只画本端需要的落点"),
+        ("Platforms/SOI/Electrical.py", "add_heat_landing", "TiN 加热器落点"),
+        ("Platforms/SOI/Ring.py", "RingPulley", "单侧 pulley 耦合环（需要 PDK 宏目录）"),
+        ("Platforms/SOI/Ring.py", "RaceTrackPulley",
+         "跑道腔，弯段 pulley 耦合（需要 PDK 宏目录）"),
+        ("Platforms/SOI/Spiral.py", "centerline", "Spiral：闭合双螺旋腔中心线"),
+        ("Platforms/SOI/Audit.py", "GdsAudit", "GDS → shapely：并集、连通网、线宽与断言"),
     ]
     rows = []
-    for name, fallback in funcs:
+    for module, name, fallback in funcs:
         obj = getattr(soi, name, None)
         doc = clean_doc(inspect.getdoc(obj)) if obj else ""
         desc = summary_of(doc, 160) or fallback
-        rows.append(f"<tr><td><code>{esc(name)}</code></td><td>{esc(desc)}</td></tr>")
+        rows.append(f"<tr><td><code>{esc(module)}</code></td>"
+                    f"<td><code>{esc(name)}</code></td><td>{esc(desc)}</td></tr>")
 
     layer_rows = []
     for n in ("SIWG", "SIN", "SIN3", "TIN", "M1", "M2", "M3", "V1", "V2", "RV", "ALPAD", "COVER", "SINOP"):
@@ -1726,29 +1975,33 @@ def soitools_page(comps) -> str:
             layer_rows.append(f"<tr><td><code>{n}</code></td><td class=\"num\">{v[0]} / {v[1]}</td></tr>")
 
     body = [f'<div class="topline">{breadcrumb(rel)}<div class="gh"><a href="index.html">◀ 返回概览</a></div></div>']
-    body.append("<h1>SOITools 子库</h1>")
+    body.append("<h1>Platforms / SOI 子库</h1>")
     body.append('<p class="lead">SOI 12 英寸平台（220 nm Si + 双层 SiN + TiN + M1/M2/M3）'
-                '的独立命名空间子库。层号与主库不同，必须显式导入：'
-                '<code>import AIPLPhMTools.SOITools as soi</code>。</p>')
-    body.append('<div class="note">SOITools 子库的绘图函数大多<b>不返回</b> Component，而是把几何画进你传入的 '
-                '<code>c</code> 里；这与主库“函数返回器件”的约定不同。下面演示图由 '
+                '的独立命名空间子库，源码位于 <code>AIPLPhMTools/Platforms/SOI/</code>。'
+                '层号与主库不同，必须显式导入：'
+                '<code>import AIPLPhMTools.Platforms.SOI as soi</code>。'
+                '层级关系见 <a href="modules.html#module-Platforms-SOI">模块层级 → Platforms/SOI</a>。</p>')
+    body.append('<div class="note">这是平台层（FabBasic / Routing / Geometry / Electrical / Ring / '
+                'Spiral / Facet / PDKPorts / Assembly / Audit），与 <code>Devices/</code> 的通用器件分开。'
+                '绘图函数大多<b>不返回</b> Component，而是把几何画进你传入的 <code>c</code> 里；'
+                '这与主库“函数返回器件”的约定不同。下面演示图由 '
                 '<code>add_si_route / add_sin_route / add_annulus / add_bond_pad</code> 组合而成。</div>')
 
     body.append('<div class="grid two">')
     for fname, cap in (("soi_routes.png", "Si 与 SiN 走线（含开窗与 SINOP）"),
                        ("soi_pad.png", "TiN 环形加热器 + M2 landing 焊盘")):
-        if (SOITOOLS_IMG / fname).exists():
-            body.append(f"""<figure class="figure"><a class="lightbox" href="assets/SOITools/{fname}">
-<img src="assets/SOITools/{fname}" alt="{esc(cap)}"></a><figcaption>{esc(cap)}</figcaption></figure>""")
+        if (PLATFORMS_SOI_IMG / fname).exists():
+            body.append(f"""<figure class="figure"><a class="lightbox" href="assets/platforms_soi/{fname}">
+<img src="assets/platforms_soi/{fname}" alt="{esc(cap)}"></a><figcaption>{esc(cap)}</figcaption></figure>""")
     body.append("</div>")
 
     body.append("<h2>绘图函数</h2>")
-    body.append(f'<div class="table-wrap"><table><thead><tr><th>函数</th><th>作用</th></tr></thead><tbody>{"".join(rows)}</tbody></table></div>')
+    body.append(f'<div class="table-wrap"><table><thead><tr><th>模块</th><th>函数</th><th>作用</th></tr></thead><tbody>{"".join(rows)}</tbody></table></div>')
     body.append("<h2>SOI 图层</h2>")
     body.append(f'<div class="table-wrap"><table><thead><tr><th>名称</th><th>layer / datatype</th></tr></thead><tbody>{"".join(layer_rows)}</tbody></table></div>')
     body.append("""<h2>最小示例</h2>
 <pre><code>import gdsfactory as gf
-import AIPLPhMTools.SOITools as soi
+import AIPLPhMTools.Platforms.SOI as soi
 
 c = gf.Component("demo")
 p = soi.Route(0, 0, 0).straight(100).turn(-90, soi.R_SI).straight(80)
@@ -1762,14 +2015,14 @@ c.write_gds("soi_demo.gds")</code></pre>""")
     body.append('<div class="note warn">用到 <code>soi.pdk()</code> / <code>RingPulley</code> 的 PDK 宏前，'
                 '先 <code>soi.set_pdk_dir(".../gdsPDK")</code> 或设置环境变量 '
                 '<code>SOI_PDK_DIR</code>。</div>')
-    return layout("SOITools 子库", "\n".join(body), rel, comps=comps)
+    return layout("Platforms / SOI 子库", "\n".join(body), rel, comps=comps)
 
 
 # ---------------------------------------------------------------------------
 # SOI 演示图
 # ---------------------------------------------------------------------------
-def build_soitools_images():
-    import AIPLPhMTools.SOITools as soi
+def build_platforms_soi_images():
+    from AIPLPhMTools.Platforms import SOI as soi
 
     # 1) Si + SiN 走线
     c = gf.Component("soi_routes_demo")
@@ -1777,14 +2030,14 @@ def build_soitools_images():
     soi.add_si_route(c, p.pts)
     q = soi.Route(0, 130, 0).straight(80).s_bend(-40, soi.R_SIN).straight(60)
     soi.add_sin_route(c, q.pts)
-    r = render_component(c, SOITOOLS_IMG / "soi_routes.png", palette=SOI_PALETTE)
+    r = render_component(c, PLATFORMS_SOI_IMG / "soi_routes.png", palette=SOI_PALETTE)
     print("  soi routes", "ok" if r else "empty")
 
     # 2) TiN 环 + 焊盘
     c2 = gf.Component("soi_pad_demo")
     soi.add_annulus(c2, 320, 60, 90, 92, 0, 360, soi.TIN)
     soi.add_bond_pad(c2, 540, 60, size=60, cover=40, landing="M2")
-    r2 = render_component(c2, SOITOOLS_IMG / "soi_pad.png", palette=SOI_PALETTE)
+    r2 = render_component(c2, PLATFORMS_SOI_IMG / "soi_pad.png", palette=SOI_PALETTE)
     print("  soi pad", "ok" if r2 else "empty")
 
 
@@ -1840,6 +2093,7 @@ def main() -> int:
 
     (HERE / "index.html").write_text(overview_page(comps), encoding="utf-8")
     (HERE / "guide.html").write_text(guide_page(comps), encoding="utf-8")
+    (HERE / "modules.html").write_text(modules_page(comps), encoding="utf-8")
     (HERE / "heaters3d.html").write_text(heaters3d_page(heater3d, comps), encoding="utf-8")
     (HERE / ".nojekyll").write_text("", encoding="utf-8")
 
@@ -1850,10 +2104,18 @@ def main() -> int:
         (HERE / "categories" / f"{cid}.html").write_text(
             category_page(cid, comps), encoding="utf-8")
 
-    build_soitools_images()
-    (HERE / "soitools.html").write_text(soitools_page(comps), encoding="utf-8")
+    build_platforms_soi_images()
+    (HERE / "platforms_soi.html").write_text(platforms_soi_page(comps), encoding="utf-8")
+    (HERE / "soitools.html").write_text(
+        """<!doctype html><html lang="zh-CN"><head><meta charset="utf-8">
+<title>已迁移到 Platforms / SOI</title>
+<meta http-equiv="refresh" content="0; url=platforms_soi.html">
+<link rel="canonical" href="platforms_soi.html"></head><body>
+<p>本页已迁移到 <a href="platforms_soi.html">Platforms / SOI 子库</a>。</p>
+</body></html>""", encoding="utf-8")
 
-    print(f"written: {len(comps)} component pages, {len(CATEGORIES)} category pages")
+    print(f"written: {len(comps)} component pages, {len(CATEGORIES)} category pages, "
+          f"modules + platforms_soi")
     print("open: AIPLPhMTools/docs/index.html")
     return 0
 

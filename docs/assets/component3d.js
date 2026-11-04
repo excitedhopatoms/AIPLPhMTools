@@ -35,8 +35,9 @@
   var yaw = -0.62;
   var pitch = 1.02;
   var zoom = 1.0;
+  var panX = 0, panY = 0;
   var W = 1, H = 1;
-  var dragging = false, lastX = 0, lastY = 0;
+  var dragging = false, dragMode = "rotate", lastX = 0, lastY = 0;
   var raf = null;
 
   function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
@@ -112,8 +113,8 @@
     var dx = Math.max(maxX - minX, 1e-6);
     var dy = Math.max(maxY - minY, 1e-6);
     var scale = Math.min((W - 90) / dx, (H - 80) / dy) * zoom;
-    var tx = (W - dx * scale) / 2 - minX * scale;
-    var ty = (H - dy * scale) / 2 - minY * scale;
+    var tx = (W - dx * scale) / 2 - minX * scale + panX;
+    var ty = (H - dy * scale) / 2 - minY * scale + panY;
 
     layers.forEach(function (layer, i) {
       var z0 = zs[i][0], z1 = zs[i][1];
@@ -245,33 +246,46 @@
 
   function resetAll() {
     yaw = -0.62; pitch = 1.02; zoom = 1.0;
+    panX = 0; panY = 0;
     thickness = defaults.slice();
     buildLayerControls();
     draw();
   }
 
   canvas.addEventListener("pointerdown", function (e) {
-    dragging = true; lastX = e.clientX; lastY = e.clientY;
+    dragging = true;
+    dragMode = (e.button === 2 || e.button === 1 || e.shiftKey) ? "pan" : "rotate";
+    lastX = e.clientX; lastY = e.clientY;
     canvas.setPointerCapture(e.pointerId);
-    canvas.style.cursor = "grabbing";
+    canvas.style.cursor = dragMode === "pan" ? "move" : "grabbing";
   });
   canvas.addEventListener("pointermove", function (e) {
     if (!dragging) return;
-    yaw += (e.clientX - lastX) * 0.008;
-    pitch = clamp(pitch - (e.clientY - lastY) * 0.007, 0.18, 1.45);
+    var dx = e.clientX - lastX;
+    var dy = e.clientY - lastY;
+    if (dragMode === "pan") {
+      panX += dx;
+      panY += dy;
+    } else {
+      yaw += dx * 0.008;
+      pitch = clamp(pitch - dy * 0.007, 0.18, 1.45);
+    }
     lastX = e.clientX; lastY = e.clientY;
     draw();
   });
   function endDrag() { dragging = false; canvas.style.cursor = "grab"; }
   canvas.addEventListener("pointerup", endDrag);
   canvas.addEventListener("pointercancel", endDrag);
+  canvas.addEventListener("contextmenu", function (e) { e.preventDefault(); });
   canvas.addEventListener("wheel", function (e) {
     e.preventDefault();
     zoom = clamp(zoom * Math.exp(-e.deltaY * 0.0012), 0.35, 6);
     draw();
   }, { passive: false });
   canvas.addEventListener("dblclick", function () {
-    yaw = -0.62; pitch = 1.02; zoom = 1.0; draw();
+    yaw = -0.62; pitch = 1.02; zoom = 1.0;
+    panX = 0; panY = 0;
+    draw();
   });
   if (resetBtn) resetBtn.addEventListener("click", resetAll);
   if (autoBox) {

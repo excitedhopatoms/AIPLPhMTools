@@ -1,0 +1,12808 @@
+[
+ {
+  "name": "ADRAPRADR",
+  "ok": true,
+  "error": null,
+  "flags": [],
+  "bbox": [
+   -100.5,
+   -256.332,
+   691.537,
+   204.368
+  ],
+  "size": [
+   792.037,
+   460.7
+  ],
+  "ports": 12,
+  "port_list": [
+   {
+    "name": "co2",
+    "center": [
+     44.301,
+     198.723
+    ],
+    "orientation": 0.0,
+    "width": 0.9,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "co3",
+    "center": [
+     545.301,
+     200.659
+    ],
+    "orientation": 180.0,
+    "width": 0.9,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "r1Th",
+    "center": [
+     -44.301,
+     198.723
+    ],
+    "orientation": 180.0,
+    "width": 0.9,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "r1Ad",
+    "center": [
+     -44.301,
+     1.277
+    ],
+    "orientation": 180.0,
+    "width": 0.9,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "r2Th",
+    "center": [
+     634.773,
+     200.659
+    ],
+    "orientation": 0.0,
+    "width": 0.9,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "r2Ad",
+    "center": [
+     634.773,
+     1.277
+    ],
+    "orientation": 0.0,
+    "width": 0.9,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "r1L",
+    "center": [
+     -100.0,
+     100.0
+    ],
+    "orientation": 90.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "r1R",
+    "center": [
+     100.0,
+     100.0
+    ],
+    "orientation": 90.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "r2L",
+    "center": [
+     691.037,
+     100.968
+    ],
+    "orientation": 90.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "r2R",
+    "center": [
+     489.037,
+     100.968
+    ],
+    "orientation": 90.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "r3L",
+    "center": [
+     194.301,
+     -155.332
+    ],
+    "orientation": 90.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "r3R",
+    "center": [
+     395.301,
+     -155.332
+    ],
+    "orientation": 90.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   }
+  ],
+  "layer_overlaps": {},
+  "min_radii": [],
+  "radii_below_50": [],
+  "bend_cells_without_info": []
+ },
+ {
+  "name": "Boomerang",
+  "ok": true,
+  "error": null,
+  "flags": [
+   {
+    "kind": "optical_port_non_manhattan",
+    "port": "Lo1",
+    "orientation": 225.0,
+    "layer": [
+     1,
+     0
+    ]
+   },
+   {
+    "kind": "optical_port_non_manhattan",
+    "port": "Lo2",
+    "orientation": 225.0,
+    "layer": [
+     1,
+     0
+    ]
+   },
+   {
+    "kind": "optical_port_non_manhattan",
+    "port": "Ro1",
+    "orientation": 45.0,
+    "layer": [
+     1,
+     0
+    ]
+   },
+   {
+    "kind": "optical_port_non_manhattan",
+    "port": "Ro2",
+    "orientation": 45.0,
+    "layer": [
+     1,
+     0
+    ]
+   }
+  ],
+  "bbox": [
+   -576.166,
+   -57.891,
+   57.891,
+   576.166
+  ],
+  "size": [
+   634.057,
+   634.057
+  ],
+  "ports": 8,
+  "port_list": [
+   {
+    "name": "Lo1",
+    "center": [
+     0.0,
+     0.0
+    ],
+    "orientation": 225.0,
+    "width": 2.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "Lo2",
+    "center": [
+     -260.115,
+     260.115
+    ],
+    "orientation": 225.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "Ro1",
+    "center": [
+     0.0,
+     0.0
+    ],
+    "orientation": 45.0,
+    "width": 2.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "Ro2",
+    "center": [
+     -260.115,
+     260.115
+    ],
+    "orientation": 45.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "Lb1",
+    "center": [
+     -120.008,
+     575.416
+    ],
+    "orientation": 0.0,
+    "width": 1.5,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "Lb2",
+    "center": [
+     -80.008,
+     575.416
+    ],
+    "orientation": 180.0,
+    "width": 1.5,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "Rb1",
+    "center": [
+     -575.416,
+     120.008
+    ],
+    "orientation": 270.0,
+    "width": 1.5,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "Rb2",
+    "center": [
+     -575.416,
+     80.008
+    ],
+    "orientation": 90.0,
+    "width": 1.5,
+    "layer": "(1, 0)"
+   }
+  ],
+  "layer_overlaps": {
+   "(1, 0)": {
+    "area": 0.002,
+    "pairwise": []
+   }
+  },
+  "min_radii": [
+   {
+    "r": 77.67,
+    "cell": "bend_euler_gdsfactorypcomponentspbendspbend_euler_R110p_82922a1a"
+   }
+  ],
+  "radii_below_50": [],
+  "bend_cells_without_info": []
+ },
+ {
+  "name": "CROW",
+  "ok": true,
+  "error": null,
+  "flags": [],
+  "bbox": [
+   -40.5,
+   -41.7,
+   284.1,
+   40.5
+  ],
+  "size": [
+   324.6,
+   82.2
+  ],
+  "ports": 8,
+  "port_list": [
+   {
+    "name": "Ring0C",
+    "center": [
+     0.0,
+     0.0
+    ],
+    "orientation": 90.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "Ring1C",
+    "center": [
+     81.2,
+     0.0
+    ],
+    "orientation": 90.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "Ring2C",
+    "center": [
+     162.4,
+     0.0
+    ],
+    "orientation": 90.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "Ring3C",
+    "center": [
+     243.6,
+     0.0
+    ],
+    "orientation": 90.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "Input",
+    "center": [
+     -40.4,
+     -41.25
+    ],
+    "orientation": 180.0,
+    "width": 0.9,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "Through",
+    "center": [
+     40.4,
+     -41.25
+    ],
+    "orientation": 0.0,
+    "width": 0.9,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "Add",
+    "center": [
+     203.2,
+     -41.25
+    ],
+    "orientation": 180.0,
+    "width": 0.9,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "Output",
+    "center": [
+     284.0,
+     -41.25
+    ],
+    "orientation": 0.0,
+    "width": 0.9,
+    "layer": "(1, 0)"
+   }
+  ],
+  "layer_overlaps": {},
+  "min_radii": [],
+  "radii_below_50": [],
+  "bend_cells_without_info": []
+ },
+ {
+  "name": "Complete_Inverted_Device",
+  "ok": true,
+  "error": null,
+  "flags": [],
+  "bbox": [
+   -200.0,
+   -4.0,
+   310.0,
+   4.0
+  ],
+  "size": [
+   510.0,
+   8.0
+  ],
+  "ports": 2,
+  "port_list": [
+   {
+    "name": "o1",
+    "center": [
+     -200.0,
+     0.0
+    ],
+    "orientation": 180.0,
+    "width": 0.15,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "o2",
+    "center": [
+     310.0,
+     0.0
+    ],
+    "orientation": 0.0,
+    "width": 0.15,
+    "layer": "(1, 0)"
+   }
+  ],
+  "layer_overlaps": {
+   "(1, 0)": {
+    "area": 42.35,
+    "pairwise": []
+   }
+  },
+  "min_radii": [],
+  "radii_below_50": [],
+  "bend_cells_without_info": []
+ },
+ {
+  "name": "CoupleDouRaceTrack",
+  "ok": true,
+  "error": null,
+  "flags": [],
+  "bbox": [
+   -123.718,
+   -558.87,
+   341.732,
+   4.0
+  ],
+  "size": [
+   465.45,
+   562.87
+  ],
+  "ports": 4,
+  "port_list": [
+   {
+    "name": "R1Input",
+    "center": [
+     337.732,
+     -159.878
+    ],
+    "orientation": 90.0,
+    "width": 8.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "R1Through",
+    "center": [
+     337.732,
+     -514.992
+    ],
+    "orientation": 270.0,
+    "width": 8.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "R2Input",
+    "center": [
+     -119.718,
+     -404.992
+    ],
+    "orientation": 270.0,
+    "width": 8.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "R2Through",
+    "center": [
+     -119.718,
+     -49.878
+    ],
+    "orientation": 90.0,
+    "width": 8.0,
+    "layer": "(1, 0)"
+   }
+  ],
+  "layer_overlaps": {
+   "(1, 0)": {
+    "area": 0.031996,
+    "pairwise": [
+     {
+      "area": 0.008,
+      "bbox": [
+       113.507,
+       -337.435,
+       121.507,
+       -337.434
+      ]
+     },
+     {
+      "area": 0.008,
+      "bbox": [
+       314.521,
+       -337.435,
+       322.521,
+       -337.434
+      ]
+     },
+     {
+      "area": 0.008,
+      "bbox": [
+       96.507,
+       -227.436,
+       104.507,
+       -227.435
+      ]
+     },
+     {
+      "area": 0.008,
+      "bbox": [
+       -104.507,
+       -227.436,
+       -96.507,
+       -227.435
+      ]
+     }
+    ]
+   }
+  },
+  "min_radii": [],
+  "radii_below_50": [],
+  "bend_cells_without_info": []
+ },
+ {
+  "name": "CoupleRingDRT1",
+  "ok": true,
+  "error": null,
+  "flags": [
+   {
+    "kind": "optical_port_non_manhattan",
+    "port": "Ring2C",
+    "orientation": 30.0,
+    "layer": [
+     1,
+     0
+    ]
+   }
+  ],
+  "bbox": [
+   -100.5,
+   -212.223,
+   238.286,
+   203.4
+  ],
+  "size": [
+   338.786,
+   415.623
+  ],
+  "ports": 4,
+  "port_list": [
+   {
+    "name": "Input",
+    "center": [
+     44.736,
+     199.691
+    ],
+    "orientation": 0.0,
+    "width": 0.9,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "Through",
+    "center": [
+     -44.736,
+     199.691
+    ],
+    "orientation": 180.0,
+    "width": 0.9,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "Ring1C",
+    "center": [
+     0.0,
+     100.0
+    ],
+    "orientation": 90.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "Ring2C",
+    "center": [
+     101.0,
+     -74.937
+    ],
+    "orientation": 30.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   }
+  ],
+  "layer_overlaps": {},
+  "min_radii": [],
+  "radii_below_50": [],
+  "bend_cells_without_info": []
+ },
+ {
+  "name": "CoupledRingFilter",
+  "ok": true,
+  "error": null,
+  "flags": [],
+  "bbox": [
+   -130.0,
+   -0.45,
+   130.0,
+   404.15
+  ],
+  "size": [
+   260.0,
+   404.6
+  ],
+  "ports": 6,
+  "port_list": [
+   {
+    "name": "Input",
+    "center": [
+     -130.0,
+     0.0
+    ],
+    "orientation": 180.0,
+    "width": 0.9,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "Through",
+    "center": [
+     130.0,
+     0.0
+    ],
+    "orientation": 0.0,
+    "width": 0.9,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "Ring1C",
+    "center": [
+     0.0,
+     101.25
+    ],
+    "orientation": 90.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "Ring2C",
+    "center": [
+     0.0,
+     302.45
+    ],
+    "orientation": 90.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "Add",
+    "center": [
+     -130.0,
+     403.7
+    ],
+    "orientation": 180.0,
+    "width": 0.9,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "Drop",
+    "center": [
+     130.0,
+     403.7
+    ],
+    "orientation": 0.0,
+    "width": 0.9,
+    "layer": "(1, 0)"
+   }
+  ],
+  "layer_overlaps": {},
+  "min_radii": [],
+  "radii_below_50": [],
+  "bend_cells_without_info": []
+ },
+ {
+  "name": "Crossing_taper",
+  "ok": true,
+  "error": null,
+  "flags": [],
+  "bbox": [
+   -100.5,
+   -100.5,
+   100.5,
+   100.5
+  ],
+  "size": [
+   201.0,
+   201.0
+  ],
+  "ports": 4,
+  "port_list": [
+   {
+    "name": "o1",
+    "center": [
+     100.5,
+     0.0
+    ],
+    "orientation": 0.0,
+    "width": 0.45,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "o2",
+    "center": [
+     0.0,
+     100.5
+    ],
+    "orientation": 90.0,
+    "width": 0.45,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "o3",
+    "center": [
+     -100.5,
+     0.0
+    ],
+    "orientation": 180.0,
+    "width": 0.45,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "o4",
+    "center": [
+     0.0,
+     -100.5
+    ],
+    "orientation": 270.0,
+    "width": 0.45,
+    "layer": "(1, 0)"
+   }
+  ],
+  "layer_overlaps": {},
+  "min_radii": [],
+  "radii_below_50": [],
+  "bend_cells_without_info": []
+ },
+ {
+  "name": "DBR",
+  "ok": true,
+  "error": null,
+  "flags": [
+   {
+    "kind": "width_step_at_joint",
+    "at": [
+     0.9,
+     0.0
+    ],
+    "ports": [
+     "o2",
+     "o1"
+    ],
+    "widths": [
+     1.0,
+     2.0
+    ],
+    "layer": [
+     1,
+     0
+    ]
+   },
+   {
+    "kind": "width_step_at_joint",
+    "at": [
+     1.8,
+     0.0
+    ],
+    "ports": [
+     "o2",
+     "o1"
+    ],
+    "widths": [
+     1.0,
+     2.0
+    ],
+    "layer": [
+     1,
+     0
+    ]
+   },
+   {
+    "kind": "width_step_at_joint",
+    "at": [
+     2.7,
+     0.0
+    ],
+    "ports": [
+     "o2",
+     "o1"
+    ],
+    "widths": [
+     1.0,
+     2.0
+    ],
+    "layer": [
+     1,
+     0
+    ]
+   },
+   {
+    "kind": "width_step_at_joint",
+    "at": [
+     3.6,
+     0.0
+    ],
+    "ports": [
+     "o2",
+     "o1"
+    ],
+    "widths": [
+     1.0,
+     2.0
+    ],
+    "layer": [
+     1,
+     0
+    ]
+   },
+   {
+    "kind": "width_step_at_joint",
+    "at": [
+     4.5,
+     0.0
+    ],
+    "ports": [
+     "o2",
+     "o1"
+    ],
+    "widths": [
+     1.0,
+     2.0
+    ],
+    "layer": [
+     1,
+     0
+    ]
+   },
+   {
+    "kind": "width_step_at_joint",
+    "at": [
+     5.4,
+     0.0
+    ],
+    "ports": [
+     "o2",
+     "o1"
+    ],
+    "widths": [
+     1.0,
+     2.0
+    ],
+    "layer": [
+     1,
+     0
+    ]
+   },
+   {
+    "kind": "width_step_at_joint",
+    "at": [
+     6.3,
+     0.0
+    ],
+    "ports": [
+     "o2",
+     "o1"
+    ],
+    "widths": [
+     1.0,
+     2.0
+    ],
+    "layer": [
+     1,
+     0
+    ]
+   },
+   {
+    "kind": "width_step_at_joint",
+    "at": [
+     7.2,
+     0.0
+    ],
+    "ports": [
+     "o2",
+     "o1"
+    ],
+    "widths": [
+     1.0,
+     2.0
+    ],
+    "layer": [
+     1,
+     0
+    ]
+   },
+   {
+    "kind": "width_step_at_joint",
+    "at": [
+     8.1,
+     0.0
+    ],
+    "ports": [
+     "o2",
+     "o1"
+    ],
+    "widths": [
+     1.0,
+     2.0
+    ],
+    "layer": [
+     1,
+     0
+    ]
+   },
+   {
+    "kind": "width_step_at_joint",
+    "at": [
+     9.0,
+     0.0
+    ],
+    "ports": [
+     "o2",
+     "o1"
+    ],
+    "widths": [
+     1.0,
+     2.0
+    ],
+    "layer": [
+     1,
+     0
+    ]
+   },
+   {
+    "kind": "width_step_at_joint",
+    "at": [
+     9.9,
+     0.0
+    ],
+    "ports": [
+     "o2",
+     "o1"
+    ],
+    "widths": [
+     1.0,
+     2.0
+    ],
+    "layer": [
+     1,
+     0
+    ]
+   },
+   {
+    "kind": "width_step_at_joint",
+    "at": [
+     10.8,
+     0.0
+    ],
+    "ports": [
+     "o2",
+     "o1"
+    ],
+    "widths": [
+     1.0,
+     2.0
+    ],
+    "layer": [
+     1,
+     0
+    ]
+   },
+   {
+    "kind": "width_step_at_joint",
+    "at": [
+     11.7,
+     0.0
+    ],
+    "ports": [
+     "o2",
+     "o1"
+    ],
+    "widths": [
+     1.0,
+     2.0
+    ],
+    "layer": [
+     1,
+     0
+    ]
+   },
+   {
+    "kind": "width_step_at_joint",
+    "at": [
+     12.6,
+     0.0
+    ],
+    "ports": [
+     "o2",
+     "o1"
+    ],
+    "widths": [
+     1.0,
+     2.0
+    ],
+    "layer": [
+     1,
+     0
+    ]
+   },
+   {
+    "kind": "width_step_at_joint",
+    "at": [
+     13.5,
+     0.0
+    ],
+    "ports": [
+     "o2",
+     "o1"
+    ],
+    "widths": [
+     1.0,
+     2.0
+    ],
+    "layer": [
+     1,
+     0
+    ]
+   },
+   {
+    "kind": "width_step_at_joint",
+    "at": [
+     14.4,
+     0.0
+    ],
+    "ports": [
+     "o2",
+     "o1"
+    ],
+    "widths": [
+     1.0,
+     2.0
+    ],
+    "layer": [
+     1,
+     0
+    ]
+   },
+   {
+    "kind": "width_step_at_joint",
+    "at": [
+     15.3,
+     0.0
+    ],
+    "ports": [
+     "o2",
+     "o1"
+    ],
+    "widths": [
+     1.0,
+     2.0
+    ],
+    "layer": [
+     1,
+     0
+    ]
+   },
+   {
+    "kind": "width_step_at_joint",
+    "at": [
+     16.2,
+     0.0
+    ],
+    "ports": [
+     "o2",
+     "o1"
+    ],
+    "widths": [
+     1.0,
+     2.0
+    ],
+    "layer": [
+     1,
+     0
+    ]
+   },
+   {
+    "kind": "width_step_at_joint",
+    "at": [
+     17.1,
+     0.0
+    ],
+    "ports": [
+     "o2",
+     "o1"
+    ],
+    "widths": [
+     1.0,
+     2.0
+    ],
+    "layer": [
+     1,
+     0
+    ]
+   },
+   {
+    "kind": "width_step_at_joint",
+    "at": [
+     18.0,
+     0.0
+    ],
+    "ports": [
+     "o2",
+     "o1"
+    ],
+    "widths": [
+     1.0,
+     2.0
+    ],
+    "layer": [
+     1,
+     0
+    ]
+   },
+   {
+    "kind": "width_step_at_joint",
+    "at": [
+     18.9,
+     0.0
+    ],
+    "ports": [
+     "o2",
+     "o1"
+    ],
+    "widths": [
+     1.0,
+     2.0
+    ],
+    "layer": [
+     1,
+     0
+    ]
+   },
+   {
+    "kind": "width_step_at_joint",
+    "at": [
+     19.8,
+     0.0
+    ],
+    "ports": [
+     "o2",
+     "o1"
+    ],
+    "widths": [
+     1.0,
+     2.0
+    ],
+    "layer": [
+     1,
+     0
+    ]
+   },
+   {
+    "kind": "width_step_at_joint",
+    "at": [
+     20.7,
+     0.0
+    ],
+    "ports": [
+     "o2",
+     "o1"
+    ],
+    "widths": [
+     1.0,
+     2.0
+    ],
+    "layer": [
+     1,
+     0
+    ]
+   },
+   {
+    "kind": "width_step_at_joint",
+    "at": [
+     21.6,
+     0.0
+    ],
+    "ports": [
+     "o2",
+     "o1"
+    ],
+    "widths": [
+     1.0,
+     2.0
+    ],
+    "layer": [
+     1,
+     0
+    ]
+   },
+   {
+    "kind": "width_step_at_joint",
+    "at": [
+     22.5,
+     0.0
+    ],
+    "ports": [
+     "o2",
+     "o1"
+    ],
+    "widths": [
+     1.0,
+     2.0
+    ],
+    "layer": [
+     1,
+     0
+    ]
+   },
+   {
+    "kind": "width_step_at_joint",
+    "at": [
+     23.4,
+     0.0
+    ],
+    "ports": [
+     "o2",
+     "o1"
+    ],
+    "widths": [
+     1.0,
+     2.0
+    ],
+    "layer": [
+     1,
+     0
+    ]
+   },
+   {
+    "kind": "width_step_at_joint",
+    "at": [
+     24.3,
+     0.0
+    ],
+    "ports": [
+     "o2",
+     "o1"
+    ],
+    "widths": [
+     1.0,
+     2.0
+    ],
+    "layer": [
+     1,
+     0
+    ]
+   },
+   {
+    "kind": "width_step_at_joint",
+    "at": [
+     25.2,
+     0.0
+    ],
+    "ports": [
+     "o2",
+     "o1"
+    ],
+    "widths": [
+     1.0,
+     2.0
+    ],
+    "layer": [
+     1,
+     0
+    ]
+   },
+   {
+    "kind": "width_step_at_joint",
+    "at": [
+     26.1,
+     0.0
+    ],
+    "ports": [
+     "o2",
+     "o1"
+    ],
+    "widths": [
+     1.0,
+     2.0
+    ],
+    "layer": [
+     1,
+     0
+    ]
+   },
+   {
+    "kind": "width_step_at_joint",
+    "at": [
+     27.0,
+     0.0
+    ],
+    "ports": [
+     "o2",
+     "o1"
+    ],
+    "widths": [
+     1.0,
+     2.0
+    ],
+    "layer": [
+     1,
+     0
+    ]
+   },
+   {
+    "kind": "width_step_at_joint",
+    "at": [
+     27.9,
+     0.0
+    ],
+    "ports": [
+     "o2",
+     "o1"
+    ],
+    "widths": [
+     1.0,
+     2.0
+    ],
+    "layer": [
+     1,
+     0
+    ]
+   },
+   {
+    "kind": "width_step_at_joint",
+    "at": [
+     28.8,
+     0.0
+    ],
+    "ports": [
+     "o2",
+     "o1"
+    ],
+    "widths": [
+     1.0,
+     2.0
+    ],
+    "layer": [
+     1,
+     0
+    ]
+   },
+   {
+    "kind": "width_step_at_joint",
+    "at": [
+     29.7,
+     0.0
+    ],
+    "ports": [
+     "o2",
+     "o1"
+    ],
+    "widths": [
+     1.0,
+     2.0
+    ],
+    "layer": [
+     1,
+     0
+    ]
+   },
+   {
+    "kind": "width_step_at_joint",
+    "at": [
+     30.6,
+     0.0
+    ],
+    "ports": [
+     "o2",
+     "o1"
+    ],
+    "widths": [
+     1.0,
+     2.0
+    ],
+    "layer": [
+     1,
+     0
+    ]
+   },
+   {
+    "kind": "width_step_at_joint",
+    "at": [
+     31.5,
+     0.0
+    ],
+    "ports": [
+     "o2",
+     "o1"
+    ],
+    "widths": [
+     1.0,
+     2.0
+    ],
+    "layer": [
+     1,
+     0
+    ]
+   },
+   {
+    "kind": "width_step_at_joint",
+    "at": [
+     32.4,
+     0.0
+    ],
+    "ports": [
+     "o2",
+     "o1"
+    ],
+    "widths": [
+     1.0,
+     2.0
+    ],
+    "layer": [
+     1,
+     0
+    ]
+   },
+   {
+    "kind": "width_step_at_joint",
+    "at": [
+     33.3,
+     0.0
+    ],
+    "ports": [
+     "o2",
+     "o1"
+    ],
+    "widths": [
+     1.0,
+     2.0
+    ],
+    "layer": [
+     1,
+     0
+    ]
+   },
+   {
+    "kind": "width_step_at_joint",
+    "at": [
+     34.2,
+     0.0
+    ],
+    "ports": [
+     "o2",
+     "o1"
+    ],
+    "widths": [
+     1.0,
+     2.0
+    ],
+    "layer": [
+     1,
+     0
+    ]
+   },
+   {
+    "kind": "width_step_at_joint",
+    "at": [
+     35.1,
+     0.0
+    ],
+    "ports": [
+     "o2",
+     "o1"
+    ],
+    "widths": [
+     1.0,
+     2.0
+    ],
+    "layer": [
+     1,
+     0
+    ]
+   },
+   {
+    "kind": "width_step_at_joint",
+    "at": [
+     36.0,
+     0.0
+    ],
+    "ports": [
+     "o2",
+     "o1"
+    ],
+    "widths": [
+     1.0,
+     2.0
+    ],
+    "layer": [
+     1,
+     0
+    ]
+   },
+   {
+    "kind": "width_step_at_joint",
+    "at": [
+     36.9,
+     0.0
+    ],
+    "ports": [
+     "o2",
+     "o1"
+    ],
+    "widths": [
+     1.0,
+     2.0
+    ],
+    "layer": [
+     1,
+     0
+    ]
+   },
+   {
+    "kind": "width_step_at_joint",
+    "at": [
+     37.8,
+     0.0
+    ],
+    "ports": [
+     "o2",
+     "o1"
+    ],
+    "widths": [
+     1.0,
+     2.0
+    ],
+    "layer": [
+     1,
+     0
+    ]
+   },
+   {
+    "kind": "width_step_at_joint",
+    "at": [
+     38.7,
+     0.0
+    ],
+    "ports": [
+     "o2",
+     "o1"
+    ],
+    "widths": [
+     1.0,
+     2.0
+    ],
+    "layer": [
+     1,
+     0
+    ]
+   },
+   {
+    "kind": "width_step_at_joint",
+    "at": [
+     39.6,
+     0.0
+    ],
+    "ports": [
+     "o2",
+     "o1"
+    ],
+    "widths": [
+     1.0,
+     2.0
+    ],
+    "layer": [
+     1,
+     0
+    ]
+   },
+   {
+    "kind": "width_step_at_joint",
+    "at": [
+     40.5,
+     0.0
+    ],
+    "ports": [
+     "o2",
+     "o1"
+    ],
+    "widths": [
+     1.0,
+     2.0
+    ],
+    "layer": [
+     1,
+     0
+    ]
+   },
+   {
+    "kind": "width_step_at_joint",
+    "at": [
+     41.4,
+     0.0
+    ],
+    "ports": [
+     "o2",
+     "o1"
+    ],
+    "widths": [
+     1.0,
+     2.0
+    ],
+    "layer": [
+     1,
+     0
+    ]
+   },
+   {
+    "kind": "width_step_at_joint",
+    "at": [
+     42.3,
+     0.0
+    ],
+    "ports": [
+     "o2",
+     "o1"
+    ],
+    "widths": [
+     1.0,
+     2.0
+    ],
+    "layer": [
+     1,
+     0
+    ]
+   },
+   {
+    "kind": "width_step_at_joint",
+    "at": [
+     43.2,
+     0.0
+    ],
+    "ports": [
+     "o2",
+     "o1"
+    ],
+    "widths": [
+     1.0,
+     2.0
+    ],
+    "layer": [
+     1,
+     0
+    ]
+   },
+   {
+    "kind": "width_step_at_joint",
+    "at": [
+     44.1,
+     0.0
+    ],
+    "ports": [
+     "o2",
+     "o1"
+    ],
+    "widths": [
+     1.0,
+     2.0
+    ],
+    "layer": [
+     1,
+     0
+    ]
+   },
+   {
+    "kind": "width_step_at_joint",
+    "at": [
+     45.0,
+     0.0
+    ],
+    "ports": [
+     "o2",
+     "o1"
+    ],
+    "widths": [
+     1.0,
+     2.0
+    ],
+    "layer": [
+     1,
+     0
+    ]
+   },
+   {
+    "kind": "width_step_at_joint",
+    "at": [
+     45.9,
+     0.0
+    ],
+    "ports": [
+     "o2",
+     "o1"
+    ],
+    "widths": [
+     1.0,
+     2.0
+    ],
+    "layer": [
+     1,
+     0
+    ]
+   },
+   {
+    "kind": "width_step_at_joint",
+    "at": [
+     46.8,
+     0.0
+    ],
+    "ports": [
+     "o2",
+     "o1"
+    ],
+    "widths": [
+     1.0,
+     2.0
+    ],
+    "layer": [
+     1,
+     0
+    ]
+   },
+   {
+    "kind": "width_step_at_joint",
+    "at": [
+     47.7,
+     0.0
+    ],
+    "ports": [
+     "o2",
+     "o1"
+    ],
+    "widths": [
+     1.0,
+     2.0
+    ],
+    "layer": [
+     1,
+     0
+    ]
+   },
+   {
+    "kind": "width_step_at_joint",
+    "at": [
+     48.6,
+     0.0
+    ],
+    "ports": [
+     "o2",
+     "o1"
+    ],
+    "widths": [
+     1.0,
+     2.0
+    ],
+    "layer": [
+     1,
+     0
+    ]
+   },
+   {
+    "kind": "width_step_at_joint",
+    "at": [
+     49.5,
+     0.0
+    ],
+    "ports": [
+     "o2",
+     "o1"
+    ],
+    "widths": [
+     1.0,
+     2.0
+    ],
+    "layer": [
+     1,
+     0
+    ]
+   },
+   {
+    "kind": "width_step_at_joint",
+    "at": [
+     50.4,
+     0.0
+    ],
+    "ports": [
+     "o2",
+     "o1"
+    ],
+    "widths": [
+     1.0,
+     2.0
+    ],
+    "layer": [
+     1,
+     0
+    ]
+   },
+   {
+    "kind": "width_step_at_joint",
+    "at": [
+     51.3,
+     0.0
+    ],
+    "ports": [
+     "o2",
+     "o1"
+    ],
+    "widths": [
+     1.0,
+     2.0
+    ],
+    "layer": [
+     1,
+     0
+    ]
+   },
+   {
+    "kind": "width_step_at_joint",
+    "at": [
+     52.2,
+     0.0
+    ],
+    "ports": [
+     "o2",
+     "o1"
+    ],
+    "widths": [
+     1.0,
+     2.0
+    ],
+    "layer": [
+     1,
+     0
+    ]
+   },
+   {
+    "kind": "width_step_at_joint",
+    "at": [
+     53.1,
+     0.0
+    ],
+    "ports": [
+     "o2",
+     "o1"
+    ],
+    "widths": [
+     1.0,
+     2.0
+    ],
+    "layer": [
+     1,
+     0
+    ]
+   },
+   {
+    "kind": "width_step_at_joint",
+    "at": [
+     54.0,
+     0.0
+    ],
+    "ports": [
+     "o2",
+     "o1"
+    ],
+    "widths": [
+     1.0,
+     2.0
+    ],
+    "layer": [
+     1,
+     0
+    ]
+   },
+   {
+    "kind": "width_step_at_joint",
+    "at": [
+     54.9,
+     0.0
+    ],
+    "ports": [
+     "o2",
+     "o1"
+    ],
+    "widths": [
+     1.0,
+     2.0
+    ],
+    "layer": [
+     1,
+     0
+    ]
+   },
+   {
+    "kind": "width_step_at_joint",
+    "at": [
+     55.8,
+     0.0
+    ],
+    "ports": [
+     "o2",
+     "o1"
+    ],
+    "widths": [
+     1.0,
+     2.0
+    ],
+    "layer": [
+     1,
+     0
+    ]
+   },
+   {
+    "kind": "width_step_at_joint",
+    "at": [
+     56.7,
+     0.0
+    ],
+    "ports": [
+     "o2",
+     "o1"
+    ],
+    "widths": [
+     1.0,
+     2.0
+    ],
+    "layer": [
+     1,
+     0
+    ]
+   },
+   {
+    "kind": "width_step_at_joint",
+    "at": [
+     57.6,
+     0.0
+    ],
+    "ports": [
+     "o2",
+     "o1"
+    ],
+    "widths": [
+     1.0,
+     2.0
+    ],
+    "layer": [
+     1,
+     0
+    ]
+   },
+   {
+    "kind": "width_step_at_joint",
+    "at": [
+     58.5,
+     0.0
+    ],
+    "ports": [
+     "o2",
+     "o1"
+    ],
+    "widths": [
+     1.0,
+     2.0
+    ],
+    "layer": [
+     1,
+     0
+    ]
+   },
+   {
+    "kind": "width_step_at_joint",
+    "at": [
+     59.4,
+     0.0
+    ],
+    "ports": [
+     "o2",
+     "o1"
+    ],
+    "widths": [
+     1.0,
+     2.0
+    ],
+    "layer": [
+     1,
+     0
+    ]
+   },
+   {
+    "kind": "width_step_at_joint",
+    "at": [
+     60.3,
+     0.0
+    ],
+    "ports": [
+     "o2",
+     "o1"
+    ],
+    "widths": [
+     1.0,
+     2.0
+    ],
+    "layer": [
+     1,
+     0
+    ]
+   },
+   {
+    "kind": "width_step_at_joint",
+    "at": [
+     61.2,
+     0.0
+    ],
+    "ports": [
+     "o2",
+     "o1"
+    ],
+    "widths": [
+     1.0,
+     2.0
+    ],
+    "layer": [
+     1,
+     0
+    ]
+   },
+   {
+    "kind": "width_step_at_joint",
+    "at": [
+     62.1,
+     0.0
+    ],
+    "ports": [
+     "o2",
+     "o1"
+    ],
+    "widths": [
+     1.0,
+     2.0
+    ],
+    "layer": [
+     1,
+     0
+    ]
+   },
+   {
+    "kind": "width_step_at_joint",
+    "at": [
+     63.0,
+     0.0
+    ],
+    "ports": [
+     "o2",
+     "o1"
+    ],
+    "widths": [
+     1.0,
+     2.0
+    ],
+    "layer": [
+     1,
+     0
+    ]
+   },
+   {
+    "kind": "width_step_at_joint",
+    "at": [
+     63.9,
+     0.0
+    ],
+    "ports": [
+     "o2",
+     "o1"
+    ],
+    "widths": [
+     1.0,
+     2.0
+    ],
+    "layer": [
+     1,
+     0
+    ]
+   },
+   {
+    "kind": "width_step_at_joint",
+    "at": [
+     64.8,
+     0.0
+    ],
+    "ports": [
+     "o2",
+     "o1"
+    ],
+    "widths": [
+     1.0,
+     2.0
+    ],
+    "layer": [
+     1,
+     0
+    ]
+   },
+   {
+    "kind": "width_step_at_joint",
+    "at": [
+     65.7,
+     0.0
+    ],
+    "ports": [
+     "o2",
+     "o1"
+    ],
+    "widths": [
+     1.0,
+     2.0
+    ],
+    "layer": [
+     1,
+     0
+    ]
+   },
+   {
+    "kind": "width_step_at_joint",
+    "at": [
+     66.6,
+     0.0
+    ],
+    "ports": [
+     "o2",
+     "o1"
+    ],
+    "widths": [
+     1.0,
+     2.0
+    ],
+    "layer": [
+     1,
+     0
+    ]
+   },
+   {
+    "kind": "width_step_at_joint",
+    "at": [
+     67.5,
+     0.0
+    ],
+    "ports": [
+     "o2",
+     "o1"
+    ],
+    "widths": [
+     1.0,
+     2.0
+    ],
+    "layer": [
+     1,
+     0
+    ]
+   },
+   {
+    "kind": "width_step_at_joint",
+    "at": [
+     68.4,
+     0.0
+    ],
+    "ports": [
+     "o2",
+     "o1"
+    ],
+    "widths": [
+     1.0,
+     2.0
+    ],
+    "layer": [
+     1,
+     0
+    ]
+   },
+   {
+    "kind": "width_step_at_joint",
+    "at": [
+     69.3,
+     0.0
+    ],
+    "ports": [
+     "o2",
+     "o1"
+    ],
+    "widths": [
+     1.0,
+     2.0
+    ],
+    "layer": [
+     1,
+     0
+    ]
+   },
+   {
+    "kind": "width_step_at_joint",
+    "at": [
+     70.2,
+     0.0
+    ],
+    "ports": [
+     "o2",
+     "o1"
+    ],
+    "widths": [
+     1.0,
+     2.0
+    ],
+    "layer": [
+     1,
+     0
+    ]
+   },
+   {
+    "kind": "width_step_at_joint",
+    "at": [
+     71.1,
+     0.0
+    ],
+    "ports": [
+     "o2",
+     "o1"
+    ],
+    "widths": [
+     1.0,
+     2.0
+    ],
+    "layer": [
+     1,
+     0
+    ]
+   },
+   {
+    "kind": "width_step_at_joint",
+    "at": [
+     72.0,
+     0.0
+    ],
+    "ports": [
+     "o2",
+     "o1"
+    ],
+    "widths": [
+     1.0,
+     2.0
+    ],
+    "layer": [
+     1,
+     0
+    ]
+   },
+   {
+    "kind": "width_step_at_joint",
+    "at": [
+     72.9,
+     0.0
+    ],
+    "ports": [
+     "o2",
+     "o1"
+    ],
+    "widths": [
+     1.0,
+     2.0
+    ],
+    "layer": [
+     1,
+     0
+    ]
+   },
+   {
+    "kind": "width_step_at_joint",
+    "at": [
+     73.8,
+     0.0
+    ],
+    "ports": [
+     "o2",
+     "o1"
+    ],
+    "widths": [
+     1.0,
+     2.0
+    ],
+    "layer": [
+     1,
+     0
+    ]
+   },
+   {
+    "kind": "width_step_at_joint",
+    "at": [
+     74.7,
+     0.0
+    ],
+    "ports": [
+     "o2",
+     "o1"
+    ],
+    "widths": [
+     1.0,
+     2.0
+    ],
+    "layer": [
+     1,
+     0
+    ]
+   },
+   {
+    "kind": "width_step_at_joint",
+    "at": [
+     75.6,
+     0.0
+    ],
+    "ports": [
+     "o2",
+     "o1"
+    ],
+    "widths": [
+     1.0,
+     2.0
+    ],
+    "layer": [
+     1,
+     0
+    ]
+   },
+   {
+    "kind": "width_step_at_joint",
+    "at": [
+     76.5,
+     0.0
+    ],
+    "ports": [
+     "o2",
+     "o1"
+    ],
+    "widths": [
+     1.0,
+     2.0
+    ],
+    "layer": [
+     1,
+     0
+    ]
+   },
+   {
+    "kind": "width_step_at_joint",
+    "at": [
+     77.4,
+     0.0
+    ],
+    "ports": [
+     "o2",
+     "o1"
+    ],
+    "widths": [
+     1.0,
+     2.0
+    ],
+    "layer": [
+     1,
+     0
+    ]
+   },
+   {
+    "kind": "width_step_at_joint",
+    "at": [
+     78.3,
+     0.0
+    ],
+    "ports": [
+     "o2",
+     "o1"
+    ],
+    "widths": [
+     1.0,
+     2.0
+    ],
+    "layer": [
+     1,
+     0
+    ]
+   },
+   {
+    "kind": "width_step_at_joint",
+    "at": [
+     79.2,
+     0.0
+    ],
+    "ports": [
+     "o2",
+     "o1"
+    ],
+    "widths": [
+     1.0,
+     2.0
+    ],
+    "layer": [
+     1,
+     0
+    ]
+   },
+   {
+    "kind": "width_step_at_joint",
+    "at": [
+     80.1,
+     0.0
+    ],
+    "ports": [
+     "o2",
+     "o1"
+    ],
+    "widths": [
+     1.0,
+     2.0
+    ],
+    "layer": [
+     1,
+     0
+    ]
+   },
+   {
+    "kind": "width_step_at_joint",
+    "at": [
+     81.0,
+     0.0
+    ],
+    "ports": [
+     "o2",
+     "o1"
+    ],
+    "widths": [
+     1.0,
+     2.0
+    ],
+    "layer": [
+     1,
+     0
+    ]
+   },
+   {
+    "kind": "width_step_at_joint",
+    "at": [
+     81.9,
+     0.0
+    ],
+    "ports": [
+     "o2",
+     "o1"
+    ],
+    "widths": [
+     1.0,
+     2.0
+    ],
+    "layer": [
+     1,
+     0
+    ]
+   },
+   {
+    "kind": "width_step_at_joint",
+    "at": [
+     82.8,
+     0.0
+    ],
+    "ports": [
+     "o2",
+     "o1"
+    ],
+    "widths": [
+     1.0,
+     2.0
+    ],
+    "layer": [
+     1,
+     0
+    ]
+   },
+   {
+    "kind": "width_step_at_joint",
+    "at": [
+     83.7,
+     0.0
+    ],
+    "ports": [
+     "o2",
+     "o1"
+    ],
+    "widths": [
+     1.0,
+     2.0
+    ],
+    "layer": [
+     1,
+     0
+    ]
+   },
+   {
+    "kind": "width_step_at_joint",
+    "at": [
+     84.6,
+     0.0
+    ],
+    "ports": [
+     "o2",
+     "o1"
+    ],
+    "widths": [
+     1.0,
+     2.0
+    ],
+    "layer": [
+     1,
+     0
+    ]
+   },
+   {
+    "kind": "width_step_at_joint",
+    "at": [
+     85.5,
+     0.0
+    ],
+    "ports": [
+     "o2",
+     "o1"
+    ],
+    "widths": [
+     1.0,
+     2.0
+    ],
+    "layer": [
+     1,
+     0
+    ]
+   },
+   {
+    "kind": "width_step_at_joint",
+    "at": [
+     86.4,
+     0.0
+    ],
+    "ports": [
+     "o2",
+     "o1"
+    ],
+    "widths": [
+     1.0,
+     2.0
+    ],
+    "layer": [
+     1,
+     0
+    ]
+   },
+   {
+    "kind": "width_step_at_joint",
+    "at": [
+     87.3,
+     0.0
+    ],
+    "ports": [
+     "o2",
+     "o1"
+    ],
+    "widths": [
+     1.0,
+     2.0
+    ],
+    "layer": [
+     1,
+     0
+    ]
+   },
+   {
+    "kind": "width_step_at_joint",
+    "at": [
+     88.2,
+     0.0
+    ],
+    "ports": [
+     "o2",
+     "o1"
+    ],
+    "widths": [
+     1.0,
+     2.0
+    ],
+    "layer": [
+     1,
+     0
+    ]
+   },
+   {
+    "kind": "width_step_at_joint",
+    "at": [
+     89.1,
+     0.0
+    ],
+    "ports": [
+     "o2",
+     "o1"
+    ],
+    "widths": [
+     1.0,
+     2.0
+    ],
+    "layer": [
+     1,
+     0
+    ]
+   }
+  ],
+  "bbox": [
+   0.0,
+   -1.0,
+   90.0,
+   1.0
+  ],
+  "size": [
+   90.0,
+   2.0
+  ],
+  "ports": 2,
+  "port_list": [
+   {
+    "name": "o1",
+    "center": [
+     0.0,
+     0.0
+    ],
+    "orientation": 180.0,
+    "width": 2.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "o2",
+    "center": [
+     90.0,
+     0.0
+    ],
+    "orientation": 0.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   }
+  ],
+  "layer_overlaps": {},
+  "min_radii": [],
+  "radii_below_50": [],
+  "bend_cells_without_info": []
+ },
+ {
+  "name": "DMZI",
+  "ok": true,
+  "error": null,
+  "flags": [],
+  "bbox": [
+   -459.808,
+   -2.2,
+   1319.616,
+   203.99
+  ],
+  "size": [
+   1779.424,
+   206.19
+  ],
+  "ports": 6,
+  "port_list": [
+   {
+    "name": "Input2",
+    "center": [
+     -459.808,
+     203.59
+    ],
+    "orientation": 180.0,
+    "width": 0.8,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "Input1",
+    "center": [
+     -419.808,
+     -1.8
+    ],
+    "orientation": 180.0,
+    "width": 0.8,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "Output1",
+    "center": [
+     1319.616,
+     -1.8
+    ],
+    "orientation": 0.0,
+    "width": 0.8,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "Output2",
+    "center": [
+     1279.616,
+     203.59
+    ],
+    "orientation": 0.0,
+    "width": 0.8,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "Bridge1",
+    "center": [
+     859.808,
+     203.59
+    ],
+    "orientation": 0.0,
+    "width": 0.8,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "Bridge2",
+    "center": [
+     0.0,
+     -1.8
+    ],
+    "orientation": 180.0,
+    "width": 0.8,
+    "layer": "(1, 0)"
+   }
+  ],
+  "layer_overlaps": {},
+  "min_radii": [],
+  "radii_below_50": [],
+  "bend_cells_without_info": []
+ },
+ {
+  "name": "DispersionRingRow",
+  "ok": true,
+  "error": null,
+  "flags": [],
+  "bbox": [
+   -50.0,
+   -687.068,
+   4550.0,
+   -227.627
+  ],
+  "size": [
+   4600.0,
+   459.441
+  ],
+  "ports": 8,
+  "port_list": [
+   {
+    "name": "R0_input",
+    "center": [
+     -50.0,
+     -250.0
+    ],
+    "orientation": 180.0,
+    "width": 0.3,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "R0_output",
+    "center": [
+     4550.0,
+     -685.392
+    ],
+    "orientation": 0.0,
+    "width": 0.2,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "R0_RingC",
+    "center": [
+     397.748,
+     -467.348
+    ],
+    "orientation": 0.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "R0_Add",
+    "center": [
+     445.496,
+     -684.696
+    ],
+    "orientation": 0.0,
+    "width": 1.27,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "R0_Drop",
+    "center": [
+     350.0,
+     -684.696
+    ],
+    "orientation": 180.0,
+    "width": 1.27,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "R1_input",
+    "center": [
+     -50.0,
+     -230.0
+    ],
+    "orientation": 180.0,
+    "width": 0.3,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "R1_output",
+    "center": [
+     4550.0,
+     -230.0
+    ],
+    "orientation": 0.0,
+    "width": 0.2,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "R1_RingC",
+    "center": [
+     897.77,
+     -447.447
+    ],
+    "orientation": 0.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   }
+  ],
+  "layer_overlaps": {},
+  "min_radii": [
+   {
+    "r": 129.0,
+    "cell": "Unnamed_123"
+   },
+   {
+    "r": 129.0,
+    "cell": "Unnamed_124"
+   }
+  ],
+  "radii_below_50": [],
+  "bend_cells_without_info": [
+   "bend_s_gdsfactorypcomponentspbendspbend_s_S100_0_N99_CS_08626343",
+   "bend_s_gdsfactorypcomponentspbendspbend_s_S3304p46_0_N9_1ce03b4d",
+   "bend_s_gdsfactorypcomponentspbendspbend_s_S3438p112_0_N_1f35f6df",
+   "bend_s_gdsfactorypcomponentspbendspbend_s_S600_0_N99_CS_6fd5aec7"
+  ]
+ },
+ {
+  "name": "DoubleRaceTrack",
+  "ok": true,
+  "error": null,
+  "flags": [],
+  "bbox": [
+   -151.22,
+   -5.903,
+   451.22,
+   449.968
+  ],
+  "size": [
+   602.44,
+   455.871
+  ],
+  "ports": 11,
+  "port_list": [
+   {
+    "name": "o1",
+    "center": [
+     0.0,
+     443.065
+    ],
+    "orientation": 0.0,
+    "width": 5.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "o2",
+    "center": [
+     300.0,
+     444.065
+    ],
+    "orientation": 180.0,
+    "width": 5.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "R2Ro1",
+    "center": [
+     0.0,
+     0.0
+    ],
+    "orientation": 0.0,
+    "width": 5.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "R1Add",
+    "center": [
+     -93.426,
+     0.0
+    ],
+    "orientation": 180.0,
+    "width": 5.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "R1Drop",
+    "center": [
+     0.0,
+     0.0
+    ],
+    "orientation": 0.0,
+    "width": 5.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "R1Input",
+    "center": [
+     0.0,
+     443.065
+    ],
+    "orientation": 0.0,
+    "width": 5.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "R1Through",
+    "center": [
+     -93.426,
+     443.065
+    ],
+    "orientation": 180.0,
+    "width": 5.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "R2Add",
+    "center": [
+     393.426,
+     0.0
+    ],
+    "orientation": 0.0,
+    "width": 5.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "R2Drop",
+    "center": [
+     300.0,
+     0.0
+    ],
+    "orientation": 180.0,
+    "width": 5.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "R2Input",
+    "center": [
+     300.0,
+     444.065
+    ],
+    "orientation": 180.0,
+    "width": 5.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "R2Through",
+    "center": [
+     393.426,
+     444.065
+    ],
+    "orientation": 0.0,
+    "width": 5.0,
+    "layer": "(1, 0)"
+   }
+  ],
+  "layer_overlaps": {
+   "(1, 0)": {
+    "area": 0.031992,
+    "pairwise": [
+     {
+      "area": 0.008,
+      "bbox": [
+       49.794,
+       221.532,
+       57.794,
+       221.533
+      ]
+     },
+     {
+      "area": 0.008,
+      "bbox": [
+       -151.22,
+       221.532,
+       -143.22,
+       221.533
+      ]
+     },
+     {
+      "area": 0.008,
+      "bbox": [
+       242.206,
+       222.032,
+       250.206,
+       222.033
+      ]
+     },
+     {
+      "area": 0.008,
+      "bbox": [
+       443.22,
+       222.032,
+       451.22,
+       222.033
+      ]
+     }
+    ]
+   }
+  },
+  "min_radii": [],
+  "radii_below_50": [],
+  "bend_cells_without_info": []
+ },
+ {
+  "name": "DoubleRingMemyshev",
+  "ok": true,
+  "error": null,
+  "flags": [],
+  "bbox": [
+   -456.154,
+   -702.509,
+   738.942,
+   694.763
+  ],
+  "size": [
+   1195.096,
+   1397.272
+  ],
+  "ports": 11,
+  "port_list": [
+   {
+    "name": "o1",
+    "center": [
+     -0.25,
+     0.0
+    ],
+    "orientation": 180.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "R1Through",
+    "center": [
+     618.156,
+     12.15
+    ],
+    "orientation": 0.0,
+    "width": 0.91,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "R2Through",
+    "center": [
+     621.634,
+     -12.15
+    ],
+    "orientation": 0.0,
+    "width": 0.91,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "R1Add",
+    "center": [
+     618.156,
+     401.92
+    ],
+    "orientation": 0.0,
+    "width": 0.91,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "R2Add",
+    "center": [
+     621.634,
+     -409.666
+    ],
+    "orientation": 0.0,
+    "width": 0.91,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "Reflect1Out",
+    "center": [
+     156.019,
+     594.263
+    ],
+    "orientation": 90.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "Reflect2Out",
+    "center": [
+     156.019,
+     -602.009
+    ],
+    "orientation": 270.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "R1HeatIn",
+    "center": [
+     619.798,
+     407.937
+    ],
+    "orientation": 90.0,
+    "width": 5.0,
+    "layer": "None"
+   },
+   {
+    "name": "R1HeatOut",
+    "center": [
+     441.608,
+     407.937
+    ],
+    "orientation": 90.0,
+    "width": 5.0,
+    "layer": "None"
+   },
+   {
+    "name": "R2HeatIn",
+    "center": [
+     623.537,
+     -415.274
+    ],
+    "orientation": 270.0,
+    "width": 5.0,
+    "layer": "None"
+   },
+   {
+    "name": "R2HeatOut",
+    "center": [
+     441.347,
+     -415.274
+    ],
+    "orientation": 270.0,
+    "width": 5.0,
+    "layer": "None"
+   }
+  ],
+  "layer_overlaps": {
+   "(10, 0)": {
+    "area": 0.014996,
+    "pairwise": [
+     {
+      "area": 0.005,
+      "bbox": [
+       506.822,
+       16.793,
+       506.823,
+       21.793
+      ]
+     },
+     {
+      "area": 0.01,
+      "bbox": [
+       508.083,
+       -21.911,
+       508.085,
+       -16.911
+      ]
+     }
+    ]
+   }
+  },
+  "min_radii": [
+   {
+    "r": 70.609,
+    "cell": "bend_euler_gdsfactorypcomponentspbendspbend_euler_R100__bc86772f"
+   },
+   {
+    "r": 963.278,
+    "cell": "bend_s_gdsfactorypcomponentspbendspbend_s_S230_10_N99_C_15caee94"
+   },
+   {
+    "r": 963.278,
+    "cell": "bend_s_gdsfactorypcomponentspbendspbend_s_S230_m10_N99__5e32a00f"
+   }
+  ],
+  "radii_below_50": [],
+  "bend_cells_without_info": [
+   "mmi1x2_with_sbend_gdsfactorypcomponentspmmispmmi1x2_wit_e9f7d4a8"
+  ]
+ },
+ {
+  "name": "DoubleRingPulley",
+  "ok": true,
+  "error": null,
+  "flags": [],
+  "bbox": [
+   -100.5,
+   -2.432,
+   340.537,
+   204.368
+  ],
+  "size": [
+   441.037,
+   206.8
+  ],
+  "ports": 11,
+  "port_list": [
+   {
+    "name": "o1",
+    "center": [
+     44.301,
+     198.723
+    ],
+    "orientation": 0.0,
+    "width": 0.9,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "o2",
+    "center": [
+     194.301,
+     200.659
+    ],
+    "orientation": 180.0,
+    "width": 0.9,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "R2Ro1",
+    "center": [
+     44.301,
+     1.277
+    ],
+    "orientation": 0.0,
+    "width": 0.9,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "R1Add",
+    "center": [
+     -44.301,
+     1.277
+    ],
+    "orientation": 180.0,
+    "width": 0.9,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "R1Drop",
+    "center": [
+     44.301,
+     1.277
+    ],
+    "orientation": 0.0,
+    "width": 0.9,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "R1Input",
+    "center": [
+     44.301,
+     198.723
+    ],
+    "orientation": 0.0,
+    "width": 0.9,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "R1Through",
+    "center": [
+     -44.301,
+     198.723
+    ],
+    "orientation": 180.0,
+    "width": 0.9,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "R2Add",
+    "center": [
+     283.773,
+     1.277
+    ],
+    "orientation": 0.0,
+    "width": 0.9,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "R2Drop",
+    "center": [
+     194.301,
+     1.277
+    ],
+    "orientation": 180.0,
+    "width": 0.9,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "R2Input",
+    "center": [
+     194.301,
+     200.659
+    ],
+    "orientation": 180.0,
+    "width": 0.9,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "R2Through",
+    "center": [
+     283.773,
+     200.659
+    ],
+    "orientation": 0.0,
+    "width": 0.9,
+    "layer": "(1, 0)"
+   }
+  ],
+  "layer_overlaps": {},
+  "min_radii": [],
+  "radii_below_50": [],
+  "bend_cells_without_info": []
+ },
+ {
+  "name": "DoubleRingPulley2HSn",
+  "ok": true,
+  "error": null,
+  "flags": [],
+  "bbox": [
+   -100.5,
+   -2.432,
+   340.537,
+   204.368
+  ],
+  "size": [
+   441.037,
+   206.8
+  ],
+  "ports": 11,
+  "port_list": [
+   {
+    "name": "o1",
+    "center": [
+     44.301,
+     198.723
+    ],
+    "orientation": 0.0,
+    "width": 0.9,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "o2",
+    "center": [
+     194.301,
+     200.659
+    ],
+    "orientation": 180.0,
+    "width": 0.9,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "R2Ro1",
+    "center": [
+     44.301,
+     1.277
+    ],
+    "orientation": 0.0,
+    "width": 0.9,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "R1Add",
+    "center": [
+     -44.301,
+     1.277
+    ],
+    "orientation": 180.0,
+    "width": 0.9,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "R1Drop",
+    "center": [
+     44.301,
+     1.277
+    ],
+    "orientation": 0.0,
+    "width": 0.9,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "R1Input",
+    "center": [
+     44.301,
+     198.723
+    ],
+    "orientation": 0.0,
+    "width": 0.9,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "R1Through",
+    "center": [
+     -44.301,
+     198.723
+    ],
+    "orientation": 180.0,
+    "width": 0.9,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "R2Add",
+    "center": [
+     283.773,
+     1.277
+    ],
+    "orientation": 0.0,
+    "width": 0.9,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "R2Drop",
+    "center": [
+     194.301,
+     1.277
+    ],
+    "orientation": 180.0,
+    "width": 0.9,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "R2Input",
+    "center": [
+     194.301,
+     200.659
+    ],
+    "orientation": 180.0,
+    "width": 0.9,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "R2Through",
+    "center": [
+     283.773,
+     200.659
+    ],
+    "orientation": 0.0,
+    "width": 0.9,
+    "layer": "(1, 0)"
+   }
+  ],
+  "layer_overlaps": {},
+  "min_radii": [],
+  "radii_below_50": [],
+  "bend_cells_without_info": []
+ },
+ {
+  "name": "DoubleRingPulley2_1HSn",
+  "ok": true,
+  "error": null,
+  "flags": [],
+  "bbox": [
+   -100.5,
+   -2.432,
+   890.537,
+   204.368
+  ],
+  "size": [
+   991.037,
+   206.8
+  ],
+  "ports": 11,
+  "port_list": [
+   {
+    "name": "o1",
+    "center": [
+     44.301,
+     198.723
+    ],
+    "orientation": 0.0,
+    "width": 0.9,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "o2",
+    "center": [
+     744.301,
+     200.659
+    ],
+    "orientation": 180.0,
+    "width": 0.9,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "R2Ro1",
+    "center": [
+     44.301,
+     1.277
+    ],
+    "orientation": 0.0,
+    "width": 0.9,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "R1Add",
+    "center": [
+     -44.301,
+     1.277
+    ],
+    "orientation": 180.0,
+    "width": 0.9,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "R1Drop",
+    "center": [
+     44.301,
+     1.277
+    ],
+    "orientation": 0.0,
+    "width": 0.9,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "R1Input",
+    "center": [
+     44.301,
+     198.723
+    ],
+    "orientation": 0.0,
+    "width": 0.9,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "R1Through",
+    "center": [
+     -44.301,
+     198.723
+    ],
+    "orientation": 180.0,
+    "width": 0.9,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "R2Add",
+    "center": [
+     833.773,
+     1.277
+    ],
+    "orientation": 0.0,
+    "width": 0.9,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "R2Drop",
+    "center": [
+     744.301,
+     1.277
+    ],
+    "orientation": 180.0,
+    "width": 0.9,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "R2Input",
+    "center": [
+     744.301,
+     200.659
+    ],
+    "orientation": 180.0,
+    "width": 0.9,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "R2Through",
+    "center": [
+     833.773,
+     200.659
+    ],
+    "orientation": 0.0,
+    "width": 0.9,
+    "layer": "(1, 0)"
+   }
+  ],
+  "layer_overlaps": {},
+  "min_radii": [
+   {
+    "r": 63.548,
+    "cell": "bend_euler_gdsfactorypcomponentspbendspbend_euler_R90_A_e1e543de"
+   },
+   {
+    "r": 63.548,
+    "cell": "bend_euler_gdsfactorypcomponentspbendspbend_euler_R90_A_1466e5d6"
+   }
+  ],
+  "radii_below_50": [],
+  "bend_cells_without_info": []
+ },
+ {
+  "name": "EDBRStrRep",
+  "ok": true,
+  "error": null,
+  "flags": [],
+  "bbox": [
+   0.0,
+   -0.55,
+   110.0,
+   0.55
+  ],
+  "size": [
+   110.0,
+   1.1
+  ],
+  "ports": 2,
+  "port_list": [
+   {
+    "name": "o1",
+    "center": [
+     0.0,
+     0.0
+    ],
+    "orientation": 180.0,
+    "width": 0.8,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "o2",
+    "center": [
+     110.0,
+     0.0
+    ],
+    "orientation": 0.0,
+    "width": 0.8,
+    "layer": "(1, 0)"
+   }
+  ],
+  "layer_overlaps": {
+   "(1, 0)": {
+    "area": 42.35,
+    "pairwise": [
+     {
+      "area": 0.2117,
+      "bbox": [
+       0.715,
+       -0.15,
+       1.1,
+       0.4
+      ]
+     },
+     {
+      "area": 0.2117,
+      "bbox": [
+       0.715,
+       -0.4,
+       1.1,
+       0.15
+      ]
+     },
+     {
+      "area": 0.1155,
+      "bbox": [
+       0.715,
+       -0.15,
+       1.1,
+       0.15
+      ]
+     },
+     {
+      "area": 0.2117,
+      "bbox": [
+       1.815,
+       -0.15,
+       2.2,
+       0.4
+      ]
+     },
+     {
+      "area": 0.2117,
+      "bbox": [
+       1.815,
+       -0.4,
+       2.2,
+       0.15
+      ]
+     }
+    ]
+   }
+  },
+  "min_radii": [],
+  "radii_below_50": [],
+  "bend_cells_without_info": []
+ },
+ {
+  "name": "EDBRStrRep_InvertTone",
+  "ok": true,
+  "error": null,
+  "flags": [],
+  "bbox": [
+   0.0,
+   -4.0,
+   110.0,
+   4.0
+  ],
+  "size": [
+   110.0,
+   8.0
+  ],
+  "ports": 2,
+  "port_list": [
+   {
+    "name": "o1",
+    "center": [
+     0.0,
+     0.0
+    ],
+    "orientation": 180.0,
+    "width": 0.8,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "o2",
+    "center": [
+     110.0,
+     0.0
+    ],
+    "orientation": 0.0,
+    "width": 0.8,
+    "layer": "(1, 0)"
+   }
+  ],
+  "layer_overlaps": {
+   "(1, 0)": {
+    "area": 42.35,
+    "pairwise": []
+   }
+  },
+  "min_radii": [],
+  "radii_below_50": [],
+  "bend_cells_without_info": []
+ },
+ {
+  "name": "EDBRStrRep_InvertTone_Full",
+  "ok": true,
+  "error": null,
+  "flags": [],
+  "bbox": [
+   0.0,
+   -4.55,
+   510.0,
+   4.55
+  ],
+  "size": [
+   510.0,
+   9.1
+  ],
+  "ports": 2,
+  "port_list": [
+   {
+    "name": "o1",
+    "center": [
+     0.0,
+     0.0
+    ],
+    "orientation": 180.0,
+    "width": 0.15,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "o2",
+    "center": [
+     510.0,
+     0.0
+    ],
+    "orientation": 0.0,
+    "width": 0.15,
+    "layer": "(1, 0)"
+   }
+  ],
+  "layer_overlaps": {},
+  "min_radii": [],
+  "radii_below_50": [],
+  "bend_cells_without_info": []
+ },
+ {
+  "name": "ExtCavDouRaceTrack",
+  "ok": true,
+  "error": null,
+  "flags": [],
+  "bbox": [
+   -533.301,
+   -717.88,
+   1526.087,
+   2.0
+  ],
+  "size": [
+   2059.388,
+   719.88
+  ],
+  "ports": 8,
+  "port_list": [
+   {
+    "name": "o1",
+    "center": [
+     -533.301,
+     1.5
+    ],
+    "orientation": 180.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "o2",
+    "center": [
+     -253.358,
+     -428.747
+    ],
+    "orientation": 270.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "Ro1",
+    "center": [
+     215.374,
+     -271.91
+    ],
+    "orientation": 180.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "Ro2",
+    "center": [
+     215.374,
+     -717.38
+    ],
+    "orientation": 180.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "Ro3",
+    "center": [
+     1405.83,
+     -271.91
+    ],
+    "orientation": 0.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "Ro4",
+    "center": [
+     1405.83,
+     -717.38
+    ],
+    "orientation": 0.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "BusHeatIn",
+    "center": [
+     0.0,
+     0.0
+    ],
+    "orientation": 180.0,
+    "width": 4.0,
+    "layer": "None"
+   },
+   {
+    "name": "BusHeatOut",
+    "center": [
+     230.0,
+     0.0
+    ],
+    "orientation": 0.0,
+    "width": 4.0,
+    "layer": "None"
+   }
+  ],
+  "layer_overlaps": {
+   "(1, 0)": {
+    "area": 2.401138,
+    "pairwise": [
+     {
+      "area": 1.3302,
+      "bbox": [
+       696.969,
+       -86.053,
+       698.02,
+       -83.87
+      ]
+     },
+     {
+      "area": 1.071,
+      "bbox": [
+       705.873,
+       -231.151,
+       707.073,
+       -229.406
+      ]
+     }
+    ]
+   }
+  },
+  "min_radii": [
+   {
+    "r": 70.609,
+    "cell": "Unnamed_289"
+   },
+   {
+    "r": 70.609,
+    "cell": "Unnamed_290"
+   }
+  ],
+  "radii_below_50": [],
+  "bend_cells_without_info": []
+ },
+ {
+  "name": "ExtCavDouRing",
+  "ok": true,
+  "error": null,
+  "flags": [],
+  "bbox": [
+   -558.366,
+   -73.685,
+   1200.892,
+   618.144
+  ],
+  "size": [
+   1759.258,
+   691.829
+  ],
+  "ports": 8,
+  "port_list": [
+   {
+    "name": "o1",
+    "center": [
+     1200.892,
+     132.041
+    ],
+    "orientation": 0.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "o2",
+    "center": [
+     733.708,
+     -72.685
+    ],
+    "orientation": 180.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "Ro1",
+    "center": [
+     457.971,
+     213.676
+    ],
+    "orientation": 0.0,
+    "width": 0.91,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "Ro2",
+    "center": [
+     457.971,
+     611.192
+    ],
+    "orientation": 0.0,
+    "width": 0.91,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "Ro3",
+    "center": [
+     -445.319,
+     221.422
+    ],
+    "orientation": 180.0,
+    "width": 0.91,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "Ro4",
+    "center": [
+     -445.319,
+     611.192
+    ],
+    "orientation": 180.0,
+    "width": 0.91,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "BusHeatIn",
+    "center": [
+     0.0,
+     0.0
+    ],
+    "orientation": 180.0,
+    "width": 4.0,
+    "layer": "None"
+   },
+   {
+    "name": "BusHeatOut",
+    "center": [
+     230.0,
+     0.0
+    ],
+    "orientation": 0.0,
+    "width": 4.0,
+    "layer": "None"
+   }
+  ],
+  "layer_overlaps": {},
+  "min_radii": [
+   {
+    "r": 54.627,
+    "cell": "Unnamed_341"
+   }
+  ],
+  "radii_below_50": [],
+  "bend_cells_without_info": []
+ },
+ {
+  "name": "ExtCavDouRing2",
+  "ok": true,
+  "error": null,
+  "flags": [],
+  "bbox": [
+   -1757.366,
+   -73.209,
+   1270.42,
+   617.599
+  ],
+  "size": [
+   3027.786,
+   690.808
+  ],
+  "ports": 8,
+  "port_list": [
+   {
+    "name": "o1",
+    "center": [
+     1270.42,
+     131.496
+    ],
+    "orientation": 0.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "o2",
+    "center": [
+     733.472,
+     -72.709
+    ],
+    "orientation": 180.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "Ro1",
+    "center": [
+     258.971,
+     213.131
+    ],
+    "orientation": 0.0,
+    "width": 0.91,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "Ro2",
+    "center": [
+     258.971,
+     610.647
+    ],
+    "orientation": 0.0,
+    "width": 0.91,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "Ro3",
+    "center": [
+     -1644.319,
+     220.877
+    ],
+    "orientation": 180.0,
+    "width": 0.91,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "Ro4",
+    "center": [
+     -1644.319,
+     610.647
+    ],
+    "orientation": 180.0,
+    "width": 0.91,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "BusHeatIn",
+    "center": [
+     0.0,
+     0.0
+    ],
+    "orientation": 180.0,
+    "width": 4.0,
+    "layer": "None"
+   },
+   {
+    "name": "BusHeatOut",
+    "center": [
+     300.0,
+     0.0
+    ],
+    "orientation": 0.0,
+    "width": 4.0,
+    "layer": "None"
+   }
+  ],
+  "layer_overlaps": {},
+  "min_radii": [
+   {
+    "r": 1797.238,
+    "cell": "Unnamed_370"
+   }
+  ],
+  "radii_below_50": [],
+  "bend_cells_without_info": []
+ },
+ {
+  "name": "ExtCavDouRing3",
+  "ok": true,
+  "error": null,
+  "flags": [],
+  "bbox": [
+   -778.366,
+   -88.494,
+   1877.328,
+   617.599
+  ],
+  "size": [
+   2655.694,
+   706.094
+  ],
+  "ports": 11,
+  "port_list": [
+   {
+    "name": "Input",
+    "center": [
+     1877.328,
+     116.211
+    ],
+    "orientation": 0.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "Output",
+    "center": [
+     800.38,
+     -87.994
+    ],
+    "orientation": 180.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "Ro1",
+    "center": [
+     237.971,
+     213.131
+    ],
+    "orientation": 0.0,
+    "width": 0.91,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "Ro2",
+    "center": [
+     237.971,
+     610.647
+    ],
+    "orientation": 0.0,
+    "width": 0.91,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "Ro3",
+    "center": [
+     -665.319,
+     220.877
+    ],
+    "orientation": 180.0,
+    "width": 0.91,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "Ro4",
+    "center": [
+     -665.319,
+     610.647
+    ],
+    "orientation": 180.0,
+    "width": 0.91,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "PMZIHeatLout",
+    "center": [
+     772.606,
+     116.211
+    ],
+    "orientation": 0.0,
+    "width": 4.0,
+    "layer": "None"
+   },
+   {
+    "name": "PMZILHeatIn",
+    "center": [
+     472.606,
+     116.211
+    ],
+    "orientation": 180.0,
+    "width": 4.0,
+    "layer": "None"
+   },
+   {
+    "name": "PMZILHeatOut",
+    "center": [
+     772.606,
+     116.211
+    ],
+    "orientation": 0.0,
+    "width": 4.0,
+    "layer": "None"
+   },
+   {
+    "name": "PMZIRHeatIn",
+    "center": [
+     587.361,
+     8.926
+    ],
+    "orientation": 0.0,
+    "width": 4.0,
+    "layer": "None"
+   },
+   {
+    "name": "PMZIRHeatOut",
+    "center": [
+     287.361,
+     8.926
+    ],
+    "orientation": 180.0,
+    "width": 4.0,
+    "layer": "None"
+   }
+  ],
+  "layer_overlaps": {
+   "_error": "TypeError: ComponentAllAngle.get_polygons() got an unexpected keyword argument 'by'"
+  },
+  "min_radii": [
+   {
+    "r": 101.619,
+    "cell": "Unnamed_418"
+   }
+  ],
+  "radii_below_50": [],
+  "bend_cells_without_info": []
+ },
+ {
+  "name": "ExtCavTriRing",
+  "ok": true,
+  "error": null,
+  "flags": [],
+  "bbox": [
+   -708.366,
+   -73.685,
+   1200.892,
+   618.144
+  ],
+  "size": [
+   1909.258,
+   691.829
+  ],
+  "ports": 8,
+  "port_list": [
+   {
+    "name": "o1",
+    "center": [
+     1200.892,
+     132.041
+    ],
+    "orientation": 0.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "o2",
+    "center": [
+     733.708,
+     -72.685
+    ],
+    "orientation": 180.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "Ro1",
+    "center": [
+     457.971,
+     213.676
+    ],
+    "orientation": 0.0,
+    "width": 0.91,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "Ro2",
+    "center": [
+     457.971,
+     611.192
+    ],
+    "orientation": 0.0,
+    "width": 0.91,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "Ro3",
+    "center": [
+     -595.319,
+     221.422
+    ],
+    "orientation": 180.0,
+    "width": 0.91,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "Ro4",
+    "center": [
+     -595.319,
+     611.192
+    ],
+    "orientation": 180.0,
+    "width": 0.91,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "BusHeatIn",
+    "center": [
+     0.0,
+     0.0
+    ],
+    "orientation": 180.0,
+    "width": 4.0,
+    "layer": "None"
+   },
+   {
+    "name": "BusHeatOut",
+    "center": [
+     230.0,
+     0.0
+    ],
+    "orientation": 0.0,
+    "width": 4.0,
+    "layer": "None"
+   }
+  ],
+  "layer_overlaps": {},
+  "min_radii": [
+   {
+    "r": 93.744,
+    "cell": "Unnamed_428"
+   }
+  ],
+  "radii_below_50": [],
+  "bend_cells_without_info": []
+ },
+ {
+  "name": "ExtCavTriRing2",
+  "ok": true,
+  "error": null,
+  "flags": [
+   {
+    "kind": "io_port_not_0_180",
+    "port": "input",
+    "orientation": 135.0,
+    "layer": [
+     1,
+     0
+    ]
+   },
+   {
+    "kind": "optical_port_non_manhattan",
+    "port": "input",
+    "orientation": 135.0,
+    "layer": [
+     1,
+     0
+    ]
+   },
+   {
+    "kind": "optical_port_non_manhattan",
+    "port": "output",
+    "orientation": 315.0,
+    "layer": [
+     1,
+     0
+    ]
+   },
+   {
+    "kind": "optical_port_non_manhattan",
+    "port": "r1Th",
+    "orientation": 135.0,
+    "layer": [
+     1,
+     0
+    ]
+   },
+   {
+    "kind": "optical_port_non_manhattan",
+    "port": "r1Ad",
+    "orientation": 135.0,
+    "layer": [
+     1,
+     0
+    ]
+   },
+   {
+    "kind": "optical_port_non_manhattan",
+    "port": "r2Th",
+    "orientation": 45.0,
+    "layer": [
+     1,
+     0
+    ]
+   },
+   {
+    "kind": "optical_port_non_manhattan",
+    "port": "r2Ad",
+    "orientation": 45.0,
+    "layer": [
+     1,
+     0
+    ]
+   }
+  ],
+  "bbox": [
+   -272.306,
+   -458.047,
+   1154.69,
+   585.546
+  ],
+  "size": [
+   1426.996,
+   1043.593
+  ],
+  "ports": 14,
+  "port_list": [
+   {
+    "name": "input",
+    "center": [
+     404.306,
+     585.193
+    ],
+    "orientation": 135.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "output",
+    "center": [
+     474.6,
+     204.577
+    ],
+    "orientation": 315.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "r1Th",
+    "center": [
+     -272.306,
+     430.032
+    ],
+    "orientation": 135.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "r1Ad",
+    "center": [
+     -272.306,
+     40.262
+    ],
+    "orientation": 135.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "r2Th",
+    "center": [
+     1154.69,
+     437.778
+    ],
+    "orientation": 45.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "r2Ad",
+    "center": [
+     1154.69,
+     40.262
+    ],
+    "orientation": 45.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "r1L",
+    "center": [
+     -200.0,
+     200.0
+    ],
+    "orientation": 90.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "r1R",
+    "center": [
+     200.0,
+     200.0
+    ],
+    "orientation": 90.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "r2L",
+    "center": [
+     1084.645,
+     203.873
+    ],
+    "orientation": 90.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "r2R",
+    "center": [
+     676.645,
+     203.873
+    ],
+    "orientation": 90.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "r3L",
+    "center": [
+     237.453,
+     -255.547
+    ],
+    "orientation": 90.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "r3R",
+    "center": [
+     641.453,
+     -255.547
+    ],
+    "orientation": 90.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "co2",
+    "center": [
+     439.453,
+     400.34
+    ],
+    "orientation": 90.0,
+    "width": 0.91,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "co3",
+    "center": [
+     439.453,
+     389.43
+    ],
+    "orientation": 270.0,
+    "width": 0.91,
+    "layer": "(1, 0)"
+   }
+  ],
+  "layer_overlaps": {},
+  "min_radii": [
+   {
+    "r": 81.09,
+    "cell": "Unnamed_454"
+   },
+   {
+    "r": 81.09,
+    "cell": "Unnamed_455"
+   }
+  ],
+  "radii_below_50": [],
+  "bend_cells_without_info": []
+ },
+ {
+  "name": "ExtCavTriRing2_2",
+  "ok": true,
+  "error": null,
+  "flags": [],
+  "bbox": [
+   -200.5,
+   -458.047,
+   1085.145,
+   605.885
+  ],
+  "size": [
+   1285.645,
+   1063.932
+  ],
+  "ports": 8,
+  "port_list": [
+   {
+    "name": "r1L",
+    "center": [
+     -200.0,
+     200.0
+    ],
+    "orientation": 90.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "r1R",
+    "center": [
+     200.0,
+     200.0
+    ],
+    "orientation": 90.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "r2L",
+    "center": [
+     1084.645,
+     203.873
+    ],
+    "orientation": 90.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "r2R",
+    "center": [
+     676.645,
+     203.873
+    ],
+    "orientation": 90.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "r3L",
+    "center": [
+     237.453,
+     -255.547
+    ],
+    "orientation": 90.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "r3R",
+    "center": [
+     641.453,
+     -255.547
+    ],
+    "orientation": 90.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "co2",
+    "center": [
+     439.453,
+     605.885
+    ],
+    "orientation": 90.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "co3",
+    "center": [
+     439.453,
+     183.885
+    ],
+    "orientation": 270.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   }
+  ],
+  "layer_overlaps": {},
+  "min_radii": [],
+  "radii_below_50": [],
+  "bend_cells_without_info": []
+ },
+ {
+  "name": "ExtCavWang",
+  "ok": true,
+  "error": null,
+  "flags": [],
+  "bbox": [
+   -420.455,
+   -73.685,
+   1200.892,
+   760.455
+  ],
+  "size": [
+   1621.347,
+   834.14
+  ],
+  "ports": 8,
+  "port_list": [
+   {
+    "name": "o1",
+    "center": [
+     1200.892,
+     132.041
+    ],
+    "orientation": 0.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "o2",
+    "center": [
+     733.708,
+     -72.685
+    ],
+    "orientation": 180.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "WangInput",
+    "center": [
+     429.587,
+     597.934
+    ],
+    "orientation": 180.0,
+    "width": 0.91,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "WangThrough",
+    "center": [
+     778.067,
+     597.934
+    ],
+    "orientation": 0.0,
+    "width": 0.91,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "WangAdd",
+    "center": [
+     429.587,
+     239.042
+    ],
+    "orientation": 180.0,
+    "width": 0.91,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "WangDrop",
+    "center": [
+     778.067,
+     239.042
+    ],
+    "orientation": 0.0,
+    "width": 0.91,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "BusHeatIn",
+    "center": [
+     0.0,
+     0.0
+    ],
+    "orientation": 180.0,
+    "width": 4.0,
+    "layer": "None"
+   },
+   {
+    "name": "BusHeatOut",
+    "center": [
+     230.0,
+     0.0
+    ],
+    "orientation": 0.0,
+    "width": 4.0,
+    "layer": "None"
+   }
+  ],
+  "layer_overlaps": {},
+  "min_radii": [
+   {
+    "r": 67.575,
+    "cell": "Unnamed_478"
+   }
+  ],
+  "radii_below_50": [],
+  "bend_cells_without_info": []
+ },
+ {
+  "name": "FeedbackRing",
+  "ok": true,
+  "error": null,
+  "flags": [
+   {
+    "kind": "optical_port_non_manhattan",
+    "port": "Add",
+    "orientation": 350.0,
+    "layer": [
+     1,
+     0
+    ]
+   },
+   {
+    "kind": "optical_port_non_manhattan",
+    "port": "Drop",
+    "orientation": 10.0,
+    "layer": [
+     1,
+     0
+    ]
+   }
+  ],
+  "bbox": [
+   -275.661,
+   -106.195,
+   125.7,
+   114.3
+  ],
+  "size": [
+   401.361,
+   220.495
+  ],
+  "ports": 6,
+  "port_list": [
+   {
+    "name": "Input",
+    "center": [
+     -125.7,
+     -88.503
+    ],
+    "orientation": 180.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "Through",
+    "center": [
+     125.7,
+     -88.503
+    ],
+    "orientation": 0.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "Add",
+    "center": [
+     116.063,
+     82.347
+    ],
+    "orientation": 350.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "Drop",
+    "center": [
+     -76.453,
+     88.062
+    ],
+    "orientation": 10.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "HeatIn",
+    "center": [
+     -39.095,
+     114.3
+    ],
+    "orientation": 90.0,
+    "width": 4.0,
+    "layer": "None"
+   },
+   {
+    "name": "HeatOut",
+    "center": [
+     39.095,
+     114.3
+    ],
+    "orientation": 90.0,
+    "width": 4.0,
+    "layer": "None"
+   }
+  ],
+  "layer_overlaps": {
+   "(24, 0)": {
+    "area": 0.003999,
+    "pairwise": [
+     {
+      "area": 0.004,
+      "bbox": [
+       11.94,
+       -95.871,
+       11.941,
+       -91.871
+      ]
+     }
+    ]
+   }
+  },
+  "min_radii": [
+   {
+    "r": 34.689,
+    "cell": "Unnamed_498"
+   },
+   {
+    "r": 34.689,
+    "cell": "Unnamed_503"
+   },
+   {
+    "r": 36.717,
+    "cell": "bend_euler_gdsfactorypcomponentspbendspbend_euler_R52_A_2a0fac16"
+   }
+  ],
+  "radii_below_50": [
+   {
+    "r": 34.689,
+    "cell": "Unnamed_498"
+   },
+   {
+    "r": 34.689,
+    "cell": "Unnamed_503"
+   },
+   {
+    "r": 36.717,
+    "cell": "bend_euler_gdsfactorypcomponentspbendspbend_euler_R52_A_2a0fac16"
+   }
+  ],
+  "bend_cells_without_info": []
+ },
+ {
+  "name": "GSGELE",
+  "ok": true,
+  "error": null,
+  "flags": [],
+  "bbox": [
+   0.0,
+   -98.5,
+   10000.0,
+   98.5
+  ],
+  "size": [
+   10000.0,
+   197.0
+  ],
+  "ports": 10,
+  "port_list": [
+   {
+    "name": "Gout1",
+    "center": [
+     0.0,
+     58.5
+    ],
+    "orientation": 180.0,
+    "width": 80.0,
+    "layer": "None"
+   },
+   {
+    "name": "Gin1",
+    "center": [
+     10000.0,
+     58.5
+    ],
+    "orientation": 0.0,
+    "width": 80.0,
+    "layer": "None"
+   },
+   {
+    "name": "Sout",
+    "center": [
+     0.0,
+     0.0
+    ],
+    "orientation": 180.0,
+    "width": 25.0,
+    "layer": "None"
+   },
+   {
+    "name": "Sin",
+    "center": [
+     10000.0,
+     0.0
+    ],
+    "orientation": 0.0,
+    "width": 25.0,
+    "layer": "None"
+   },
+   {
+    "name": "Gout2",
+    "center": [
+     0.0,
+     -58.5
+    ],
+    "orientation": 180.0,
+    "width": 80.0,
+    "layer": "None"
+   },
+   {
+    "name": "Gin2",
+    "center": [
+     10000.0,
+     -58.5
+    ],
+    "orientation": 0.0,
+    "width": 80.0,
+    "layer": "None"
+   },
+   {
+    "name": "Oin1",
+    "center": [
+     0.0,
+     15.5
+    ],
+    "orientation": 180.0,
+    "width": 6.0,
+    "layer": "None"
+   },
+   {
+    "name": "Oout1",
+    "center": [
+     10000.0,
+     15.5
+    ],
+    "orientation": 0.0,
+    "width": 6.0,
+    "layer": "None"
+   },
+   {
+    "name": "Oin2",
+    "center": [
+     0.0,
+     -15.5
+    ],
+    "orientation": 180.0,
+    "width": 6.0,
+    "layer": "None"
+   },
+   {
+    "name": "Oout2",
+    "center": [
+     10000.0,
+     -15.5
+    ],
+    "orientation": 0.0,
+    "width": 6.0,
+    "layer": "None"
+   }
+  ],
+  "layer_overlaps": {},
+  "min_radii": [],
+  "radii_below_50": [],
+  "bend_cells_without_info": []
+ },
+ {
+  "name": "GfCBendEuler",
+  "ok": true,
+  "error": null,
+  "flags": [],
+  "bbox": [
+   0.0,
+   -0.25,
+   10.25,
+   10.0
+  ],
+  "size": [
+   10.25,
+   10.25
+  ],
+  "ports": 2,
+  "port_list": [
+   {
+    "name": "o1",
+    "center": [
+     0.0,
+     0.0
+    ],
+    "orientation": 180.0,
+    "width": 0.5,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "o2",
+    "center": [
+     10.0,
+     10.0
+    ],
+    "orientation": 90.0,
+    "width": 0.5,
+    "layer": "(1, 0)"
+   }
+  ],
+  "layer_overlaps": {},
+  "min_radii": [
+   {
+    "r": 7.061,
+    "cell": "Unnamed_537"
+   }
+  ],
+  "radii_below_50": [
+   {
+    "r": 7.061,
+    "cell": "Unnamed_537"
+   }
+  ],
+  "bend_cells_without_info": []
+ },
+ {
+  "name": "GfCStraight",
+  "ok": true,
+  "error": null,
+  "flags": [],
+  "bbox": [
+   0.0,
+   -0.5,
+   10.0,
+   0.5
+  ],
+  "size": [
+   10.0,
+   1.0
+  ],
+  "ports": 2,
+  "port_list": [
+   {
+    "name": "o1",
+    "center": [
+     0.0,
+     0.0
+    ],
+    "orientation": 180.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "o2",
+    "center": [
+     10.0,
+     0.0
+    ],
+    "orientation": 0.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   }
+  ],
+  "layer_overlaps": {},
+  "min_radii": [],
+  "radii_below_50": [],
+  "bend_cells_without_info": []
+ },
+ {
+  "name": "GongCavity",
+  "ok": true,
+  "error": null,
+  "flags": [],
+  "bbox": [
+   -30.5,
+   -4.781,
+   330.5,
+   354.781
+  ],
+  "size": [
+   361.0,
+   359.562
+  ],
+  "ports": 6,
+  "port_list": [
+   {
+    "name": "TopCenter",
+    "center": [
+     150.0,
+     350.0
+    ],
+    "orientation": 90.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "BottomCenter",
+    "center": [
+     150.0,
+     0.0
+    ],
+    "orientation": 270.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "Input",
+    "center": [
+     -24.159,
+     354.331
+    ],
+    "orientation": 180.0,
+    "width": 0.9,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "Through",
+    "center": [
+     324.159,
+     354.331
+    ],
+    "orientation": 0.0,
+    "width": 0.9,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "Add",
+    "center": [
+     -24.159,
+     -4.331
+    ],
+    "orientation": 180.0,
+    "width": 0.9,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "Drop",
+    "center": [
+     324.159,
+     -4.331
+    ],
+    "orientation": 0.0,
+    "width": 0.9,
+    "layer": "(1, 0)"
+   }
+  ],
+  "layer_overlaps": {},
+  "min_radii": [],
+  "radii_below_50": [],
+  "bend_cells_without_info": []
+ },
+ {
+  "name": "OffsetRamp",
+  "ok": true,
+  "error": null,
+  "flags": [],
+  "bbox": [
+   0.0,
+   -2.5,
+   10.0,
+   2.5
+  ],
+  "size": [
+   10.0,
+   5.0
+  ],
+  "ports": 2,
+  "port_list": [
+   {
+    "name": "o1",
+    "center": [
+     0.0,
+     0.0
+    ],
+    "orientation": 180.0,
+    "width": 5.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "o2",
+    "center": [
+     10.0,
+     0.0
+    ],
+    "orientation": 0.0,
+    "width": 5.0,
+    "layer": "(1, 0)"
+   }
+  ],
+  "layer_overlaps": {},
+  "min_radii": [],
+  "radii_below_50": [],
+  "bend_cells_without_info": []
+ },
+ {
+  "name": "OpenPad",
+  "ok": true,
+  "error": null,
+  "flags": [],
+  "bbox": [
+   -55.0,
+   -55.0,
+   55.0,
+   55.0
+  ],
+  "size": [
+   110.0,
+   110.0
+  ],
+  "ports": 4,
+  "port_list": [
+   {
+    "name": "left",
+    "center": [
+     -55.0,
+     0.0
+    ],
+    "orientation": 180.0,
+    "width": 110.0,
+    "layer": "None"
+   },
+   {
+    "name": "right",
+    "center": [
+     55.0,
+     0.0
+    ],
+    "orientation": 0.0,
+    "width": 110.0,
+    "layer": "None"
+   },
+   {
+    "name": "up",
+    "center": [
+     0.0,
+     55.0
+    ],
+    "orientation": 90.0,
+    "width": 110.0,
+    "layer": "None"
+   },
+   {
+    "name": "down",
+    "center": [
+     0.0,
+     -55.0
+    ],
+    "orientation": 270.0,
+    "width": 110.0,
+    "layer": "None"
+   }
+  ],
+  "layer_overlaps": {},
+  "min_radii": [],
+  "radii_below_50": [],
+  "bend_cells_without_info": []
+ },
+ {
+  "name": "OptFeedbackRing",
+  "ok": true,
+  "error": null,
+  "flags": [
+   {
+    "kind": "optical_port_non_manhattan",
+    "port": "Add",
+    "orientation": 350.0,
+    "layer": [
+     1,
+     0
+    ]
+   },
+   {
+    "kind": "optical_port_non_manhattan",
+    "port": "Drop",
+    "orientation": 10.0,
+    "layer": [
+     1,
+     0
+    ]
+   }
+  ],
+  "bbox": [
+   -290.697,
+   -106.195,
+   125.7,
+   136.858
+  ],
+  "size": [
+   416.397,
+   243.053
+  ],
+  "ports": 6,
+  "port_list": [
+   {
+    "name": "Input",
+    "center": [
+     -125.7,
+     -88.503
+    ],
+    "orientation": 180.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "Through",
+    "center": [
+     125.7,
+     -88.503
+    ],
+    "orientation": 0.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "Add",
+    "center": [
+     116.063,
+     82.347
+    ],
+    "orientation": 350.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "Drop",
+    "center": [
+     -76.453,
+     88.062
+    ],
+    "orientation": 10.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "HeatIn",
+    "center": [
+     -39.095,
+     114.3
+    ],
+    "orientation": 90.0,
+    "width": 4.0,
+    "layer": "None"
+   },
+   {
+    "name": "HeatOut",
+    "center": [
+     39.095,
+     114.3
+    ],
+    "orientation": 90.0,
+    "width": 4.0,
+    "layer": "None"
+   }
+  ],
+  "layer_overlaps": {
+   "(24, 0)": {
+    "area": 0.003999,
+    "pairwise": [
+     {
+      "area": 0.004,
+      "bbox": [
+       11.94,
+       -95.871,
+       11.941,
+       -91.871
+      ]
+     }
+    ]
+   }
+  },
+  "min_radii": [
+   {
+    "r": 34.689,
+    "cell": "Unnamed_558"
+   },
+   {
+    "r": 34.689,
+    "cell": "Unnamed_559"
+   },
+   {
+    "r": 60.033,
+    "cell": "bend_s_gdsfactorypcomponentspbendspbend_s_S110p24000000_aabba61a"
+   },
+   {
+    "r": 60.033,
+    "cell": "bend_s_gdsfactorypcomponentspbendspbend_s_S110p24000000_a2686576"
+   }
+  ],
+  "radii_below_50": [
+   {
+    "r": 34.689,
+    "cell": "Unnamed_558"
+   },
+   {
+    "r": 34.689,
+    "cell": "Unnamed_559"
+   }
+  ],
+  "bend_cells_without_info": []
+ },
+ {
+  "name": "OptMMISagnacLoop",
+  "ok": true,
+  "error": null,
+  "flags": [],
+  "bbox": [
+   -10.0,
+   -52.45,
+   178.19,
+   52.45
+  ],
+  "size": [
+   188.19,
+   104.9
+  ],
+  "ports": 2,
+  "port_list": [
+   {
+    "name": "In",
+    "center": [
+     -10.0,
+     -0.625
+    ],
+    "orientation": 180.0,
+    "width": 0.9,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "Out",
+    "center": [
+     -10.0,
+     0.625
+    ],
+    "orientation": 180.0,
+    "width": 0.9,
+    "layer": "(1, 0)"
+   }
+  ],
+  "layer_overlaps": {},
+  "min_radii": [
+   {
+    "r": 60.033,
+    "cell": "bend_s_gdsfactorypcomponentspbendspbend_s_S110p24000000_aabba61a"
+   },
+   {
+    "r": 60.033,
+    "cell": "bend_s_gdsfactorypcomponentspbendspbend_s_S110p24000000_a2686576"
+   }
+  ],
+  "radii_below_50": [],
+  "bend_cells_without_info": []
+ },
+ {
+  "name": "OptPDCSagnacLoop",
+  "ok": true,
+  "error": null,
+  "flags": [
+   {
+    "kind": "io_port_not_0_180",
+    "port": "Out",
+    "orientation": 160.0,
+    "layer": [
+     1,
+     0
+    ]
+   },
+   {
+    "kind": "optical_port_non_manhattan",
+    "port": "Out",
+    "orientation": 160.0,
+    "layer": [
+     1,
+     0
+    ]
+   }
+  ],
+  "bbox": [
+   -43.864,
+   -46.594,
+   200.314,
+   58.306
+  ],
+  "size": [
+   244.178,
+   104.9
+  ],
+  "ports": 2,
+  "port_list": [
+   {
+    "name": "In",
+    "center": [
+     -43.864,
+     4.481
+    ],
+    "orientation": 180.0,
+    "width": 0.9,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "Out",
+    "center": [
+     -34.202,
+     7.231
+    ],
+    "orientation": 160.0,
+    "width": 0.9,
+    "layer": "(1, 0)"
+   }
+  ],
+  "layer_overlaps": {},
+  "min_radii": [],
+  "radii_below_50": [],
+  "bend_cells_without_info": []
+ },
+ {
+  "name": "PMZI",
+  "ok": true,
+  "error": null,
+  "flags": [
+   {
+    "kind": "io_port_not_0_180",
+    "port": "Input1",
+    "orientation": 270.0,
+    "layer": [
+     1,
+     0
+    ]
+   },
+   {
+    "kind": "io_port_not_0_180",
+    "port": "Output2",
+    "orientation": 90.0,
+    "layer": [
+     1,
+     0
+    ]
+   }
+  ],
+  "bbox": [
+   -200.5,
+   -47.097,
+   1220.747,
+   342.15
+  ],
+  "size": [
+   1421.247,
+   389.247
+  ],
+  "ports": 4,
+  "port_list": [
+   {
+    "name": "Input1",
+    "center": [
+     1220.247,
+     93.153
+    ],
+    "orientation": 270.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "Input2",
+    "center": [
+     1107.758,
+     286.112
+    ],
+    "orientation": 0.0,
+    "width": 0.8,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "Output2",
+    "center": [
+     -200.0,
+     201.9
+    ],
+    "orientation": 90.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "Output1",
+    "center": [
+     -87.511,
+     8.941
+    ],
+    "orientation": 180.0,
+    "width": 0.8,
+    "layer": "(1, 0)"
+   }
+  ],
+  "layer_overlaps": {},
+  "min_radii": [],
+  "radii_below_50": [],
+  "bend_cells_without_info": []
+ },
+ {
+  "name": "PMZIHSn",
+  "ok": true,
+  "error": null,
+  "flags": [
+   {
+    "kind": "io_port_not_0_180",
+    "port": "Input1",
+    "orientation": 270.0,
+    "layer": [
+     1,
+     0
+    ]
+   },
+   {
+    "kind": "io_port_not_0_180",
+    "port": "Output2",
+    "orientation": 90.0,
+    "layer": [
+     1,
+     0
+    ]
+   }
+  ],
+  "bbox": [
+   -200.5,
+   -125.18,
+   1080.171,
+   201.9
+  ],
+  "size": [
+   1280.671,
+   327.08
+  ],
+  "ports": 8,
+  "port_list": [
+   {
+    "name": "Input1",
+    "center": [
+     1079.671,
+     -125.18
+    ],
+    "orientation": 270.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "Input2",
+    "center": [
+     967.182,
+     67.779
+    ],
+    "orientation": 0.0,
+    "width": 0.8,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "Output2",
+    "center": [
+     -200.0,
+     201.9
+    ],
+    "orientation": 90.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "Output1",
+    "center": [
+     -87.511,
+     8.941
+    ],
+    "orientation": 180.0,
+    "width": 0.8,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "LHeatIn",
+    "center": [
+     292.16,
+     67.779
+    ],
+    "orientation": 180.0,
+    "width": 4.0,
+    "layer": "None"
+   },
+   {
+    "name": "LHeatOut",
+    "center": [
+     592.16,
+     67.779
+    ],
+    "orientation": 0.0,
+    "width": 4.0,
+    "layer": "None"
+   },
+   {
+    "name": "RHeatIn",
+    "center": [
+     587.511,
+     8.941
+    ],
+    "orientation": 0.0,
+    "width": 4.0,
+    "layer": "None"
+   },
+   {
+    "name": "RHeatOut",
+    "center": [
+     287.511,
+     8.941
+    ],
+    "orientation": 180.0,
+    "width": 4.0,
+    "layer": "None"
+   }
+  ],
+  "layer_overlaps": {},
+  "min_radii": [],
+  "radii_below_50": [],
+  "bend_cells_without_info": []
+ },
+ {
+  "name": "PulleyCoupler2X2",
+  "ok": true,
+  "error": null,
+  "flags": [
+   {
+    "kind": "optical_port_non_manhattan",
+    "port": "in1",
+    "orientation": 169.0,
+    "layer": [
+     1,
+     0
+    ]
+   },
+   {
+    "kind": "optical_port_non_manhattan",
+    "port": "out1",
+    "orientation": 11.0,
+    "layer": [
+     1,
+     0
+    ]
+   }
+  ],
+  "bbox": [
+   -48.397,
+   -0.775,
+   48.397,
+   6.731
+  ],
+  "size": [
+   96.794,
+   7.506
+  ],
+  "ports": 4,
+  "port_list": [
+   {
+    "name": "in1",
+    "center": [
+     -38.162,
+     5.75
+    ],
+    "orientation": 169.0,
+    "width": 2.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "out2",
+    "center": [
+     48.397,
+     2.713
+    ],
+    "orientation": 0.0,
+    "width": 1.55,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "out1",
+    "center": [
+     38.162,
+     5.75
+    ],
+    "orientation": 11.0,
+    "width": 2.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "in2",
+    "center": [
+     -48.397,
+     2.713
+    ],
+    "orientation": 180.0,
+    "width": 1.55,
+    "layer": "(1, 0)"
+   }
+  ],
+  "layer_overlaps": {},
+  "min_radii": [],
+  "radii_below_50": [],
+  "bend_cells_without_info": []
+ },
+ {
+  "name": "RaceTrackP",
+  "ok": true,
+  "error": null,
+  "flags": [],
+  "bbox": [
+   -104.507,
+   -444.871,
+   104.507,
+   10.0
+  ],
+  "size": [
+   209.014,
+   454.871
+  ],
+  "ports": 12,
+  "port_list": [
+   {
+    "name": "RingSmid1",
+    "center": [
+     0.0,
+     0.0
+    ],
+    "orientation": 180.0,
+    "width": 8.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "RingSmid2",
+    "center": [
+     0.0,
+     -434.871
+    ],
+    "orientation": 0.0,
+    "width": 8.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "RingBmid1",
+    "center": [
+     0.0,
+     -434.871
+    ],
+    "orientation": 180.0,
+    "width": 8.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "RingBmid2",
+    "center": [
+     0.0,
+     0.0
+    ],
+    "orientation": 0.0,
+    "width": 8.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "Input",
+    "center": [
+     46.713,
+     4.097
+    ],
+    "orientation": 0.0,
+    "width": 5.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "Through",
+    "center": [
+     -46.713,
+     4.097
+    ],
+    "orientation": 180.0,
+    "width": 5.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "Add",
+    "center": [
+     -46.713,
+     -438.968
+    ],
+    "orientation": 180.0,
+    "width": 5.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "Drop",
+    "center": [
+     46.713,
+     -438.968
+    ],
+    "orientation": 0.0,
+    "width": 5.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "Rcen1",
+    "center": [
+     100.507,
+     -217.435
+    ],
+    "orientation": 90.0,
+    "width": 8.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "Rcen2",
+    "center": [
+     -100.507,
+     -217.436
+    ],
+    "orientation": 270.0,
+    "width": 8.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "Rcenter",
+    "center": [
+     0.0,
+     -217.436
+    ],
+    "orientation": 180.0,
+    "width": 8.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "RingC",
+    "center": [
+     0.0,
+     -217.436
+    ],
+    "orientation": 180.0,
+    "width": 8.0,
+    "layer": "(1, 0)"
+   }
+  ],
+  "layer_overlaps": {
+   "(1, 0)": {
+    "area": 0.015996,
+    "pairwise": [
+     {
+      "area": 0.008,
+      "bbox": [
+       96.507,
+       -217.436,
+       104.507,
+       -217.435
+      ]
+     },
+     {
+      "area": 0.008,
+      "bbox": [
+       -104.507,
+       -217.436,
+       -96.507,
+       -217.435
+      ]
+     }
+    ]
+   }
+  },
+  "min_radii": [],
+  "radii_below_50": [],
+  "bend_cells_without_info": []
+ },
+ {
+  "name": "RaceTrackS",
+  "ok": true,
+  "error": null,
+  "flags": [
+   {
+    "kind": "io_port_not_0_180",
+    "port": "Input",
+    "orientation": 270.0,
+    "layer": [
+     1,
+     0
+    ]
+   },
+   {
+    "kind": "io_port_not_0_180",
+    "port": "Through",
+    "orientation": 90.0,
+    "layer": [
+     1,
+     0
+    ]
+   }
+  ],
+  "bbox": [
+   -114.718,
+   -436.871,
+   114.718,
+   1.0
+  ],
+  "size": [
+   229.436,
+   437.871
+  ],
+  "ports": 14,
+  "port_list": [
+   {
+    "name": "RingSmid1",
+    "center": [
+     100.507,
+     -217.435
+    ],
+    "orientation": 90.0,
+    "width": 2.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "RingSmid2",
+    "center": [
+     -100.507,
+     -217.436
+    ],
+    "orientation": 270.0,
+    "width": 2.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "RingBmid1",
+    "center": [
+     0.0,
+     -434.871
+    ],
+    "orientation": 180.0,
+    "width": 2.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "RingBmid2",
+    "center": [
+     0.0,
+     0.0
+    ],
+    "orientation": 0.0,
+    "width": 2.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "Input",
+    "center": [
+     -113.718,
+     -394.992
+    ],
+    "orientation": 270.0,
+    "width": 2.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "Through",
+    "center": [
+     -113.718,
+     -39.878
+    ],
+    "orientation": 90.0,
+    "width": 2.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "Add",
+    "center": [
+     113.718,
+     -39.879
+    ],
+    "orientation": 90.0,
+    "width": 2.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "Drop",
+    "center": [
+     113.718,
+     -394.993
+    ],
+    "orientation": 270.0,
+    "width": 2.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "Rcen1",
+    "center": [
+     100.507,
+     -217.435
+    ],
+    "orientation": 90.0,
+    "width": 2.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "Rcen2",
+    "center": [
+     -100.507,
+     -217.436
+    ],
+    "orientation": 270.0,
+    "width": 2.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "HeatIn",
+    "center": [
+     -86.634,
+     -350.692
+    ],
+    "orientation": 90.0,
+    "width": 4.0,
+    "layer": "None"
+   },
+   {
+    "name": "HeatOut",
+    "center": [
+     100.507,
+     -117.435
+    ],
+    "orientation": 90.0,
+    "width": 4.0,
+    "layer": "None"
+   },
+   {
+    "name": "HeatBmid1",
+    "center": [
+     0.0,
+     -434.871
+    ],
+    "orientation": 0.0,
+    "width": 4.0,
+    "layer": "None"
+   },
+   {
+    "name": "HeatBmid2",
+    "center": [
+     0.0,
+     -434.871
+    ],
+    "orientation": 180.0,
+    "width": 4.0,
+    "layer": "None"
+   }
+  ],
+  "layer_overlaps": {
+   "(1, 0)": {
+    "area": 0.003998,
+    "pairwise": [
+     {
+      "area": 0.002,
+      "bbox": [
+       99.507,
+       -217.436,
+       101.507,
+       -217.435
+      ]
+     },
+     {
+      "area": 0.002,
+      "bbox": [
+       -101.507,
+       -217.436,
+       -99.507,
+       -217.435
+      ]
+     }
+    ]
+   }
+  },
+  "min_radii": [],
+  "radii_below_50": [],
+  "bend_cells_without_info": []
+ },
+ {
+  "name": "RaceTrackStrHC",
+  "ok": true,
+  "error": null,
+  "flags": [
+   {
+    "kind": "io_port_not_0_180",
+    "port": "Input",
+    "orientation": 270.0,
+    "layer": [
+     1,
+     0
+    ]
+   },
+   {
+    "kind": "io_port_not_0_180",
+    "port": "Through",
+    "orientation": 90.0,
+    "layer": [
+     1,
+     0
+    ]
+   }
+  ],
+  "bbox": [
+   -569.75,
+   -4.0,
+   569.75,
+   1465.202
+  ],
+  "size": [
+   1139.5,
+   1469.202
+  ],
+  "ports": 10,
+  "port_list": [
+   {
+    "name": "RingSmid1",
+    "center": [
+     505.698,
+     730.601
+    ],
+    "orientation": 90.0,
+    "width": 8.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "RingSmid2",
+    "center": [
+     -505.698,
+     730.601
+    ],
+    "orientation": 270.0,
+    "width": 8.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "RingBmid1",
+    "center": [
+     0.0,
+     0.0
+    ],
+    "orientation": 0.0,
+    "width": 8.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "RingBmid2",
+    "center": [
+     0.0,
+     1461.202
+    ],
+    "orientation": 180.0,
+    "width": 8.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "Input",
+    "center": [
+     -565.75,
+     242.816
+    ],
+    "orientation": 270.0,
+    "width": 8.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "Through",
+    "center": [
+     -565.75,
+     1218.384
+    ],
+    "orientation": 90.0,
+    "width": 8.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "Add",
+    "center": [
+     565.75,
+     1218.386
+    ],
+    "orientation": 90.0,
+    "width": 8.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "Drop",
+    "center": [
+     565.75,
+     242.818
+    ],
+    "orientation": 270.0,
+    "width": 8.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "Rcen1",
+    "center": [
+     505.698,
+     730.601
+    ],
+    "orientation": 90.0,
+    "width": 8.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "Rcen2",
+    "center": [
+     -505.698,
+     730.601
+    ],
+    "orientation": 270.0,
+    "width": 8.0,
+    "layer": "(1, 0)"
+   }
+  ],
+  "layer_overlaps": {},
+  "min_radii": [],
+  "radii_below_50": [],
+  "bend_cells_without_info": []
+ },
+ {
+  "name": "RingAndIsolator0",
+  "ok": true,
+  "error": null,
+  "flags": [
+   {
+    "kind": "dangling_bend_end",
+    "at": [
+     763.679,
+     -115.676
+    ],
+    "port": "o2",
+    "cell": "bend_euler_all_angle_R120_A60_P0p5_"
+   }
+  ],
+  "bbox": [
+   0.0,
+   -267.176,
+   3000.0,
+   12.998
+  ],
+  "size": [
+   3000.0,
+   280.174
+  ],
+  "ports": 5,
+  "port_list": [
+   {
+    "name": "input",
+    "center": [
+     0.0,
+     0.0
+    ],
+    "orientation": 180.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "through",
+    "center": [
+     3000.0,
+     -206.603
+    ],
+    "orientation": 0.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "drop",
+    "center": [
+     2980.0,
+     -265.676
+    ],
+    "orientation": 180.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "add",
+    "center": [
+     3000.0,
+     -235.676
+    ],
+    "orientation": 0.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "RingC",
+    "center": [
+     1053.231,
+     -118.622
+    ],
+    "orientation": 180.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   }
+  ],
+  "layer_overlaps": {
+   "_error": "TypeError: ComponentAllAngle.get_polygons() got an unexpected keyword argument 'by'"
+  },
+  "min_radii": [
+   {
+    "r": 81.978,
+    "cell": "bend_euler_all_angle_R120_Am60_P0p5_WAFTrue_NNone_ASNon_a9605b4f"
+   },
+   {
+    "r": 81.978,
+    "cell": "bend_euler_all_angle_R120_A60_P0p5_WAFTrue_NNone_ASNone_b798593e"
+   },
+   {
+    "r": 81.978,
+    "cell": "bend_euler_all_angle_R120_Am60_P0p5_WAFTrue_NNone_ASNon_52bddea7"
+   },
+   {
+    "r": 81.978,
+    "cell": "bend_euler_all_angle_R120_A60_P0p5_WAFTrue_NNone_ASNone_f0400fcd"
+   }
+  ],
+  "radii_below_50": [],
+  "bend_cells_without_info": []
+ },
+ {
+  "name": "RingBoomerang",
+  "ok": true,
+  "error": null,
+  "flags": [
+   {
+    "kind": "io_port_not_0_180",
+    "port": "Input",
+    "orientation": 270.0,
+    "layer": [
+     1,
+     0
+    ]
+   },
+   {
+    "kind": "io_port_not_0_180",
+    "port": "Through",
+    "orientation": 90.0,
+    "layer": [
+     1,
+     0
+    ]
+   }
+  ],
+  "bbox": [
+   -588.166,
+   -588.166,
+   57.891,
+   57.891
+  ],
+  "size": [
+   646.057,
+   646.057
+  ],
+  "ports": 4,
+  "port_list": [
+   {
+    "name": "Input",
+    "center": [
+     -587.416,
+     -205.008
+    ],
+    "orientation": 270.0,
+    "width": 1.5,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "Through",
+    "center": [
+     -587.416,
+     4.992
+    ],
+    "orientation": 90.0,
+    "width": 1.5,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "Add",
+    "center": [
+     -205.008,
+     -587.416
+    ],
+    "orientation": 180.0,
+    "width": 1.5,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "Drop",
+    "center": [
+     4.992,
+     -587.416
+    ],
+    "orientation": 0.0,
+    "width": 1.5,
+    "layer": "(1, 0)"
+   }
+  ],
+  "layer_overlaps": {
+   "(1, 0)": {
+    "area": 0.00225,
+    "pairwise": []
+   }
+  },
+  "min_radii": [
+   {
+    "r": 77.67,
+    "cell": "bend_euler_gdsfactorypcomponentspbendspbend_euler_R110p_82922a1a"
+   },
+   {
+    "r": 186.005,
+    "cell": "bend_s_gdsfactorypcomponentspbendspbend_s_S100_10_N99_C_98c87b3e"
+   }
+  ],
+  "radii_below_50": [],
+  "bend_cells_without_info": []
+ },
+ {
+  "name": "RingCouponRow",
+  "ok": true,
+  "error": null,
+  "flags": [],
+  "bbox": [
+   0.0,
+   -577.0,
+   10000.0,
+   4.878
+  ],
+  "size": [
+   10000.0,
+   581.878
+  ],
+  "ports": 3,
+  "port_list": [
+   {
+    "name": "R0_input",
+    "center": [
+     0.0,
+     0.0
+    ],
+    "orientation": 180.0,
+    "width": 0.3,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "R0_output",
+    "center": [
+     10000.0,
+     -576.5
+    ],
+    "orientation": 0.0,
+    "width": 0.2,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "R0_RingC",
+    "center": [
+     853.231,
+     -118.622
+    ],
+    "orientation": 0.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   }
+  ],
+  "layer_overlaps": {},
+  "min_radii": [
+   {
+    "r": 200.0,
+    "cell": "Unnamed_705"
+   },
+   {
+    "r": 200.0,
+    "cell": "Unnamed_706"
+   },
+   {
+    "r": 881074428163.359,
+    "cell": "bend_s_gdsfactorypcomponentspbendspbend_s_S8217p0379861_f64cb76d"
+   }
+  ],
+  "radii_below_50": [],
+  "bend_cells_without_info": [
+   "bend_s_gdsfactorypcomponentspbendspbend_s_S500_0_N99_CS_64f1108b"
+  ]
+ },
+ {
+  "name": "RingDouBoomerang",
+  "ok": true,
+  "error": null,
+  "flags": [
+   {
+    "kind": "optical_port_non_manhattan",
+    "port": "R1Lo1",
+    "orientation": 315.0,
+    "layer": [
+     1,
+     0
+    ]
+   },
+   {
+    "kind": "optical_port_non_manhattan",
+    "port": "R1Lo2",
+    "orientation": 315.0,
+    "layer": [
+     1,
+     0
+    ]
+   },
+   {
+    "kind": "optical_port_non_manhattan",
+    "port": "R1Ro1",
+    "orientation": 135.0,
+    "layer": [
+     1,
+     0
+    ]
+   },
+   {
+    "kind": "optical_port_non_manhattan",
+    "port": "R1Ro2",
+    "orientation": 135.0,
+    "layer": [
+     1,
+     0
+    ]
+   },
+   {
+    "kind": "optical_port_non_manhattan",
+    "port": "R2Lo1",
+    "orientation": 315.0,
+    "layer": [
+     1,
+     0
+    ]
+   },
+   {
+    "kind": "optical_port_non_manhattan",
+    "port": "R2Lo2",
+    "orientation": 315.0,
+    "layer": [
+     1,
+     0
+    ]
+   },
+   {
+    "kind": "optical_port_non_manhattan",
+    "port": "R2Ro1",
+    "orientation": 135.0,
+    "layer": [
+     1,
+     0
+    ]
+   },
+   {
+    "kind": "optical_port_non_manhattan",
+    "port": "R2Ro2",
+    "orientation": 135.0,
+    "layer": [
+     1,
+     0
+    ]
+   }
+  ],
+  "bbox": [
+   -486.166,
+   -498.166,
+   321.279,
+   321.279
+  ],
+  "size": [
+   807.445,
+   819.445
+  ],
+  "ports": 20,
+  "port_list": [
+   {
+    "name": "Add",
+    "center": [
+     -336.028,
+     46.38
+    ],
+    "orientation": 180.0,
+    "width": 1.5,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "Drop",
+    "center": [
+     -236.028,
+     266.38
+    ],
+    "orientation": 90.0,
+    "width": 1.5,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "Input",
+    "center": [
+     -205.008,
+     -497.416
+    ],
+    "orientation": 180.0,
+    "width": 1.5,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "Through",
+    "center": [
+     4.992,
+     -497.416
+    ],
+    "orientation": 0.0,
+    "width": 1.5,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "R1Lo1",
+    "center": [
+     0.0,
+     0.0
+    ],
+    "orientation": 315.0,
+    "width": 2.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "R1Lo2",
+    "center": [
+     -260.115,
+     -260.115
+    ],
+    "orientation": 315.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "R1Ro1",
+    "center": [
+     0.0,
+     0.0
+    ],
+    "orientation": 135.0,
+    "width": 2.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "R1Ro2",
+    "center": [
+     -260.115,
+     -260.115
+    ],
+    "orientation": 135.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "R1Lb1",
+    "center": [
+     -485.416,
+     -120.008
+    ],
+    "orientation": 90.0,
+    "width": 1.5,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "R1Lb2",
+    "center": [
+     -485.416,
+     -80.008
+    ],
+    "orientation": 270.0,
+    "width": 1.5,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "R1Rb1",
+    "center": [
+     -120.008,
+     -485.416
+    ],
+    "orientation": 0.0,
+    "width": 1.5,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "R1Rb2",
+    "center": [
+     -80.008,
+     -485.416
+    ],
+    "orientation": 180.0,
+    "width": 1.5,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "R2Lo1",
+    "center": [
+     263.388,
+     263.388
+    ],
+    "orientation": 315.0,
+    "width": 2.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "R2Lo2",
+    "center": [
+     1.273,
+     1.273
+    ],
+    "orientation": 315.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "R2Ro1",
+    "center": [
+     263.388,
+     263.388
+    ],
+    "orientation": 135.0,
+    "width": 2.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "R2Ro2",
+    "center": [
+     1.273,
+     1.273
+    ],
+    "orientation": 135.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "R2Lb1",
+    "center": [
+     -224.028,
+     141.38
+    ],
+    "orientation": 90.0,
+    "width": 1.5,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "R2Lb2",
+    "center": [
+     -224.028,
+     183.38
+    ],
+    "orientation": 270.0,
+    "width": 1.5,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "R2Rb1",
+    "center": [
+     141.38,
+     -224.028
+    ],
+    "orientation": 0.0,
+    "width": 1.5,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "R2Rb2",
+    "center": [
+     183.38,
+     -224.028
+    ],
+    "orientation": 180.0,
+    "width": 1.5,
+    "layer": "(1, 0)"
+   }
+  ],
+  "layer_overlaps": {
+   "(1, 0)": {
+    "area": 0.0045,
+    "pairwise": []
+   }
+  },
+  "min_radii": [
+   {
+    "r": 77.67,
+    "cell": "bend_euler_gdsfactorypcomponentspbendspbend_euler_R110p_82922a1a"
+   },
+   {
+    "r": 77.67,
+    "cell": "bend_euler_gdsfactorypcomponentspbendspbend_euler_R110p_ad5e0ec6"
+   },
+   {
+    "r": 186.005,
+    "cell": "bend_s_gdsfactorypcomponentspbendspbend_s_S100_10_N99_C_98c87b3e"
+   }
+  ],
+  "radii_below_50": [],
+  "bend_cells_without_info": []
+ },
+ {
+  "name": "RingFinger",
+  "ok": true,
+  "error": null,
+  "flags": [],
+  "bbox": [
+   -596.063,
+   -590.603,
+   596.064,
+   2.4
+  ],
+  "size": [
+   1192.127,
+   593.003
+  ],
+  "ports": 6,
+  "port_list": [
+   {
+    "name": "Input",
+    "center": [
+     65.939,
+     -3.819
+    ],
+    "orientation": 0.0,
+    "width": 0.9,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "Through",
+    "center": [
+     -65.939,
+     -3.819
+    ],
+    "orientation": 180.0,
+    "width": 0.9,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "Con1",
+    "center": [
+     494.063,
+     -588.603
+    ],
+    "orientation": 0.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "Con2",
+    "center": [
+     -494.064,
+     -588.603
+    ],
+    "orientation": 180.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "HeatIn",
+    "center": [
+     153.835,
+     -308.603
+    ],
+    "orientation": 90.0,
+    "width": 4.0,
+    "layer": "None"
+   },
+   {
+    "name": "HeatOut",
+    "center": [
+     -153.834,
+     -308.603
+    ],
+    "orientation": 90.0,
+    "width": 4.0,
+    "layer": "None"
+   }
+  ],
+  "layer_overlaps": {},
+  "min_radii": [],
+  "radii_below_50": [],
+  "bend_cells_without_info": []
+ },
+ {
+  "name": "RingPulley",
+  "ok": true,
+  "error": null,
+  "flags": [],
+  "bbox": [
+   -100.5,
+   -2.4,
+   100.5,
+   202.4
+  ],
+  "size": [
+   201.0,
+   204.8
+  ],
+  "ports": 7,
+  "port_list": [
+   {
+    "name": "Input",
+    "center": [
+     44.301,
+     198.723
+    ],
+    "orientation": 0.0,
+    "width": 0.9,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "Through",
+    "center": [
+     -44.301,
+     198.723
+    ],
+    "orientation": 180.0,
+    "width": 0.9,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "RingL",
+    "center": [
+     -100.0,
+     100.0
+    ],
+    "orientation": 90.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "RingR",
+    "center": [
+     100.0,
+     100.0
+    ],
+    "orientation": 90.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "RingC",
+    "center": [
+     0.0,
+     100.0
+    ],
+    "orientation": 90.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "Add",
+    "center": [
+     -44.301,
+     1.277
+    ],
+    "orientation": 180.0,
+    "width": 0.9,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "Drop",
+    "center": [
+     44.301,
+     1.277
+    ],
+    "orientation": 0.0,
+    "width": 0.9,
+    "layer": "(1, 0)"
+   }
+  ],
+  "layer_overlaps": {},
+  "min_radii": [],
+  "radii_below_50": [],
+  "bend_cells_without_info": []
+ },
+ {
+  "name": "RingPulley1DC",
+  "ok": true,
+  "error": null,
+  "flags": [],
+  "bbox": [
+   -100.5,
+   -4.5,
+   100.5,
+   202.4
+  ],
+  "size": [
+   201.0,
+   206.9
+  ],
+  "ports": 7,
+  "port_list": [
+   {
+    "name": "Input",
+    "center": [
+     44.301,
+     198.723
+    ],
+    "orientation": 0.0,
+    "width": 0.9,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "Through",
+    "center": [
+     -44.301,
+     198.723
+    ],
+    "orientation": 180.0,
+    "width": 0.9,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "RingL",
+    "center": [
+     -100.0,
+     100.0
+    ],
+    "orientation": 90.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "RingR",
+    "center": [
+     100.0,
+     100.0
+    ],
+    "orientation": 90.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "RingC",
+    "center": [
+     0.0,
+     100.0
+    ],
+    "orientation": 90.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "Add",
+    "center": [
+     -88.844,
+     9.509
+    ],
+    "orientation": 180.0,
+    "width": 2.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "Drop",
+    "center": [
+     88.844,
+     9.509
+    ],
+    "orientation": 0.0,
+    "width": 2.0,
+    "layer": "(1, 0)"
+   }
+  ],
+  "layer_overlaps": {},
+  "min_radii": [],
+  "radii_below_50": [],
+  "bend_cells_without_info": []
+ },
+ {
+  "name": "RingPulley1HS",
+  "ok": true,
+  "error": null,
+  "flags": [],
+  "bbox": [
+   -1012.0,
+   -2.4,
+   1012.0,
+   2220.905
+  ],
+  "size": [
+   2024.0,
+   2223.305
+  ],
+  "ports": 9,
+  "port_list": [
+   {
+    "name": "Input",
+    "center": [
+     435.388,
+     1970.235
+    ],
+    "orientation": 0.0,
+    "width": 0.9,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "Through",
+    "center": [
+     -435.388,
+     1970.235
+    ],
+    "orientation": 180.0,
+    "width": 0.9,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "RingL",
+    "center": [
+     -1000.0,
+     1000.0
+    ],
+    "orientation": 90.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "RingR",
+    "center": [
+     1000.0,
+     1000.0
+    ],
+    "orientation": 90.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "RingC",
+    "center": [
+     0.0,
+     1000.0
+    ],
+    "orientation": 90.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "Add",
+    "center": [
+     -435.388,
+     29.765
+    ],
+    "orientation": 180.0,
+    "width": 0.9,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "Drop",
+    "center": [
+     435.388,
+     29.765
+    ],
+    "orientation": 0.0,
+    "width": 0.9,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "HeatIn",
+    "center": [
+     -368.688,
+     2220.905
+    ],
+    "orientation": 90.0,
+    "width": 4.0,
+    "layer": "None"
+   },
+   {
+    "name": "HeatOut",
+    "center": [
+     368.688,
+     2220.905
+    ],
+    "orientation": 90.0,
+    "width": 4.0,
+    "layer": "None"
+   }
+  ],
+  "layer_overlaps": {
+   "(10, 0)": {
+    "area": 0.003999,
+    "pairwise": [
+     {
+      "area": 0.004,
+      "bbox": [
+       124.399,
+       50.629,
+       124.4,
+       54.629
+      ]
+     }
+    ]
+   }
+  },
+  "min_radii": [],
+  "radii_below_50": [],
+  "bend_cells_without_info": []
+ },
+ {
+  "name": "RingPulley1HSn",
+  "ok": true,
+  "error": null,
+  "flags": [],
+  "bbox": [
+   -1012.0,
+   -2.4,
+   1012.0,
+   2002.4
+  ],
+  "size": [
+   2024.0,
+   2004.8
+  ],
+  "ports": 9,
+  "port_list": [
+   {
+    "name": "Input",
+    "center": [
+     435.388,
+     1970.235
+    ],
+    "orientation": 0.0,
+    "width": 0.9,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "Through",
+    "center": [
+     -435.388,
+     1970.235
+    ],
+    "orientation": 180.0,
+    "width": 0.9,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "RingL",
+    "center": [
+     -1000.0,
+     1000.0
+    ],
+    "orientation": 90.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "RingR",
+    "center": [
+     1000.0,
+     1000.0
+    ],
+    "orientation": 90.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "RingC",
+    "center": [
+     0.0,
+     1000.0
+    ],
+    "orientation": 90.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "Add",
+    "center": [
+     -435.388,
+     29.765
+    ],
+    "orientation": 180.0,
+    "width": 0.9,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "Drop",
+    "center": [
+     435.388,
+     29.765
+    ],
+    "orientation": 0.0,
+    "width": 0.9,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "HeatIn",
+    "center": [
+     -498.18,
+     1892.006
+    ],
+    "orientation": 90.0,
+    "width": 4.0,
+    "layer": "None"
+   },
+   {
+    "name": "HeatOut",
+    "center": [
+     498.18,
+     1892.006
+    ],
+    "orientation": 90.0,
+    "width": 4.0,
+    "layer": "None"
+   }
+  ],
+  "layer_overlaps": {
+   "(10, 0)": {
+    "area": 0.003998,
+    "pairwise": [
+     {
+      "area": 0.004,
+      "bbox": [
+       -495.001,
+       121.404,
+       -495.0,
+       125.404
+      ]
+     }
+    ]
+   }
+  },
+  "min_radii": [],
+  "radii_below_50": [],
+  "bend_cells_without_info": []
+ },
+ {
+  "name": "RingPulley2",
+  "ok": true,
+  "error": null,
+  "flags": [
+   {
+    "kind": "io_port_not_0_180",
+    "port": "Input",
+    "orientation": 315.0,
+    "layer": [
+     1,
+     0
+    ]
+   },
+   {
+    "kind": "optical_port_non_manhattan",
+    "port": "Input",
+    "orientation": 315.0,
+    "layer": [
+     1,
+     0
+    ]
+   },
+   {
+    "kind": "io_port_not_0_180",
+    "port": "Through",
+    "orientation": 225.0,
+    "layer": [
+     1,
+     0
+    ]
+   },
+   {
+    "kind": "optical_port_non_manhattan",
+    "port": "Through",
+    "orientation": 225.0,
+    "layer": [
+     1,
+     0
+    ]
+   }
+  ],
+  "bbox": [
+   -120.327,
+   -0.5,
+   120.327,
+   202.4
+  ],
+  "size": [
+   240.654,
+   202.9
+  ],
+  "ports": 7,
+  "port_list": [
+   {
+    "name": "Input",
+    "center": [
+     120.009,
+     133.019
+    ],
+    "orientation": 315.0,
+    "width": 0.9,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "Through",
+    "center": [
+     -120.009,
+     133.019
+    ],
+    "orientation": 225.0,
+    "width": 0.9,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "RingL",
+    "center": [
+     -100.0,
+     100.0
+    ],
+    "orientation": 90.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "RingR",
+    "center": [
+     100.0,
+     100.0
+    ],
+    "orientation": 90.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "RingD",
+    "center": [
+     0.0,
+     0.0
+    ],
+    "orientation": 0.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "RingU",
+    "center": [
+     0.0,
+     200.0
+    ],
+    "orientation": 0.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "RingC",
+    "center": [
+     0.0,
+     100.0
+    ],
+    "orientation": 0.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   }
+  ],
+  "layer_overlaps": {},
+  "min_radii": [],
+  "radii_below_50": [],
+  "bend_cells_without_info": []
+ },
+ {
+  "name": "RingPulley2ES",
+  "ok": true,
+  "error": null,
+  "flags": [
+   {
+    "kind": "io_port_not_0_180",
+    "port": "Input",
+    "orientation": 315.0,
+    "layer": [
+     1,
+     0
+    ]
+   },
+   {
+    "kind": "optical_port_non_manhattan",
+    "port": "Input",
+    "orientation": 315.0,
+    "layer": [
+     1,
+     0
+    ]
+   },
+   {
+    "kind": "io_port_not_0_180",
+    "port": "Through",
+    "orientation": 225.0,
+    "layer": [
+     1,
+     0
+    ]
+   },
+   {
+    "kind": "optical_port_non_manhattan",
+    "port": "Through",
+    "orientation": 225.0,
+    "layer": [
+     1,
+     0
+    ]
+   }
+  ],
+  "bbox": [
+   -120.327,
+   -10.0,
+   120.327,
+   219.496
+  ],
+  "size": [
+   240.654,
+   229.496
+  ],
+  "ports": 11,
+  "port_list": [
+   {
+    "name": "Input",
+    "center": [
+     120.009,
+     133.019
+    ],
+    "orientation": 315.0,
+    "width": 0.9,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "Through",
+    "center": [
+     -120.009,
+     133.019
+    ],
+    "orientation": 225.0,
+    "width": 0.9,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "RingL",
+    "center": [
+     -100.0,
+     100.0
+    ],
+    "orientation": 90.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "RingR",
+    "center": [
+     100.0,
+     100.0
+    ],
+    "orientation": 90.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "RingD",
+    "center": [
+     0.0,
+     0.0
+    ],
+    "orientation": 0.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "RingU",
+    "center": [
+     0.0,
+     200.0
+    ],
+    "orientation": 0.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "RingC",
+    "center": [
+     0.0,
+     100.0
+    ],
+    "orientation": 0.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "HeatIntIn",
+    "center": [
+     -36.095,
+     209.104
+    ],
+    "orientation": 90.0,
+    "width": 8.0,
+    "layer": "None"
+   },
+   {
+    "name": "HeatIntOut",
+    "center": [
+     36.095,
+     209.104
+    ],
+    "orientation": 90.0,
+    "width": 8.0,
+    "layer": "None"
+   },
+   {
+    "name": "HeatExtIn",
+    "center": [
+     -42.095,
+     219.496
+    ],
+    "orientation": 90.0,
+    "width": 8.0,
+    "layer": "None"
+   },
+   {
+    "name": "HeatExtOut",
+    "center": [
+     42.095,
+     219.496
+    ],
+    "orientation": 90.0,
+    "width": 8.0,
+    "layer": "None"
+   }
+  ],
+  "layer_overlaps": {
+   "(10, 0)": {
+    "area": 14.081589,
+    "pairwise": [
+     {
+      "area": 7.0407,
+      "bbox": [
+       -40.298,
+       201.264,
+       -38.513,
+       209.104
+      ]
+     },
+     {
+      "area": 7.0407,
+      "bbox": [
+       38.513,
+       201.264,
+       40.298,
+       209.104
+      ]
+     }
+    ]
+   }
+  },
+  "min_radii": [],
+  "radii_below_50": [],
+  "bend_cells_without_info": []
+ },
+ {
+  "name": "RingPulley3",
+  "ok": true,
+  "error": null,
+  "flags": [
+   {
+    "kind": "io_port_not_0_180",
+    "port": "Input",
+    "orientation": 270.0,
+    "layer": [
+     1,
+     0
+    ]
+   },
+   {
+    "kind": "io_port_not_0_180",
+    "port": "Through",
+    "orientation": 270.0,
+    "layer": [
+     1,
+     0
+    ]
+   }
+  ],
+  "bbox": [
+   -105.006,
+   -0.5,
+   105.006,
+   202.4
+  ],
+  "size": [
+   210.012,
+   202.9
+  ],
+  "ports": 4,
+  "port_list": [
+   {
+    "name": "Input",
+    "center": [
+     104.556,
+     60.169
+    ],
+    "orientation": 270.0,
+    "width": 0.9,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "Through",
+    "center": [
+     -104.556,
+     60.169
+    ],
+    "orientation": 270.0,
+    "width": 0.9,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "RingL",
+    "center": [
+     -100.0,
+     100.0
+    ],
+    "orientation": 90.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "RingR",
+    "center": [
+     100.0,
+     100.0
+    ],
+    "orientation": 90.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   }
+  ],
+  "layer_overlaps": {},
+  "min_radii": [],
+  "radii_below_50": [],
+  "bend_cells_without_info": []
+ },
+ {
+  "name": "RingPulley4",
+  "ok": true,
+  "error": null,
+  "flags": [
+   {
+    "kind": "io_port_not_0_180",
+    "port": "Input",
+    "orientation": 225.0,
+    "layer": [
+     1,
+     0
+    ]
+   },
+   {
+    "kind": "optical_port_non_manhattan",
+    "port": "Input",
+    "orientation": 225.0,
+    "layer": [
+     1,
+     0
+    ]
+   },
+   {
+    "kind": "io_port_not_0_180",
+    "port": "Through",
+    "orientation": 315.0,
+    "layer": [
+     1,
+     0
+    ]
+   },
+   {
+    "kind": "optical_port_non_manhattan",
+    "port": "Through",
+    "orientation": 315.0,
+    "layer": [
+     1,
+     0
+    ]
+   }
+  ],
+  "bbox": [
+   -102.45,
+   -50.251,
+   102.45,
+   202.4
+  ],
+  "size": [
+   204.9,
+   252.651
+  ],
+  "ports": 4,
+  "port_list": [
+   {
+    "name": "Input",
+    "center": [
+     15.675,
+     -49.933
+    ],
+    "orientation": 225.0,
+    "width": 0.9,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "Through",
+    "center": [
+     -15.675,
+     -49.933
+    ],
+    "orientation": 315.0,
+    "width": 0.9,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "RingL",
+    "center": [
+     -100.0,
+     100.0
+    ],
+    "orientation": 90.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "RingR",
+    "center": [
+     100.0,
+     100.0
+    ],
+    "orientation": 90.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   }
+  ],
+  "layer_overlaps": {},
+  "min_radii": [],
+  "radii_below_50": [],
+  "bend_cells_without_info": []
+ },
+ {
+  "name": "RingPulleyT1",
+  "ok": true,
+  "error": null,
+  "flags": [],
+  "bbox": [
+   -100.5,
+   -2.4,
+   100.5,
+   202.4
+  ],
+  "size": [
+   201.0,
+   204.8
+  ],
+  "ports": 7,
+  "port_list": [
+   {
+    "name": "Input",
+    "center": [
+     44.301,
+     198.723
+    ],
+    "orientation": 0.0,
+    "width": 0.9,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "Through",
+    "center": [
+     -44.301,
+     198.723
+    ],
+    "orientation": 180.0,
+    "width": 0.9,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "RingL",
+    "center": [
+     -100.0,
+     100.0
+    ],
+    "orientation": 90.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "RingR",
+    "center": [
+     100.0,
+     100.0
+    ],
+    "orientation": 90.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "RingC",
+    "center": [
+     0.0,
+     100.0
+    ],
+    "orientation": 90.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "Add",
+    "center": [
+     -44.301,
+     1.277
+    ],
+    "orientation": 180.0,
+    "width": 0.9,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "Drop",
+    "center": [
+     44.301,
+     1.277
+    ],
+    "orientation": 0.0,
+    "width": 0.9,
+    "layer": "(1, 0)"
+   }
+  ],
+  "layer_overlaps": {},
+  "min_radii": [],
+  "radii_below_50": [],
+  "bend_cells_without_info": []
+ },
+ {
+  "name": "RingPulleyT2",
+  "ok": true,
+  "error": null,
+  "flags": [
+   {
+    "kind": "io_port_not_0_180",
+    "port": "Input",
+    "orientation": 315.0,
+    "layer": [
+     1,
+     0
+    ]
+   },
+   {
+    "kind": "optical_port_non_manhattan",
+    "port": "Input",
+    "orientation": 315.0,
+    "layer": [
+     1,
+     0
+    ]
+   },
+   {
+    "kind": "io_port_not_0_180",
+    "port": "Through",
+    "orientation": 225.0,
+    "layer": [
+     1,
+     0
+    ]
+   },
+   {
+    "kind": "optical_port_non_manhattan",
+    "port": "Through",
+    "orientation": 225.0,
+    "layer": [
+     1,
+     0
+    ]
+   }
+  ],
+  "bbox": [
+   -120.327,
+   -0.5,
+   120.327,
+   202.4
+  ],
+  "size": [
+   240.654,
+   202.9
+  ],
+  "ports": 7,
+  "port_list": [
+   {
+    "name": "Input",
+    "center": [
+     120.009,
+     133.019
+    ],
+    "orientation": 315.0,
+    "width": 0.9,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "Through",
+    "center": [
+     -120.009,
+     133.019
+    ],
+    "orientation": 225.0,
+    "width": 0.9,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "RingL",
+    "center": [
+     -100.0,
+     100.0
+    ],
+    "orientation": 90.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "RingR",
+    "center": [
+     100.0,
+     100.0
+    ],
+    "orientation": 90.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "RingD",
+    "center": [
+     0.0,
+     0.0
+    ],
+    "orientation": 0.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "RingU",
+    "center": [
+     0.0,
+     200.0
+    ],
+    "orientation": 0.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "RingC",
+    "center": [
+     0.0,
+     100.0
+    ],
+    "orientation": 0.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   }
+  ],
+  "layer_overlaps": {},
+  "min_radii": [],
+  "radii_below_50": [],
+  "bend_cells_without_info": []
+ },
+ {
+  "name": "RingTriBoomerang",
+  "ok": true,
+  "error": null,
+  "flags": [
+   {
+    "kind": "io_port_not_0_180",
+    "port": "Through",
+    "orientation": 90.0,
+    "layer": [
+     1,
+     0
+    ]
+   },
+   {
+    "kind": "optical_port_non_manhattan",
+    "port": "R1Lo1",
+    "orientation": 315.0,
+    "layer": [
+     1,
+     0
+    ]
+   },
+   {
+    "kind": "optical_port_non_manhattan",
+    "port": "R1Lo2",
+    "orientation": 315.0,
+    "layer": [
+     1,
+     0
+    ]
+   },
+   {
+    "kind": "optical_port_non_manhattan",
+    "port": "R1Ro1",
+    "orientation": 135.0,
+    "layer": [
+     1,
+     0
+    ]
+   },
+   {
+    "kind": "optical_port_non_manhattan",
+    "port": "R1Ro2",
+    "orientation": 135.0,
+    "layer": [
+     1,
+     0
+    ]
+   },
+   {
+    "kind": "optical_port_non_manhattan",
+    "port": "R2Lo1",
+    "orientation": 315.0,
+    "layer": [
+     1,
+     0
+    ]
+   },
+   {
+    "kind": "optical_port_non_manhattan",
+    "port": "R2Lo2",
+    "orientation": 315.0,
+    "layer": [
+     1,
+     0
+    ]
+   },
+   {
+    "kind": "optical_port_non_manhattan",
+    "port": "R2Ro1",
+    "orientation": 135.0,
+    "layer": [
+     1,
+     0
+    ]
+   },
+   {
+    "kind": "optical_port_non_manhattan",
+    "port": "R2Ro2",
+    "orientation": 135.0,
+    "layer": [
+     1,
+     0
+    ]
+   },
+   {
+    "kind": "optical_port_non_manhattan",
+    "port": "R3Lo1",
+    "orientation": 315.0,
+    "layer": [
+     1,
+     0
+    ]
+   },
+   {
+    "kind": "optical_port_non_manhattan",
+    "port": "R3Lo2",
+    "orientation": 315.0,
+    "layer": [
+     1,
+     0
+    ]
+   },
+   {
+    "kind": "optical_port_non_manhattan",
+    "port": "R3Ro1",
+    "orientation": 135.0,
+    "layer": [
+     1,
+     0
+    ]
+   },
+   {
+    "kind": "optical_port_non_manhattan",
+    "port": "R3Ro2",
+    "orientation": 135.0,
+    "layer": [
+     1,
+     0
+    ]
+   }
+  ],
+  "bbox": [
+   -745.554,
+   -745.554,
+   321.279,
+   321.279
+  ],
+  "size": [
+   1066.833,
+   1066.833
+  ],
+  "ports": 28,
+  "port_list": [
+   {
+    "name": "Input",
+    "center": [
+     -597.416,
+     -215.008
+    ],
+    "orientation": 180.0,
+    "width": 1.5,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "Through",
+    "center": [
+     -497.416,
+     4.992
+    ],
+    "orientation": 90.0,
+    "width": 1.5,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "Add",
+    "center": [
+     -215.008,
+     -597.416
+    ],
+    "orientation": 270.0,
+    "width": 1.5,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "Drop",
+    "center": [
+     4.992,
+     -497.416
+    ],
+    "orientation": 0.0,
+    "width": 1.5,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "R1Lo1",
+    "center": [
+     0.0,
+     0.0
+    ],
+    "orientation": 315.0,
+    "width": 2.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "R1Lo2",
+    "center": [
+     -260.115,
+     -260.115
+    ],
+    "orientation": 315.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "R1Ro1",
+    "center": [
+     0.0,
+     0.0
+    ],
+    "orientation": 135.0,
+    "width": 2.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "R1Ro2",
+    "center": [
+     -260.115,
+     -260.115
+    ],
+    "orientation": 135.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "R1Lb1",
+    "center": [
+     -485.416,
+     -120.008
+    ],
+    "orientation": 90.0,
+    "width": 1.5,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "R1Lb2",
+    "center": [
+     -485.416,
+     -80.008
+    ],
+    "orientation": 270.0,
+    "width": 1.5,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "R1Rb1",
+    "center": [
+     -120.008,
+     -485.416
+    ],
+    "orientation": 0.0,
+    "width": 1.5,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "R1Rb2",
+    "center": [
+     -80.008,
+     -485.416
+    ],
+    "orientation": 180.0,
+    "width": 1.5,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "R2Lo1",
+    "center": [
+     263.388,
+     263.388
+    ],
+    "orientation": 315.0,
+    "width": 2.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "R2Lo2",
+    "center": [
+     1.273,
+     1.273
+    ],
+    "orientation": 315.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "R2Ro1",
+    "center": [
+     263.388,
+     263.388
+    ],
+    "orientation": 135.0,
+    "width": 2.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "R2Ro2",
+    "center": [
+     1.273,
+     1.273
+    ],
+    "orientation": 135.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "R2Lb1",
+    "center": [
+     -224.028,
+     141.38
+    ],
+    "orientation": 90.0,
+    "width": 1.5,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "R2Lb2",
+    "center": [
+     -224.028,
+     183.38
+    ],
+    "orientation": 270.0,
+    "width": 1.5,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "R2Rb1",
+    "center": [
+     141.38,
+     -224.028
+    ],
+    "orientation": 0.0,
+    "width": 1.5,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "R2Rb2",
+    "center": [
+     183.38,
+     -224.028
+    ],
+    "orientation": 180.0,
+    "width": 1.5,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "R3Lo1",
+    "center": [
+     -261.388,
+     -261.388
+    ],
+    "orientation": 315.0,
+    "width": 2.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "R3Lo2",
+    "center": [
+     -519.503,
+     -519.503
+    ],
+    "orientation": 315.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "R3Ro1",
+    "center": [
+     -261.388,
+     -261.388
+    ],
+    "orientation": 135.0,
+    "width": 2.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "R3Ro2",
+    "center": [
+     -519.503,
+     -519.503
+    ],
+    "orientation": 135.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "R3Lb1",
+    "center": [
+     -744.804,
+     -379.396
+    ],
+    "orientation": 90.0,
+    "width": 1.5,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "R3Lb2",
+    "center": [
+     -744.804,
+     -341.396
+    ],
+    "orientation": 270.0,
+    "width": 1.5,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "R3Rb1",
+    "center": [
+     -379.396,
+     -744.804
+    ],
+    "orientation": 0.0,
+    "width": 1.5,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "R3Rb2",
+    "center": [
+     -341.396,
+     -744.804
+    ],
+    "orientation": 180.0,
+    "width": 1.5,
+    "layer": "(1, 0)"
+   }
+  ],
+  "layer_overlaps": {
+   "(1, 0)": {
+    "area": 0.00675,
+    "pairwise": []
+   }
+  },
+  "min_radii": [
+   {
+    "r": 77.67,
+    "cell": "bend_euler_gdsfactorypcomponentspbendspbend_euler_R110p_82922a1a"
+   },
+   {
+    "r": 77.67,
+    "cell": "bend_euler_gdsfactorypcomponentspbendspbend_euler_R110p_ad5e0ec6"
+   },
+   {
+    "r": 77.67,
+    "cell": "bend_euler_gdsfactorypcomponentspbendspbend_euler_R110p_5ec85af8"
+   },
+   {
+    "r": 186.005,
+    "cell": "bend_s_gdsfactorypcomponentspbendspbend_s_S100_10_N99_C_98c87b3e"
+   },
+   {
+    "r": 186.005,
+    "cell": "bend_s_gdsfactorypcomponentspbendspbend_s_S100_m10_N99__f595a17c"
+   }
+  ],
+  "radii_below_50": [],
+  "bend_cells_without_info": []
+ },
+ {
+  "name": "SCISSOR",
+  "ok": true,
+  "error": null,
+  "flags": [],
+  "bbox": [
+   -70.0,
+   -0.45,
+   319.0,
+   81.75
+  ],
+  "size": [
+   389.0,
+   82.2
+  ],
+  "ports": 6,
+  "port_list": [
+   {
+    "name": "Ring0C",
+    "center": [
+     0.0,
+     41.25
+    ],
+    "orientation": 90.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "Ring1C",
+    "center": [
+     83.0,
+     41.25
+    ],
+    "orientation": 90.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "Ring2C",
+    "center": [
+     166.0,
+     41.25
+    ],
+    "orientation": 90.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "Ring3C",
+    "center": [
+     249.0,
+     41.25
+    ],
+    "orientation": 90.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "Input",
+    "center": [
+     -70.0,
+     0.0
+    ],
+    "orientation": 180.0,
+    "width": 0.9,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "Through",
+    "center": [
+     319.0,
+     0.0
+    ],
+    "orientation": 0.0,
+    "width": 0.9,
+    "layer": "(1, 0)"
+   }
+  ],
+  "layer_overlaps": {},
+  "min_radii": [],
+  "radii_below_50": [],
+  "bend_cells_without_info": []
+ },
+ {
+  "name": "SagnacRing",
+  "ok": true,
+  "error": null,
+  "flags": [],
+  "bbox": [
+   -248.397,
+   -0.775,
+   573.839,
+   428.155
+  ],
+  "size": [
+   822.236,
+   428.93
+  ],
+  "ports": 4,
+  "port_list": [
+   {
+    "name": "input",
+    "center": [
+     -248.397,
+     2.713
+    ],
+    "orientation": 180.0,
+    "width": 2.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "output",
+    "center": [
+     -200.0,
+     202.075
+    ],
+    "orientation": 90.0,
+    "width": 2.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "o1",
+    "center": [
+     -248.397,
+     2.713
+    ],
+    "orientation": 180.0,
+    "width": 2.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "o2",
+    "center": [
+     -200.0,
+     202.075
+    ],
+    "orientation": 90.0,
+    "width": 2.0,
+    "layer": "(1, 0)"
+   }
+  ],
+  "layer_overlaps": {},
+  "min_radii": [
+   {
+    "r": 70.609,
+    "cell": "bend_euler_gdsfactorypcomponentspbendspbend_euler_R100__2fbad5a8"
+   }
+  ],
+  "radii_below_50": [],
+  "bend_cells_without_info": []
+ },
+ {
+  "name": "SingleRingIsolator0",
+  "ok": true,
+  "error": null,
+  "flags": [
+   {
+    "kind": "dangling_bend_end",
+    "at": [
+     784.464,
+     -127.676
+    ],
+    "port": "o2",
+    "cell": "bend_euler_all_angle_R108_A60_P0p5_"
+   }
+  ],
+  "bbox": [
+   0.0,
+   -267.176,
+   3000.0,
+   12.998
+  ],
+  "size": [
+   3000.0,
+   280.174
+  ],
+  "ports": 5,
+  "port_list": [
+   {
+    "name": "input",
+    "center": [
+     0.0,
+     0.0
+    ],
+    "orientation": 180.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "through",
+    "center": [
+     3000.0,
+     -194.603
+    ],
+    "orientation": 0.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "drop",
+    "center": [
+     2980.0,
+     -265.676
+    ],
+    "orientation": 180.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "add",
+    "center": [
+     3000.0,
+     -235.676
+    ],
+    "orientation": 0.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "RingC",
+    "center": [
+     1053.231,
+     -118.622
+    ],
+    "orientation": 180.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   }
+  ],
+  "layer_overlaps": {
+   "_error": "TypeError: ComponentAllAngle.get_polygons() got an unexpected keyword argument 'by'"
+  },
+  "min_radii": [
+   {
+    "r": 73.78,
+    "cell": "bend_euler_all_angle_R108_Am60_P0p5_WAFTrue_NNone_ASNon_2feb5584"
+   },
+   {
+    "r": 73.78,
+    "cell": "bend_euler_all_angle_R108_A60_P0p5_WAFTrue_NNone_ASNone_f23dbe9a"
+   },
+   {
+    "r": 73.78,
+    "cell": "bend_euler_all_angle_R108_Am60_P0p5_WAFTrue_NNone_ASNon_80ec5b49"
+   },
+   {
+    "r": 73.78,
+    "cell": "bend_euler_all_angle_R108_A60_P0p5_WAFTrue_NNone_ASNone_9b730b6b"
+   }
+  ],
+  "radii_below_50": [],
+  "bend_cells_without_info": []
+ },
+ {
+  "name": "SingleRingIsolator1",
+  "ok": true,
+  "error": null,
+  "flags": [
+   {
+    "kind": "dangling_bend_end",
+    "at": [
+     763.679,
+     -115.676
+    ],
+    "port": "o2",
+    "cell": "bend_euler_all_angle_R120_A60_P0p5_"
+   },
+   {
+    "kind": "dangling_bend_end",
+    "at": [
+     650.0,
+     -102.0
+    ],
+    "port": "o2",
+    "cell": "bend_euler_all_angle_R100_A90_P0p5_"
+   }
+  ],
+  "bbox": [
+   0.0,
+   -393.176,
+   3000.0,
+   12.998
+  ],
+  "size": [
+   3000.0,
+   406.174
+  ],
+  "ports": 5,
+  "port_list": [
+   {
+    "name": "input",
+    "center": [
+     0.0,
+     0.0
+    ],
+    "orientation": 180.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "through",
+    "center": [
+     3000.0,
+     -120.0
+    ],
+    "orientation": 0.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "drop",
+    "center": [
+     2980.0,
+     -265.676
+    ],
+    "orientation": 180.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "add",
+    "center": [
+     3000.0,
+     -235.676
+    ],
+    "orientation": 0.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "RingC",
+    "center": [
+     1053.231,
+     -118.622
+    ],
+    "orientation": 180.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   }
+  ],
+  "layer_overlaps": {
+   "_error": "TypeError: ComponentAllAngle.get_polygons() got an unexpected keyword argument 'by'"
+  },
+  "min_radii": [
+   {
+    "r": 70.609,
+    "cell": "bend_euler_all_angle_R100_A90_P0p5_WAFTrue_NNone_ASNone_3c63fabe"
+   },
+   {
+    "r": 81.978,
+    "cell": "bend_euler_all_angle_R120_Am60_P0p5_WAFTrue_NNone_ASNon_a9605b4f"
+   },
+   {
+    "r": 81.978,
+    "cell": "bend_euler_all_angle_R120_A60_P0p5_WAFTrue_NNone_ASNone_b798593e"
+   },
+   {
+    "r": 81.978,
+    "cell": "bend_euler_all_angle_R120_Am60_P0p5_WAFTrue_NNone_ASNon_52bddea7"
+   },
+   {
+    "r": 81.978,
+    "cell": "bend_euler_all_angle_R120_A60_P0p5_WAFTrue_NNone_ASNone_f0400fcd"
+   }
+  ],
+  "radii_below_50": [],
+  "bend_cells_without_info": []
+ },
+ {
+  "name": "TCCoupleDouRaceTrackT1",
+  "ok": true,
+  "error": null,
+  "flags": [],
+  "bbox": [
+   0.0,
+   -482.386,
+   10000.0,
+   321.304
+  ],
+  "size": [
+   10000.0,
+   803.69
+  ],
+  "ports": 21,
+  "port_list": [
+   {
+    "name": "input",
+    "center": [
+     0.0,
+     0.0
+    ],
+    "orientation": 180.0,
+    "width": 0.3,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "add",
+    "center": [
+     0.0,
+     272.168
+    ],
+    "orientation": 180.0,
+    "width": 0.3,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "output",
+    "center": [
+     10000.0,
+     -293.25
+    ],
+    "orientation": 0.0,
+    "width": 0.2,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "drop",
+    "center": [
+     10000.0,
+     -171.082
+    ],
+    "orientation": 0.0,
+    "width": 0.2,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "CCRingo1",
+    "center": [
+     740.0,
+     0.0
+    ],
+    "orientation": 180.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "CCRingo2",
+    "center": [
+     1439.19,
+     -293.25
+    ],
+    "orientation": 0.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "CCRingo3",
+    "center": [
+     1142.94,
+     -171.082
+    ],
+    "orientation": 0.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "CCRingo4",
+    "center": [
+     593.75,
+     272.168
+    ],
+    "orientation": 180.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "CCRingRingInput",
+    "center": [
+     890.0,
+     0.0
+    ],
+    "orientation": 180.0,
+    "width": 0.8,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "CCRingR1HeatIn",
+    "center": [
+     1046.93,
+     -378.871
+    ],
+    "orientation": 90.0,
+    "width": 5.0,
+    "layer": "None"
+   },
+   {
+    "name": "CCRingR1HeatOut",
+    "center": [
+     822.361,
+     -138.963
+    ],
+    "orientation": 90.0,
+    "width": 5.0,
+    "layer": "None"
+   },
+   {
+    "name": "CCRingR1HeatBmid1",
+    "center": [
+     942.97,
+     -479.886
+    ],
+    "orientation": 180.0,
+    "width": 5.0,
+    "layer": "None"
+   },
+   {
+    "name": "CCRingR1HeatBmid2",
+    "center": [
+     942.97,
+     -479.886
+    ],
+    "orientation": 0.0,
+    "width": 5.0,
+    "layer": "None"
+   },
+   {
+    "name": "CCRingR2HeatIn",
+    "center": [
+     836.01,
+     217.789
+    ],
+    "orientation": 270.0,
+    "width": 5.0,
+    "layer": "None"
+   },
+   {
+    "name": "CCRingR2HeatOut",
+    "center": [
+     1060.579,
+     -32.119
+    ],
+    "orientation": 270.0,
+    "width": 5.0,
+    "layer": "None"
+   },
+   {
+    "name": "CCRingR2HeatBmid1",
+    "center": [
+     939.97,
+     318.804
+    ],
+    "orientation": 0.0,
+    "width": 5.0,
+    "layer": "None"
+   },
+   {
+    "name": "CCRingR2HeatBmid2",
+    "center": [
+     939.97,
+     318.804
+    ],
+    "orientation": 180.0,
+    "width": 5.0,
+    "layer": "None"
+   },
+   {
+    "name": "CCRingR1Input",
+    "center": [
+     890.0,
+     0.0
+    ],
+    "orientation": 180.0,
+    "width": 0.8,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "CCRingR1Through",
+    "center": [
+     995.94,
+     0.0
+    ],
+    "orientation": 0.0,
+    "width": 0.8,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "CCRingR2Input",
+    "center": [
+     992.94,
+     -171.082
+    ],
+    "orientation": 0.0,
+    "width": 0.8,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "CCRingR2Through",
+    "center": [
+     887.0,
+     -171.082
+    ],
+    "orientation": 180.0,
+    "width": 0.8,
+    "layer": "(1, 0)"
+   }
+  ],
+  "layer_overlaps": {
+   "(1, 0)": {
+    "area": 9.225208,
+    "pairwise": [
+     {
+      "area": 1.9162,
+      "bbox": [
+       1056.333,
+       -82.059,
+       1057.371,
+       -78.374
+      ]
+     },
+     {
+      "area": 0.894,
+      "bbox": [
+       1063.079,
+       -171.529,
+       1064.079,
+       -170.635
+      ]
+     },
+     {
+      "area": 1.9162,
+      "bbox": [
+       825.569,
+       -92.708,
+       826.607,
+       -89.023
+      ]
+     },
+     {
+      "area": 0.8152,
+      "bbox": [
+       821.861,
+       -168.095,
+       822.861,
+       -167.086
+      ]
+     },
+     {
+      "area": 0.894,
+      "bbox": [
+       818.861,
+       -0.447,
+       819.861,
+       0.447
+      ]
+     }
+    ]
+   }
+  },
+  "min_radii": [
+   {
+    "r": 100.0,
+    "cell": "bend_euler_gdsfactorypcomponentspbendspbend_euler_R100__229bbd51"
+   },
+   {
+    "r": 100.0,
+    "cell": "bend_euler_gdsfactorypcomponentspbendspbend_euler_R100__2fa7258c"
+   },
+   {
+    "r": 100.0,
+    "cell": "bend_euler_gdsfactorypcomponentspbendspbend_euler_R100__311c8e4c"
+   }
+  ],
+  "radii_below_50": [],
+  "bend_cells_without_info": [
+   "bend_s_gdsfactorypcomponentspbendspbend_s_S10_0_N99_CSx_6e814822"
+  ]
+ },
+ {
+  "name": "TCCoupleDouRaceTrackT2",
+  "ok": true,
+  "error": null,
+  "flags": [
+   {
+    "kind": "io_port_not_0_180",
+    "port": "input",
+    "orientation": 90.0,
+    "layer": [
+     1,
+     0
+    ]
+   }
+  ],
+  "bbox": [
+   -20.5,
+   -10000.0,
+   5000.5,
+   0.0
+  ],
+  "size": [
+   5021.0,
+   10000.0
+  ],
+  "ports": 21,
+  "port_list": [
+   {
+    "name": "input",
+    "center": [
+     0.0,
+     0.0
+    ],
+    "orientation": 90.0,
+    "width": 0.3,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "add",
+    "center": [
+     -20.0,
+     0.0
+    ],
+    "orientation": 90.0,
+    "width": 0.3,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "output",
+    "center": [
+     5000.0,
+     -10000.0
+    ],
+    "orientation": 270.0,
+    "width": 0.2,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "drop",
+    "center": [
+     4980.0,
+     -10000.0
+    ],
+    "orientation": 270.0,
+    "width": 0.2,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "o1",
+    "center": [
+     500.0,
+     -2000.0
+    ],
+    "orientation": 180.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "o2",
+    "center": [
+     500.0,
+     -2020.0
+    ],
+    "orientation": 180.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "o3",
+    "center": [
+     2103.462,
+     -2367.744
+    ],
+    "orientation": 0.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "o4",
+    "center": [
+     2103.462,
+     -2347.744
+    ],
+    "orientation": 0.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "RingInput",
+    "center": [
+     1250.0,
+     -2000.0
+    ],
+    "orientation": 180.0,
+    "width": 2.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "R1HeatIn",
+    "center": [
+     1407.191,
+     -2579.452
+    ],
+    "orientation": 90.0,
+    "width": 5.0,
+    "layer": "None"
+   },
+   {
+    "name": "R1HeatOut",
+    "center": [
+     1182.622,
+     -2139.544
+    ],
+    "orientation": 90.0,
+    "width": 5.0,
+    "layer": "None"
+   },
+   {
+    "name": "R1HeatBmid1",
+    "center": [
+     1303.231,
+     -2680.467
+    ],
+    "orientation": 180.0,
+    "width": 5.0,
+    "layer": "None"
+   },
+   {
+    "name": "R1HeatBmid2",
+    "center": [
+     1303.231,
+     -2680.467
+    ],
+    "orientation": 0.0,
+    "width": 5.0,
+    "layer": "None"
+   },
+   {
+    "name": "R2HeatIn",
+    "center": [
+     1196.271,
+     -1787.292
+    ],
+    "orientation": 270.0,
+    "width": 5.0,
+    "layer": "None"
+   },
+   {
+    "name": "R2HeatOut",
+    "center": [
+     1420.84,
+     -2228.2
+    ],
+    "orientation": 270.0,
+    "width": 5.0,
+    "layer": "None"
+   },
+   {
+    "name": "R2HeatBmid1",
+    "center": [
+     1300.231,
+     -1686.277
+    ],
+    "orientation": 0.0,
+    "width": 5.0,
+    "layer": "None"
+   },
+   {
+    "name": "R2HeatBmid2",
+    "center": [
+     1300.231,
+     -1686.277
+    ],
+    "orientation": 180.0,
+    "width": 5.0,
+    "layer": "None"
+   },
+   {
+    "name": "R1Input",
+    "center": [
+     1250.0,
+     -2000.0
+    ],
+    "orientation": 180.0,
+    "width": 2.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "R1Through",
+    "center": [
+     1356.462,
+     -2000.0
+    ],
+    "orientation": 0.0,
+    "width": 2.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "R2Input",
+    "center": [
+     1353.462,
+     -2367.744
+    ],
+    "orientation": 0.0,
+    "width": 2.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "R2Through",
+    "center": [
+     1247.0,
+     -2367.744
+    ],
+    "orientation": 180.0,
+    "width": 2.0,
+    "layer": "(1, 0)"
+   }
+  ],
+  "layer_overlaps": {
+   "(1, 0)": {
+    "area": 18.186533,
+    "pairwise": [
+     {
+      "area": 2.0,
+      "bbox": [
+       1182.122,
+       -2368.744,
+       1183.122,
+       -2366.744
+      ]
+     },
+     {
+      "area": 2.0,
+      "bbox": [
+       1423.34,
+       -2368.744,
+       1424.34,
+       -2366.744
+      ]
+     },
+     {
+      "area": 5.0913,
+      "bbox": [
+       1420.34,
+       -2100.438,
+       1421.34,
+       -2090.237
+      ]
+     },
+     {
+      "area": 5.0913,
+      "bbox": [
+       1182.122,
+       -2277.507,
+       1183.122,
+       -2267.306
+      ]
+     },
+     {
+      "area": 2.0,
+      "bbox": [
+       1420.34,
+       -2001.0,
+       1421.34,
+       -1999.0
+      ]
+     }
+    ]
+   }
+  },
+  "min_radii": [
+   {
+    "r": 70.609,
+    "cell": "bend_euler_gdsfactorypcomponentspbendspbend_euler_R100__56b22ecb"
+   },
+   {
+    "r": 77.67,
+    "cell": "bend_euler_gdsfactorypcomponentspbendspbend_euler_R110__d67842b9"
+   }
+  ],
+  "radii_below_50": [],
+  "bend_cells_without_info": []
+ },
+ {
+  "name": "TCCoupleDouRingT1",
+  "ok": true,
+  "error": null,
+  "flags": [
+   {
+    "kind": "optical_port_non_manhattan",
+    "port": "Ring2C",
+    "orientation": 150.0,
+    "layer": [
+     1,
+     0
+    ]
+   }
+  ],
+  "bbox": [
+   0.0,
+   -492.806,
+   10000.0,
+   4.878
+  ],
+  "size": [
+   10000.0,
+   497.684
+  ],
+  "ports": 4,
+  "port_list": [
+   {
+    "name": "input",
+    "center": [
+     0.0,
+     0.0
+    ],
+    "orientation": 180.0,
+    "width": 0.3,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "output",
+    "center": [
+     10000.0,
+     -293.25
+    ],
+    "orientation": 0.0,
+    "width": 0.2,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "Ring1C",
+    "center": [
+     943.231,
+     -118.622
+    ],
+    "orientation": 90.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "Ring2C",
+    "center": [
+     822.231,
+     -328.2
+    ],
+    "orientation": 150.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   }
+  ],
+  "layer_overlaps": {},
+  "min_radii": [
+   {
+    "r": 100.0,
+    "cell": "bend_euler_gdsfactorypcomponentspbendspbend_euler_R100__229bbd51"
+   },
+   {
+    "r": 100.0,
+    "cell": "bend_euler_gdsfactorypcomponentspbendspbend_euler_R100__2fa7258c"
+   }
+  ],
+  "radii_below_50": [],
+  "bend_cells_without_info": []
+ },
+ {
+  "name": "TCFingerRing1",
+  "ok": true,
+  "error": null,
+  "flags": [],
+  "bbox": [
+   0.0,
+   -502.479,
+   10000.0,
+   94.572
+  ],
+  "size": [
+   10000.0,
+   597.051
+  ],
+  "ports": 3,
+  "port_list": [
+   {
+    "name": "input",
+    "center": [
+     0.0,
+     0.0
+    ],
+    "orientation": 180.0,
+    "width": 0.3,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "output",
+    "center": [
+     10000.0,
+     -410.0
+    ],
+    "orientation": 0.0,
+    "width": 0.2,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "RingC",
+    "center": [
+     -51.476,
+     -484.251
+    ],
+    "orientation": 0.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   }
+  ],
+  "layer_overlaps": {
+   "(1, 0)": {
+    "area": 11.772134,
+    "pairwise": [
+     {
+      "area": 3.7215,
+      "bbox": [
+       530.494,
+       -483.676,
+       662.864,
+       -482.676
+      ]
+     },
+     {
+      "area": 1.0551,
+      "bbox": [
+       267.772,
+       -0.5,
+       269.164,
+       0.5
+      ]
+     },
+     {
+      "area": 1.0385,
+      "bbox": [
+       506.059,
+       -0.5,
+       507.378,
+       0.5
+      ]
+     },
+     {
+      "area": 3.7225,
+      "bbox": [
+       1043.454,
+       -483.676,
+       1331.215,
+       -482.676
+      ]
+     },
+     {
+      "area": 1.1519,
+      "bbox": [
+       1193.404,
+       -31.085,
+       1194.46,
+       -29.267
+      ]
+     }
+    ]
+   }
+  },
+  "min_radii": [
+   {
+    "r": 141.218,
+    "cell": "Unnamed_1031"
+   },
+   {
+    "r": 141.218,
+    "cell": "Unnamed_1032"
+   }
+  ],
+  "radii_below_50": [],
+  "bend_cells_without_info": [
+   "bend_s_gdsfactorypcomponentspbendspbend_s_S8243p682_0_N_fb89f9bc"
+  ]
+ },
+ {
+  "name": "TCRaceTrackP",
+  "ok": true,
+  "error": null,
+  "flags": [],
+  "bbox": [
+   -37.203,
+   -2014.143,
+   5673.22,
+   2014.143
+  ],
+  "size": [
+   5710.423,
+   4028.286
+  ],
+  "ports": 13,
+  "port_list": [
+   {
+    "name": "input",
+    "center": [
+     0.0,
+     1400.448
+    ],
+    "orientation": 180.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "output",
+    "center": [
+     56.65,
+     -1400.448
+    ],
+    "orientation": 0.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "RingC",
+    "center": [
+     2820.509,
+     0.0
+    ],
+    "orientation": 180.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "RingRingSmid1",
+    "center": [
+     -28.203,
+     0.0
+    ],
+    "orientation": 270.0,
+    "width": 8.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "RingRingSmid2",
+    "center": [
+     5669.22,
+     0.0
+    ],
+    "orientation": 90.0,
+    "width": 8.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "RingRingBmid1",
+    "center": [
+     5669.22,
+     0.0
+    ],
+    "orientation": 270.0,
+    "width": 8.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "RingRingBmid2",
+    "center": [
+     -28.203,
+     0.0
+    ],
+    "orientation": 90.0,
+    "width": 8.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "RingInput",
+    "center": [
+     28.325,
+     872.123
+    ],
+    "orientation": 90.0,
+    "width": 4.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "RingThrough",
+    "center": [
+     28.325,
+     -872.123
+    ],
+    "orientation": 270.0,
+    "width": 4.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "RingRcen1",
+    "center": [
+     2820.508,
+     2010.143
+    ],
+    "orientation": 180.0,
+    "width": 8.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "RingRcen2",
+    "center": [
+     2820.509,
+     -2010.143
+    ],
+    "orientation": 0.0,
+    "width": 8.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "RingRcenter",
+    "center": [
+     2820.509,
+     0.0
+    ],
+    "orientation": 270.0,
+    "width": 8.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "RingRingC",
+    "center": [
+     2820.509,
+     0.0
+    ],
+    "orientation": 270.0,
+    "width": 8.0,
+    "layer": "(1, 0)"
+   }
+  ],
+  "layer_overlaps": {
+   "(1, 0)": {
+    "area": 0.015999,
+    "pairwise": [
+     {
+      "area": 0.008,
+      "bbox": [
+       2820.508,
+       2006.143,
+       2820.509,
+       2014.143
+      ]
+     },
+     {
+      "area": 0.008,
+      "bbox": [
+       2820.508,
+       -2014.143,
+       2820.509,
+       -2006.143
+      ]
+     }
+    ]
+   }
+  },
+  "min_radii": [
+   {
+    "r": 20.0,
+    "cell": "Unnamed_1047"
+   },
+   {
+    "r": 20.0,
+    "cell": "Unnamed_1049"
+   }
+  ],
+  "radii_below_50": [
+   {
+    "r": 20.0,
+    "cell": "Unnamed_1047"
+   },
+   {
+    "r": 20.0,
+    "cell": "Unnamed_1049"
+   }
+  ],
+  "bend_cells_without_info": []
+ },
+ {
+  "name": "TCRaceTrackS",
+  "ok": true,
+  "error": null,
+  "flags": [],
+  "bbox": [
+   -541.573,
+   -2014.143,
+   7122.276,
+   2227.354
+  ],
+  "size": [
+   7663.849,
+   4241.497
+  ],
+  "ports": 2,
+  "port_list": [
+   {
+    "name": "input",
+    "center": [
+     0.0,
+     2223.354
+    ],
+    "orientation": 180.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "RingC",
+    "center": [
+     2061.139,
+     0.0
+    ],
+    "orientation": 180.0,
+    "width": 8.0,
+    "layer": "(1, 0)"
+   }
+  ],
+  "layer_overlaps": {
+   "(1, 0)": {
+    "area": 0.015999,
+    "pairwise": [
+     {
+      "area": 0.008,
+      "bbox": [
+       2061.138,
+       -2014.143,
+       2061.139,
+       -2006.143
+      ]
+     },
+     {
+      "area": 0.008,
+      "bbox": [
+       2061.138,
+       2006.143,
+       2061.139,
+       2014.143
+      ]
+     }
+    ]
+   }
+  },
+  "min_radii": [
+   {
+    "r": 529.567,
+    "cell": "bend_euler_gdsfactorypcomponentspbendspbend_euler_R750__bf788993"
+   },
+   {
+    "r": 529.567,
+    "cell": "bend_euler_gdsfactorypcomponentspbendspbend_euler_R750__e5afba1e"
+   }
+  ],
+  "radii_below_50": [],
+  "bend_cells_without_info": []
+ },
+ {
+  "name": "TCRaceTrackS2",
+  "ok": true,
+  "error": null,
+  "flags": [
+   {
+    "kind": "coincident_ports_not_opposite",
+    "at": [
+     12632.126,
+     -2223.354
+    ],
+    "ports": [
+     "o2",
+     "o2"
+    ],
+    "orientations": [
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "bbox": [
+   8118.277,
+   -2227.354,
+   14132.126,
+   2014.143
+  ],
+  "size": [
+   6013.849,
+   4241.497
+  ],
+  "ports": 1,
+  "port_list": [
+   {
+    "name": "RingC",
+    "center": [
+     10570.989,
+     0.0
+    ],
+    "orientation": 180.0,
+    "width": 8.0,
+    "layer": "(1, 0)"
+   }
+  ],
+  "layer_overlaps": {
+   "(1, 0)": {
+    "area": 128.008706,
+    "pairwise": [
+     {
+      "area": 0.008,
+      "bbox": [
+       10570.988,
+       2006.143,
+       10570.989,
+       2014.143
+      ]
+     },
+     {
+      "area": 0.008,
+      "bbox": [
+       10570.988,
+       -2014.143,
+       10570.989,
+       -2006.143
+      ]
+     },
+     {
+      "area": 8.2083,
+      "bbox": [
+       11905.609,
+       -1796.611,
+       11908.429,
+       -1788.169
+      ]
+     },
+     {
+      "area": 119.8712,
+      "bbox": [
+       12494.765,
+       -2223.854,
+       12632.126,
+       -2221.892
+      ]
+     }
+    ]
+   }
+  },
+  "min_radii": [
+   {
+    "r": 529.567,
+    "cell": "bend_euler_gdsfactorypcomponentspbendspbend_euler_R750__e5afba1e"
+   },
+   {
+    "r": 529.567,
+    "cell": "bend_euler_gdsfactorypcomponentspbendspbend_euler_R750__bf788993"
+   }
+  ],
+  "radii_below_50": [],
+  "bend_cells_without_info": []
+ },
+ {
+  "name": "TCRaceTrackS3",
+  "ok": true,
+  "error": null,
+  "flags": [],
+  "bbox": [
+   8118.277,
+   -2227.354,
+   13223.7,
+   2014.143
+  ],
+  "size": [
+   5105.423,
+   4241.497
+  ],
+  "ports": 1,
+  "port_list": [
+   {
+    "name": "RingC",
+    "center": [
+     10670.989,
+     0.0
+    ],
+    "orientation": 180.0,
+    "width": 8.0,
+    "layer": "(1, 0)"
+   }
+  ],
+  "layer_overlaps": {
+   "(1, 0)": {
+    "area": 0.015999,
+    "pairwise": [
+     {
+      "area": 0.008,
+      "bbox": [
+       10670.988,
+       2006.143,
+       10670.989,
+       2014.143
+      ]
+     },
+     {
+      "area": 0.008,
+      "bbox": [
+       10670.988,
+       -2014.143,
+       10670.989,
+       -2006.143
+      ]
+     }
+    ]
+   }
+  },
+  "min_radii": [],
+  "radii_below_50": [],
+  "bend_cells_without_info": []
+ },
+ {
+  "name": "TCRaceTrackS3h",
+  "ok": true,
+  "error": null,
+  "flags": [],
+  "bbox": [
+   8118.277,
+   -2227.354,
+   13223.7,
+   2014.143
+  ],
+  "size": [
+   5105.423,
+   4241.497
+  ],
+  "ports": 1,
+  "port_list": [
+   {
+    "name": "RingC",
+    "center": [
+     10670.989,
+     0.0
+    ],
+    "orientation": 180.0,
+    "width": 8.0,
+    "layer": "(1, 0)"
+   }
+  ],
+  "layer_overlaps": {
+   "(1, 0)": {
+    "area": 0.015999,
+    "pairwise": [
+     {
+      "area": 0.008,
+      "bbox": [
+       10670.988,
+       2006.143,
+       10670.989,
+       2014.143
+      ]
+     },
+     {
+      "area": 0.008,
+      "bbox": [
+       10670.988,
+       -2014.143,
+       10670.989,
+       -2006.143
+      ]
+     }
+    ]
+   }
+  },
+  "min_radii": [],
+  "radii_below_50": [],
+  "bend_cells_without_info": []
+ },
+ {
+  "name": "TCRing",
+  "ok": true,
+  "error": null,
+  "flags": [],
+  "bbox": [
+   0.0,
+   -667.0,
+   10000.0,
+   4.878
+  ],
+  "size": [
+   10000.0,
+   671.878
+  ],
+  "ports": 3,
+  "port_list": [
+   {
+    "name": "input",
+    "center": [
+     0.0,
+     0.0
+    ],
+    "orientation": 180.0,
+    "width": 0.3,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "output",
+    "center": [
+     10000.0,
+     -666.5
+    ],
+    "orientation": 0.0,
+    "width": 0.2,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "RingC",
+    "center": [
+     1003.231,
+     -118.622
+    ],
+    "orientation": 0.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   }
+  ],
+  "layer_overlaps": {},
+  "min_radii": [
+   {
+    "r": 200.0,
+    "cell": "Unnamed_1090"
+   },
+   {
+    "r": 200.0,
+    "cell": "Unnamed_1091"
+   },
+   {
+    "r": 817913666334.081,
+    "cell": "bend_s_gdsfactorypcomponentspbendspbend_s_S7917p0379861_3a76c869"
+   }
+  ],
+  "radii_below_50": [],
+  "bend_cells_without_info": [
+   "bend_s_gdsfactorypcomponentspbendspbend_s_S500_0_N99_CS_072c1189"
+  ]
+ },
+ {
+  "name": "TCRing1AD",
+  "ok": true,
+  "error": null,
+  "flags": [],
+  "bbox": [
+   -555.393,
+   -581.468,
+   2000.0,
+   95.539
+  ],
+  "size": [
+   2555.393,
+   677.007
+  ],
+  "ports": 5,
+  "port_list": [
+   {
+    "name": "input",
+    "center": [
+     0.0,
+     0.0
+    ],
+    "orientation": 180.0,
+    "width": 0.3,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "through",
+    "center": [
+     2000.0,
+     -162.244
+    ],
+    "orientation": 0.0,
+    "width": 0.2,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "drop",
+    "center": [
+     2000.0,
+     -274.065
+    ],
+    "orientation": 0.0,
+    "width": 0.2,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "add",
+    "center": [
+     2000.0,
+     -237.244
+    ],
+    "orientation": 0.0,
+    "width": 0.2,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "RingC",
+    "center": [
+     553.231,
+     -118.622
+    ],
+    "orientation": 0.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   }
+  ],
+  "layer_overlaps": {
+   "_error": "TypeError: ComponentAllAngle.get_polygons() got an unexpected keyword argument 'by'"
+  },
+  "min_radii": [
+   {
+    "r": 105.913,
+    "cell": "Unnamed_1107"
+   },
+   {
+    "r": 120.619,
+    "cell": "Unnamed_1106"
+   },
+   {
+    "r": 222.965,
+    "cell": "Unnamed_1109"
+   },
+   {
+    "r": 603.581,
+    "cell": "Unnamed_1108"
+   }
+  ],
+  "radii_below_50": [],
+  "bend_cells_without_info": []
+ },
+ {
+  "name": "TCRing1DC",
+  "ok": true,
+  "error": null,
+  "flags": [],
+  "bbox": [
+   0.0,
+   -863.273,
+   3035.885,
+   797.601
+  ],
+  "size": [
+   3035.885,
+   1660.873
+  ],
+  "ports": 5,
+  "port_list": [
+   {
+    "name": "input",
+    "center": [
+     0.0,
+     0.0
+    ],
+    "orientation": 180.0,
+    "width": 0.3,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "through",
+    "center": [
+     3000.0,
+     -450.0
+    ],
+    "orientation": 0.0,
+    "width": 0.2,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "drop",
+    "center": [
+     3000.0,
+     -265.676
+    ],
+    "orientation": 0.0,
+    "width": 0.2,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "add",
+    "center": [
+     3000.0,
+     -235.676
+    ],
+    "orientation": 0.0,
+    "width": 0.2,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "RingC",
+    "center": [
+     2053.231,
+     -118.622
+    ],
+    "orientation": 90.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   }
+  ],
+  "layer_overlaps": {
+   "_error": "TypeError: ComponentAllAngle.get_polygons() got an unexpected keyword argument 'by'"
+  },
+  "min_radii": [
+   {
+    "r": 204.944,
+    "cell": "Unnamed_1119"
+   },
+   {
+    "r": 307.417,
+    "cell": "Unnamed_1117"
+   },
+   {
+    "r": 307.417,
+    "cell": "Unnamed_1118"
+   },
+   {
+    "r": 506.23,
+    "cell": "Unnamed_1120"
+   }
+  ],
+  "radii_below_50": [],
+  "bend_cells_without_info": []
+ },
+ {
+  "name": "TCRing1_3",
+  "ok": true,
+  "error": null,
+  "flags": [],
+  "bbox": [
+   0.0,
+   -239.122,
+   10000.0,
+   4.878
+  ],
+  "size": [
+   10000.0,
+   244.0
+  ],
+  "ports": 3,
+  "port_list": [
+   {
+    "name": "input",
+    "center": [
+     0.0,
+     0.0
+    ],
+    "orientation": 180.0,
+    "width": 0.3,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "output",
+    "center": [
+     10000.0,
+     0.0
+    ],
+    "orientation": 0.0,
+    "width": 0.2,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "RingC",
+    "center": [
+     1003.231,
+     -118.622
+    ],
+    "orientation": 0.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   }
+  ],
+  "layer_overlaps": {},
+  "min_radii": [],
+  "radii_below_50": [],
+  "bend_cells_without_info": [
+   "bend_s_gdsfactorypcomponentspbendspbend_s_S500_0_N99_CS_072c1189",
+   "bend_s_gdsfactorypcomponentspbendspbend_s_S8493p538_0_N_30c5d8fc"
+  ]
+ },
+ {
+  "name": "TCRing2",
+  "ok": true,
+  "error": null,
+  "flags": [
+   {
+    "kind": "optical_port_non_manhattan",
+    "port": "RingC",
+    "orientation": 135.0,
+    "layer": [
+     1,
+     0
+    ]
+   }
+  ],
+  "bbox": [
+   0.0,
+   -880.553,
+   10000.0,
+   134.774
+  ],
+  "size": [
+   10000.0,
+   1015.327
+  ],
+  "ports": 4,
+  "port_list": [
+   {
+    "name": "input",
+    "center": [
+     0.0,
+     0.0
+    ],
+    "orientation": 180.0,
+    "width": 0.3,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "output",
+    "center": [
+     10000.0,
+     -738.178
+    ],
+    "orientation": 0.0,
+    "width": 0.2,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "RingC",
+    "center": [
+     1023.91,
+     -130.018
+    ],
+    "orientation": 135.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "RingInput",
+    "center": [
+     800.0,
+     0.0
+    ],
+    "orientation": 180.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   }
+  ],
+  "layer_overlaps": {
+   "(1, 0)": {
+    "area": 0.0015,
+    "pairwise": []
+   }
+  },
+  "min_radii": [
+   {
+    "r": 200.0,
+    "cell": "Unnamed_1134"
+   },
+   {
+    "r": 123752585.492,
+    "cell": "bend_s_gdsfactorypcomponentspbendspbend_s_S500p00020883_900256a3"
+   },
+   {
+    "r": 113236702500.138,
+    "cell": "bend_s_gdsfactorypcomponentspbendspbend_s_Sm8262p821620_acf36ab5"
+   }
+  ],
+  "radii_below_50": [],
+  "bend_cells_without_info": []
+ },
+ {
+  "name": "TCRing2_2",
+  "ok": true,
+  "error": null,
+  "flags": [
+   {
+    "kind": "optical_port_non_manhattan",
+    "port": "RingC",
+    "orientation": 135.0,
+    "layer": [
+     1,
+     0
+    ]
+   }
+  ],
+  "bbox": [
+   0.0,
+   -715.302,
+   10000.0,
+   212.125
+  ],
+  "size": [
+   10000.0,
+   927.427
+  ],
+  "ports": 4,
+  "port_list": [
+   {
+    "name": "input",
+    "center": [
+     0.0,
+     0.0
+    ],
+    "orientation": 180.0,
+    "width": 0.3,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "output",
+    "center": [
+     10000.0,
+     -497.178
+    ],
+    "orientation": 0.0,
+    "width": 0.2,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "RingC",
+    "center": [
+     1023.91,
+     -130.018
+    ],
+    "orientation": 135.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "RingInput",
+    "center": [
+     800.0,
+     0.0
+    ],
+    "orientation": 180.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   }
+  ],
+  "layer_overlaps": {
+   "(1, 0)": {
+    "area": 0.00175,
+    "pairwise": []
+   }
+  },
+  "min_radii": [
+   {
+    "r": 200.0,
+    "cell": "Unnamed_1148"
+   },
+   {
+    "r": 123752585.492,
+    "cell": "bend_s_gdsfactorypcomponentspbendspbend_s_S500p00020883_900256a3"
+   },
+   {
+    "r": 43449245539.742,
+    "cell": "bend_s_gdsfactorypcomponentspbendspbend_s_Sm8112p821627_f1754eaa"
+   }
+  ],
+  "radii_below_50": [],
+  "bend_cells_without_info": []
+ },
+ {
+  "name": "TCRing2_3",
+  "ok": true,
+  "error": null,
+  "flags": [
+   {
+    "kind": "optical_port_non_manhattan",
+    "port": "RingC",
+    "orientation": 135.0,
+    "layer": [
+     1,
+     0
+    ]
+   }
+  ],
+  "bbox": [
+   0.0,
+   -839.552,
+   10000.0,
+   159.773
+  ],
+  "size": [
+   10000.0,
+   999.325
+  ],
+  "ports": 4,
+  "port_list": [
+   {
+    "name": "input",
+    "center": [
+     0.0,
+     0.0
+    ],
+    "orientation": 180.0,
+    "width": 0.3,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "output",
+    "center": [
+     10000.0,
+     -697.177
+    ],
+    "orientation": 0.0,
+    "width": 0.2,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "RingC",
+    "center": [
+     1073.909,
+     -130.018
+    ],
+    "orientation": 135.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "RingInput",
+    "center": [
+     800.0,
+     0.0
+    ],
+    "orientation": 180.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   }
+  ],
+  "layer_overlaps": {
+   "(1, 0)": {
+    "area": 0.00425,
+    "pairwise": [
+     {
+      "area": 0.003,
+      "bbox": [
+       999.998,
+       -1.0,
+       1000.0,
+       1.0
+      ]
+     }
+    ]
+   }
+  },
+  "min_radii": [
+   {
+    "r": 200.0,
+    "cell": "Unnamed_1161"
+   },
+   {
+    "r": 123752327.841,
+    "cell": "bend_s_gdsfactorypcomponentspbendspbend_s_S499p99968834_5cdc3c85"
+   },
+   {
+    "r": 53217866562.733,
+    "cell": "bend_s_gdsfactorypcomponentspbendspbend_s_Sm8212p822620_5e647b67"
+   }
+  ],
+  "radii_below_50": [],
+  "bend_cells_without_info": []
+ },
+ {
+  "name": "TCRing3",
+  "ok": true,
+  "error": null,
+  "flags": [],
+  "bbox": [
+   0.0,
+   -1265.058,
+   10000.5,
+   1.0
+  ],
+  "size": [
+   10000.5,
+   1266.058
+  ],
+  "ports": 3,
+  "port_list": [
+   {
+    "name": "input",
+    "center": [
+     0.0,
+     0.0
+    ],
+    "orientation": 180.0,
+    "width": 0.3,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "output",
+    "center": [
+     9700.0,
+     -664.558
+    ],
+    "orientation": 0.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "RingC",
+    "center": [
+     884.15,
+     -132.279
+    ],
+    "orientation": 0.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   }
+  ],
+  "layer_overlaps": {},
+  "min_radii": [
+   {
+    "r": 145.261,
+    "cell": "Unnamed_1174"
+   },
+   {
+    "r": 211.827,
+    "cell": "bend_euler_gdsfactorypcomponentspbendspbend_euler_R300__815f963a"
+   }
+  ],
+  "radii_below_50": [],
+  "bend_cells_without_info": []
+ },
+ {
+  "name": "TCRing4",
+  "ok": true,
+  "error": null,
+  "flags": [],
+  "bbox": [
+   0.0,
+   -467.789,
+   10000.5,
+   433.211
+  ],
+  "size": [
+   10000.5,
+   901.0
+  ],
+  "ports": 3,
+  "port_list": [
+   {
+    "name": "input",
+    "center": [
+     0.0,
+     0.0
+    ],
+    "orientation": 180.0,
+    "width": 0.3,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "output",
+    "center": [
+     9700.0,
+     132.711
+    ],
+    "orientation": 0.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "RingC",
+    "center": [
+     928.498,
+     -145.787
+    ],
+    "orientation": 0.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   }
+  ],
+  "layer_overlaps": {
+   "(1, 0)": {
+    "area": 3.596454,
+    "pairwise": [
+     {
+      "area": 3.5532,
+      "bbox": [
+       781.765,
+       -0.946,
+       783.657,
+       0.946
+      ]
+     }
+    ]
+   }
+  },
+  "min_radii": [
+   {
+    "r": 211.827,
+    "cell": "bend_euler_gdsfactorypcomponentspbendspbend_euler_R300__815f963a"
+   }
+  ],
+  "radii_below_50": [],
+  "bend_cells_without_info": []
+ },
+ {
+  "name": "TCRingBoomerangT1",
+  "ok": true,
+  "error": null,
+  "flags": [],
+  "bbox": [
+   0.0,
+   -216.001,
+   10000.0,
+   967.001
+  ],
+  "size": [
+   10000.0,
+   1183.002
+  ],
+  "ports": 4,
+  "port_list": [
+   {
+    "name": "input",
+    "center": [
+     0.0,
+     0.0
+    ],
+    "orientation": 180.0,
+    "width": 0.3,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "through",
+    "center": [
+     10000.0,
+     443.25
+    ],
+    "orientation": 0.0,
+    "width": 0.2,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "Add",
+    "center": [
+     566.124,
+     523.876
+    ],
+    "orientation": 270.0,
+    "width": 3.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "Drop",
+    "center": [
+     566.124,
+     823.876
+    ],
+    "orientation": 90.0,
+    "width": 3.0,
+    "layer": "(1, 0)"
+   }
+  ],
+  "layer_overlaps": {
+   "(10, 0)": {
+    "area": 1127.444493,
+    "pairwise": [
+     {
+      "area": 294.8302,
+      "bbox": [
+       1068.81,
+       1.516,
+       1401.876,
+       547.376
+      ]
+     },
+     {
+      "area": 0.0071,
+      "bbox": [
+       1362.116,
+       795.992,
+       1363.886,
+       797.762
+      ]
+     },
+     {
+      "area": 0.0071,
+      "bbox": [
+       1042.001,
+       475.877,
+       1043.771,
+       477.647
+      ]
+     },
+     {
+      "area": 294.8302,
+      "bbox": [
+       567.64,
+       502.686,
+       1113.5,
+       835.752
+      ]
+     }
+    ]
+   }
+  },
+  "min_radii": [
+   {
+    "r": 70.609,
+    "cell": "bend_euler_gdsfactorypcomponentspbendspbend_euler_R100__7b0838a1"
+   },
+   {
+    "r": 77.67,
+    "cell": "bend_euler_gdsfactorypcomponentspbendspbend_euler_R110p_9eca43a9"
+   },
+   {
+    "r": 100.0,
+    "cell": "bend_euler_gdsfactorypcomponentspbendspbend_euler_R100__2240e304"
+   },
+   {
+    "r": 100.0,
+    "cell": "bend_euler_gdsfactorypcomponentspbendspbend_euler_R100__229bbd51"
+   },
+   {
+    "r": 100.0,
+    "cell": "bend_euler_gdsfactorypcomponentspbendspbend_euler_R100__94c4f117"
+   },
+   {
+    "r": 186.005,
+    "cell": "bend_s_gdsfactorypcomponentspbendspbend_s_S100_10_N99_C_752ef49e"
+   }
+  ],
+  "radii_below_50": [],
+  "bend_cells_without_info": []
+ },
+ {
+  "name": "TCRingCoupon",
+  "ok": true,
+  "error": null,
+  "flags": [
+   {
+    "kind": "io_port_not_0_180",
+    "port": "input",
+    "orientation": 90.0,
+    "layer": [
+     1,
+     0
+    ]
+   }
+  ],
+  "bbox": [
+   -690.212,
+   -3.5,
+   0.5,
+   380.247
+  ],
+  "size": [
+   690.712,
+   383.747
+  ],
+  "ports": 10,
+  "port_list": [
+   {
+    "name": "input",
+    "center": [
+     0.0,
+     380.247
+    ],
+    "orientation": 90.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "output",
+    "center": [
+     -689.712,
+     96.997
+    ],
+    "orientation": 270.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "RingC",
+    "center": [
+     -344.856,
+     120.0
+    ],
+    "orientation": 180.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "RingInput",
+    "center": [
+     -291.625,
+     238.622
+    ],
+    "orientation": 0.0,
+    "width": 2.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "RingThrough",
+    "center": [
+     -398.087,
+     238.622
+    ],
+    "orientation": 180.0,
+    "width": 2.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "RingRingL",
+    "center": [
+     -464.856,
+     120.0
+    ],
+    "orientation": 90.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "RingRingR",
+    "center": [
+     -224.856,
+     120.0
+    ],
+    "orientation": 90.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "RingRingC",
+    "center": [
+     -344.856,
+     120.0
+    ],
+    "orientation": 90.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "RingAdd",
+    "center": [
+     -398.087,
+     1.378
+    ],
+    "orientation": 180.0,
+    "width": 2.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "RingDrop",
+    "center": [
+     -291.625,
+     1.378
+    ],
+    "orientation": 0.0,
+    "width": 2.0,
+    "layer": "(1, 0)"
+   }
+  ],
+  "layer_overlaps": {},
+  "min_radii": [
+   {
+    "r": 100.0,
+    "cell": "Unnamed_1221"
+   },
+   {
+    "r": 100.0,
+    "cell": "Unnamed_1222"
+   }
+  ],
+  "radii_below_50": [],
+  "bend_cells_without_info": []
+ },
+ {
+  "name": "TCRingDCouple",
+  "ok": true,
+  "error": null,
+  "flags": [],
+  "bbox": [
+   0.0,
+   -1052.735,
+   10000.0,
+   1.0
+  ],
+  "size": [
+   10000.0,
+   1053.735
+  ],
+  "ports": 3,
+  "port_list": [
+   {
+    "name": "input",
+    "center": [
+     0.0,
+     0.0
+    ],
+    "orientation": 180.0,
+    "width": 0.3,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "output",
+    "center": [
+     10000.0,
+     -677.473
+    ],
+    "orientation": 0.0,
+    "width": 0.2,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "RingC",
+    "center": [
+     946.769,
+     -558.851
+    ],
+    "orientation": 0.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   }
+  ],
+  "layer_overlaps": {
+   "(1, 0)": {
+    "area": 5.1296,
+    "pairwise": [
+     {
+      "area": 5.1296,
+      "bbox": [
+       613.96,
+       -561.163,
+       616.179,
+       -556.539
+      ]
+     }
+    ]
+   }
+  },
+  "min_radii": [
+   {
+    "r": 200.0,
+    "cell": "bend_euler_gdsfactorypcomponentspbendspbend_euler_R200__1efc55f7"
+   },
+   {
+    "r": 200.0,
+    "cell": "bend_euler_gdsfactorypcomponentspbendspbend_euler_R200__5252d0b2"
+   },
+   {
+    "r": 200.0,
+    "cell": "bend_euler_gdsfactorypcomponentspbendspbend_euler_R200__ce65b539"
+   }
+  ],
+  "radii_below_50": [],
+  "bend_cells_without_info": []
+ },
+ {
+  "name": "TCRingDouBoomerangT1",
+  "ok": true,
+  "error": null,
+  "flags": [],
+  "bbox": [
+   0.0,
+   -1243.884,
+   10000.0,
+   216.001
+  ],
+  "size": [
+   10000.0,
+   1459.885
+  ],
+  "ports": 14,
+  "port_list": [
+   {
+    "name": "input",
+    "center": [
+     0.0,
+     0.0
+    ],
+    "orientation": 180.0,
+    "width": 0.3,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "add",
+    "center": [
+     0.0,
+     -30.0
+    ],
+    "orientation": 180.0,
+    "width": 0.3,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "drop",
+    "center": [
+     10000.0,
+     -1242.384
+    ],
+    "orientation": 0.0,
+    "width": 0.2,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "through",
+    "center": [
+     10000.0,
+     -1212.384
+    ],
+    "orientation": 0.0,
+    "width": 0.2,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "Add",
+    "center": [
+     743.007,
+     -880.759
+    ],
+    "orientation": 180.0,
+    "width": 3.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "Drop",
+    "center": [
+     843.007,
+     -1100.759
+    ],
+    "orientation": 270.0,
+    "width": 3.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "R1HeatOLIn",
+    "center": [
+     998.771,
+     -477.647
+    ],
+    "orientation": 44.941,
+    "width": 5.0,
+    "layer": "None"
+   },
+   {
+    "name": "R1HeatOLOut",
+    "center": [
+     1068.334,
+     -833.252
+    ],
+    "orientation": 3.808,
+    "width": 5.0,
+    "layer": "None"
+   },
+   {
+    "name": "R1HeatORIn",
+    "center": [
+     998.771,
+     -477.647
+    ],
+    "orientation": 225.059,
+    "width": 5.0,
+    "layer": "None"
+   },
+   {
+    "name": "R1HeatOROut",
+    "center": [
+     1354.376,
+     -547.21
+    ],
+    "orientation": 266.192,
+    "width": 5.0,
+    "layer": "None"
+   },
+   {
+    "name": "R2HeatILIn",
+    "center": [
+     1660.769,
+     -1139.645
+    ],
+    "orientation": 44.94,
+    "width": 5.0,
+    "layer": "None"
+   },
+   {
+    "name": "R2HeatILOut",
+    "center": [
+     968.007,
+     -835.759
+    ],
+    "orientation": 225.0,
+    "width": 5.0,
+    "layer": "None"
+   },
+   {
+    "name": "R2HeatIRIn",
+    "center": [
+     1660.769,
+     -1139.645
+    ],
+    "orientation": 225.06,
+    "width": 5.0,
+    "layer": "None"
+   },
+   {
+    "name": "R2HeatIROut",
+    "center": [
+     1356.883,
+     -446.883
+    ],
+    "orientation": 45.0,
+    "width": 5.0,
+    "layer": "None"
+   }
+  ],
+  "layer_overlaps": {
+   "(1, 0)": {
+    "area": 140.974197,
+    "pairwise": [
+     {
+      "area": 12.101,
+      "bbox": [
+       1068.334,
+       -834.752,
+       1117.525,
+       -834.26
+      ]
+     },
+     {
+      "area": 0.161,
+      "bbox": [
+       1068.007,
+       -834.752,
+       1068.334,
+       -834.259
+      ]
+     },
+     {
+      "area": 49.3,
+      "bbox": [
+       968.007,
+       -834.752,
+       1068.007,
+       -834.259
+      ]
+     },
+     {
+      "area": 8.9273,
+      "bbox": [
+       943.864,
+       -834.752,
+       968.007,
+       -834.259
+      ]
+     },
+     {
+      "area": 12.101,
+      "bbox": [
+       1355.384,
+       -596.401,
+       1355.876,
+       -547.21
+      ]
+     }
+    ]
+   },
+   "(10, 0)": {
+    "area": 598.686048,
+    "pairwise": [
+     {
+      "area": 0.0071,
+      "bbox": [
+       997.001,
+       -477.647,
+       998.771,
+       -475.877
+      ]
+     },
+     {
+      "area": 30.5334,
+      "bbox": [
+       872.108,
+       -848.816,
+       970.012,
+       -837.29
+      ]
+     },
+     {
+      "area": 30.5334,
+      "bbox": [
+       1358.414,
+       -448.888,
+       1369.94,
+       -350.984
+      ]
+     },
+     {
+      "area": 0.0071,
+      "bbox": [
+       1658.999,
+       -1139.645,
+       1660.769,
+       -1137.875
+      ]
+     }
+    ]
+   }
+  },
+  "min_radii": [
+   {
+    "r": 70.609,
+    "cell": "bend_euler_gdsfactorypcomponentspbendspbend_euler_R100__7b0838a1"
+   },
+   {
+    "r": 77.67,
+    "cell": "bend_euler_gdsfactorypcomponentspbendspbend_euler_R110p_9eca43a9"
+   },
+   {
+    "r": 77.67,
+    "cell": "bend_euler_gdsfactorypcomponentspbendspbend_euler_R110p_6c745a95"
+   },
+   {
+    "r": 100.0,
+    "cell": "bend_euler_gdsfactorypcomponentspbendspbend_euler_R100__94c4f117"
+   },
+   {
+    "r": 100.0,
+    "cell": "bend_euler_gdsfactorypcomponentspbendspbend_euler_R100__2240e304"
+   },
+   {
+    "r": 186.005,
+    "cell": "bend_s_gdsfactorypcomponentspbendspbend_s_S100_10_N99_C_752ef49e"
+   }
+  ],
+  "radii_below_50": [],
+  "bend_cells_without_info": []
+ },
+ {
+  "name": "TCRingT1",
+  "ok": true,
+  "error": null,
+  "flags": [],
+  "bbox": [
+   0.0,
+   -577.0,
+   10000.0,
+   4.878
+  ],
+  "size": [
+   10000.0,
+   581.878
+  ],
+  "ports": 3,
+  "port_list": [
+   {
+    "name": "input",
+    "center": [
+     0.0,
+     0.0
+    ],
+    "orientation": 180.0,
+    "width": 0.3,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "output",
+    "center": [
+     10000.0,
+     -576.5
+    ],
+    "orientation": 0.0,
+    "width": 0.2,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "RingC",
+    "center": [
+     1003.231,
+     -118.622
+    ],
+    "orientation": 0.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   }
+  ],
+  "layer_overlaps": {},
+  "min_radii": [
+   {
+    "r": 200.0,
+    "cell": "Unnamed_1270"
+   },
+   {
+    "r": 200.0,
+    "cell": "Unnamed_1271"
+   },
+   {
+    "r": 817913666334.081,
+    "cell": "bend_s_gdsfactorypcomponentspbendspbend_s_S7917p0379861_3a76c869"
+   }
+  ],
+  "radii_below_50": [],
+  "bend_cells_without_info": [
+   "bend_s_gdsfactorypcomponentspbendspbend_s_S500_0_N99_CS_072c1189"
+  ]
+ },
+ {
+  "name": "TCRingT2",
+  "ok": true,
+  "error": null,
+  "flags": [
+   {
+    "kind": "optical_port_non_manhattan",
+    "port": "RingC",
+    "orientation": 135.0,
+    "layer": [
+     1,
+     0
+    ]
+   }
+  ],
+  "bbox": [
+   0.0,
+   -796.211,
+   2000.0,
+   141.515
+  ],
+  "size": [
+   2000.0,
+   937.726
+  ],
+  "ports": 4,
+  "port_list": [
+   {
+    "name": "input",
+    "center": [
+     0.0,
+     0.0
+    ],
+    "orientation": 180.0,
+    "width": 0.3,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "output",
+    "center": [
+     2000.0,
+     -653.836
+    ],
+    "orientation": 0.0,
+    "width": 0.2,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "RingC",
+    "center": [
+     1026.323,
+     -134.263
+    ],
+    "orientation": 135.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "RingInput",
+    "center": [
+     800.0,
+     0.0
+    ],
+    "orientation": 180.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   }
+  ],
+  "layer_overlaps": {},
+  "min_radii": [
+   {
+    "r": 200.0,
+    "cell": "Unnamed_1282"
+   },
+   {
+    "r": 184076625.874,
+    "cell": "bend_s_gdsfactorypcomponentspbendspbend_s_Sm256p1638580_295a54d8"
+   },
+   {
+    "r": 353786688.415,
+    "cell": "bend_s_gdsfactorypcomponentspbendspbend_s_S499p99985339_1be79c33"
+   }
+  ],
+  "radii_below_50": [],
+  "bend_cells_without_info": []
+ },
+ {
+  "name": "TCRingTriBoomerangT1",
+  "ok": true,
+  "error": null,
+  "flags": [],
+  "bbox": [
+   0.0,
+   -1723.626,
+   4000.0,
+   74.077
+  ],
+  "size": [
+   4000.0,
+   1797.703
+  ],
+  "ports": 14,
+  "port_list": [
+   {
+    "name": "input",
+    "center": [
+     0.0,
+     0.0
+    ],
+    "orientation": 180.0,
+    "width": 0.3,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "add",
+    "center": [
+     0.0,
+     -30.0
+    ],
+    "orientation": 180.0,
+    "width": 0.3,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "drop",
+    "center": [
+     4000.0,
+     -1722.126
+    ],
+    "orientation": 0.0,
+    "width": 0.2,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "through",
+    "center": [
+     4000.0,
+     -1692.126
+    ],
+    "orientation": 0.0,
+    "width": 0.2,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "Add",
+    "center": [
+     1481.625,
+     -341.625
+    ],
+    "orientation": 90.0,
+    "width": 3.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "Drop",
+    "center": [
+     1701.625,
+     -441.625
+    ],
+    "orientation": 0.0,
+    "width": 3.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "R2HeatILIn",
+    "center": [
+     2062.394,
+     -1631.27
+    ],
+    "orientation": 44.94,
+    "width": 5.0,
+    "layer": "None"
+   },
+   {
+    "name": "R2HeatILOut",
+    "center": [
+     1319.632,
+     -1327.384
+    ],
+    "orientation": 225.0,
+    "width": 5.0,
+    "layer": "None"
+   },
+   {
+    "name": "R2HeatIRIn",
+    "center": [
+     2062.394,
+     -1631.27
+    ],
+    "orientation": 225.06,
+    "width": 5.0,
+    "layer": "None"
+   },
+   {
+    "name": "R2HeatIROut",
+    "center": [
+     1758.508,
+     -888.508
+    ],
+    "orientation": 45.0,
+    "width": 5.0,
+    "layer": "None"
+   },
+   {
+    "name": "R3HeatOLIn",
+    "center": [
+     1098.513,
+     -667.389
+    ],
+    "orientation": 44.941,
+    "width": 5.0,
+    "layer": "None"
+   },
+   {
+    "name": "R3HeatOLOut",
+    "center": [
+     1098.076,
+     -1002.994
+    ],
+    "orientation": 3.921,
+    "width": 5.0,
+    "layer": "None"
+   },
+   {
+    "name": "R3HeatORIn",
+    "center": [
+     1098.513,
+     -667.389
+    ],
+    "orientation": 225.059,
+    "width": 5.0,
+    "layer": "None"
+   },
+   {
+    "name": "R3HeatOROut",
+    "center": [
+     1434.118,
+     -666.952
+    ],
+    "orientation": 266.079,
+    "width": 5.0,
+    "layer": "None"
+   }
+  ],
+  "layer_overlaps": {
+   "(1, 0)": {
+    "area": 298.152333,
+    "pairwise": [
+     {
+      "area": 16.1435,
+      "bbox": [
+       1419.959,
+       -1326.377,
+       1485.583,
+       -1325.885
+      ]
+     },
+     {
+      "area": 16.1435,
+      "bbox": [
+       1098.076,
+       -1004.494,
+       1163.7,
+       -1004.002
+      ]
+     },
+     {
+      "area": 0.161,
+      "bbox": [
+       1097.749,
+       -1004.494,
+       1098.076,
+       -1004.001
+      ]
+     },
+     {
+      "area": 49.3,
+      "bbox": [
+       997.749,
+       -1004.494,
+       1097.749,
+       -1004.001
+      ]
+     },
+     {
+      "area": 8.9273,
+      "bbox": [
+       973.606,
+       -1004.494,
+       997.749,
+       -1004.001
+      ]
+     }
+    ]
+   },
+   "(10, 0)": {
+    "area": 523.266944,
+    "pairwise": [
+     {
+      "area": 0.0071,
+      "bbox": [
+       2060.624,
+       -1631.27,
+       2062.394,
+       -1629.5
+      ]
+     },
+     {
+      "area": 0.0071,
+      "bbox": [
+       1096.743,
+       -667.389,
+       1098.513,
+       -665.619
+      ]
+     }
+    ]
+   }
+  },
+  "min_radii": [
+   {
+    "r": 70.609,
+    "cell": "bend_euler_gdsfactorypcomponentspbendspbend_euler_R100__7b0838a1"
+   },
+   {
+    "r": 77.67,
+    "cell": "bend_euler_gdsfactorypcomponentspbendspbend_euler_R110p_9eca43a9"
+   },
+   {
+    "r": 77.67,
+    "cell": "bend_euler_gdsfactorypcomponentspbendspbend_euler_R110p_6c745a95"
+   },
+   {
+    "r": 77.67,
+    "cell": "bend_euler_gdsfactorypcomponentspbendspbend_euler_R110p_793d1d66"
+   },
+   {
+    "r": 100.0,
+    "cell": "bend_euler_gdsfactorypcomponentspbendspbend_euler_R100__2240e304"
+   },
+   {
+    "r": 100.0,
+    "cell": "bend_euler_gdsfactorypcomponentspbendspbend_euler_R100__229bbd51"
+   },
+   {
+    "r": 100.0,
+    "cell": "bend_euler_gdsfactorypcomponentspbendspbend_euler_R100__94c4f117"
+   },
+   {
+    "r": 186.005,
+    "cell": "bend_s_gdsfactorypcomponentspbendspbend_s_S100_10_N99_C_752ef49e"
+   }
+  ],
+  "radii_below_50": [],
+  "bend_cells_without_info": []
+ },
+ {
+  "name": "TCTaperRaceTrackP",
+  "ok": true,
+  "error": null,
+  "flags": [],
+  "bbox": [
+   4306.528,
+   -2122.623,
+   10151.424,
+   2122.623
+  ],
+  "size": [
+   5844.896,
+   4245.246
+  ],
+  "ports": 1,
+  "port_list": [
+   {
+    "name": "RingC",
+    "center": [
+     7573.712,
+     0.0
+    ],
+    "orientation": 90.0,
+    "width": 4.0,
+    "layer": "(1, 0)"
+   }
+  ],
+  "layer_overlaps": {},
+  "min_radii": [
+   {
+    "r": 529.567,
+    "cell": "bend_euler_gdsfactorypcomponentspbendspbend_euler_R750__bf788993"
+   },
+   {
+    "r": 529.567,
+    "cell": "bend_euler_gdsfactorypcomponentspbendspbend_euler_R750__e5afba1e"
+   }
+  ],
+  "radii_below_50": [],
+  "bend_cells_without_info": []
+ },
+ {
+  "name": "TCTaperRaceTrackS",
+  "ok": true,
+  "error": null,
+  "flags": [],
+  "bbox": [
+   3806.528,
+   -2014.143,
+   10151.424,
+   2014.143
+  ],
+  "size": [
+   6344.896,
+   4028.286
+  ],
+  "ports": 1,
+  "port_list": [
+   {
+    "name": "RingC",
+    "center": [
+     7573.712,
+     0.0
+    ],
+    "orientation": 90.0,
+    "width": 4.0,
+    "layer": "(1, 0)"
+   }
+  ],
+  "layer_overlaps": {
+   "(1, 0)": {
+    "area": 52.682324,
+    "pairwise": [
+     {
+      "area": 52.7767,
+      "bbox": [
+       5820.559,
+       -1624.065,
+       5839.585,
+       -1620.165
+      ]
+     }
+    ]
+   }
+  },
+  "min_radii": [
+   {
+    "r": 529.567,
+    "cell": "bend_euler_gdsfactorypcomponentspbendspbend_euler_R750__003c5be3"
+   },
+   {
+    "r": 529.567,
+    "cell": "bend_euler_gdsfactorypcomponentspbendspbend_euler_R750__77010d07"
+   }
+  ],
+  "radii_below_50": [],
+  "bend_cells_without_info": []
+ },
+ {
+  "name": "TaperRaceTrackPulley",
+  "ok": true,
+  "error": null,
+  "flags": [],
+  "bbox": [
+   -154.761,
+   -758.306,
+   154.761,
+   6.0
+  ],
+  "size": [
+   309.522,
+   764.306
+  ],
+  "ports": 10,
+  "port_list": [
+   {
+    "name": "Input",
+    "center": [
+     67.137,
+     -0.391
+    ],
+    "orientation": 0.0,
+    "width": 3.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "Through",
+    "center": [
+     -67.137,
+     -0.391
+    ],
+    "orientation": 180.0,
+    "width": 3.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "Add",
+    "center": [
+     -67.137,
+     -751.915
+    ],
+    "orientation": 180.0,
+    "width": 3.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "Drop",
+    "center": [
+     67.137,
+     -751.915
+    ],
+    "orientation": 0.0,
+    "width": 3.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "Rcen1",
+    "center": [
+     150.761,
+     -376.153
+    ],
+    "orientation": 90.0,
+    "width": 8.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "Rcen2",
+    "center": [
+     -150.761,
+     -376.153
+    ],
+    "orientation": 270.0,
+    "width": 8.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "RingSmid2",
+    "center": [
+     150.761,
+     -376.153
+    ],
+    "orientation": 90.0,
+    "width": 8.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "RingBmid1",
+    "center": [
+     0.0,
+     -752.306
+    ],
+    "orientation": 180.0,
+    "width": 4.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "RingSmid1",
+    "center": [
+     -150.761,
+     -376.153
+    ],
+    "orientation": 270.0,
+    "width": 8.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "RingBmid2",
+    "center": [
+     0.0,
+     0.0
+    ],
+    "orientation": 0.0,
+    "width": 4.0,
+    "layer": "(1, 0)"
+   }
+  ],
+  "layer_overlaps": {},
+  "min_radii": [],
+  "radii_below_50": [],
+  "bend_cells_without_info": []
+ },
+ {
+  "name": "TaperRsoa",
+  "ok": true,
+  "error": null,
+  "flags": [
+   {
+    "kind": "optical_port_non_manhattan",
+    "port": "o1",
+    "orientation": 347.0,
+    "layer": [
+     1,
+     0
+    ]
+   }
+  ],
+  "bbox": [
+   0.0,
+   -72.664,
+   304.459,
+   2.616
+  ],
+  "size": [
+   304.459,
+   75.28
+  ],
+  "ports": 2,
+  "port_list": [
+   {
+    "name": "o1",
+    "center": [
+     303.559,
+     -68.766
+    ],
+    "orientation": 347.0,
+    "width": 8.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "o2",
+    "center": [
+     0.0,
+     0.0
+    ],
+    "orientation": 180.0,
+    "width": 0.8,
+    "layer": "(1, 0)"
+   }
+  ],
+  "layer_overlaps": {},
+  "min_radii": [],
+  "radii_below_50": [],
+  "bend_cells_without_info": []
+ },
+ {
+  "name": "TriRingPulley",
+  "ok": true,
+  "error": null,
+  "flags": [],
+  "bbox": [
+   -100.5,
+   -2.432,
+   490.537,
+   204.368
+  ],
+  "size": [
+   591.037,
+   206.8
+  ],
+  "ports": 11,
+  "port_list": [
+   {
+    "name": "o1",
+    "center": [
+     44.301,
+     198.723
+    ],
+    "orientation": 0.0,
+    "width": 0.9,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "o2",
+    "center": [
+     344.301,
+     200.659
+    ],
+    "orientation": 180.0,
+    "width": 0.9,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "R2Ro1",
+    "center": [
+     44.301,
+     1.277
+    ],
+    "orientation": 0.0,
+    "width": 0.9,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "R1Add",
+    "center": [
+     -44.301,
+     1.277
+    ],
+    "orientation": 180.0,
+    "width": 0.9,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "R1Drop",
+    "center": [
+     44.301,
+     1.277
+    ],
+    "orientation": 0.0,
+    "width": 0.9,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "R1Input",
+    "center": [
+     44.301,
+     198.723
+    ],
+    "orientation": 0.0,
+    "width": 0.9,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "R1Through",
+    "center": [
+     -44.301,
+     198.723
+    ],
+    "orientation": 180.0,
+    "width": 0.9,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "R2Add",
+    "center": [
+     433.773,
+     1.277
+    ],
+    "orientation": 0.0,
+    "width": 0.9,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "R2Drop",
+    "center": [
+     344.301,
+     1.277
+    ],
+    "orientation": 180.0,
+    "width": 0.9,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "R2Input",
+    "center": [
+     344.301,
+     200.659
+    ],
+    "orientation": 180.0,
+    "width": 0.9,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "R2Through",
+    "center": [
+     433.773,
+     200.659
+    ],
+    "orientation": 0.0,
+    "width": 0.9,
+    "layer": "(1, 0)"
+   }
+  ],
+  "layer_overlaps": {},
+  "min_radii": [],
+  "radii_below_50": [],
+  "bend_cells_without_info": []
+ },
+ {
+  "name": "WangCavity",
+  "ok": true,
+  "error": null,
+  "flags": [],
+  "bbox": [
+   -30.5,
+   -4.781,
+   330.5,
+   354.781
+  ],
+  "size": [
+   361.0,
+   359.562
+  ],
+  "ports": 6,
+  "port_list": [
+   {
+    "name": "TopCenter",
+    "center": [
+     150.0,
+     350.0
+    ],
+    "orientation": 90.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "BottomCenter",
+    "center": [
+     150.0,
+     0.0
+    ],
+    "orientation": 270.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "Input",
+    "center": [
+     -24.159,
+     354.331
+    ],
+    "orientation": 180.0,
+    "width": 0.9,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "Through",
+    "center": [
+     324.159,
+     354.331
+    ],
+    "orientation": 0.0,
+    "width": 0.9,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "Add",
+    "center": [
+     -24.159,
+     -4.331
+    ],
+    "orientation": 180.0,
+    "width": 0.9,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "Drop",
+    "center": [
+     324.159,
+     -4.331
+    ],
+    "orientation": 0.0,
+    "width": 0.9,
+    "layer": "(1, 0)"
+   }
+  ],
+  "layer_overlaps": {},
+  "min_radii": [],
+  "radii_below_50": [],
+  "bend_cells_without_info": []
+ },
+ {
+  "name": "cir2end",
+  "ok": true,
+  "error": null,
+  "flags": [],
+  "bbox": [
+   0.0,
+   -0.5,
+   150.25,
+   100.25
+  ],
+  "size": [
+   150.25,
+   100.75
+  ],
+  "ports": 1,
+  "port_list": [
+   {
+    "name": "o1",
+    "center": [
+     0.0,
+     0.0
+    ],
+    "orientation": 180.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   }
+  ],
+  "layer_overlaps": {},
+  "min_radii": [],
+  "radii_below_50": [],
+  "bend_cells_without_info": [
+   "bend_circular_gdsfactorypcomponentspbendspbend_circular_0cfb29ff",
+   "bend_circular_gdsfactorypcomponentspbendspbend_circular_143a66b5",
+   "bend_circular_gdsfactorypcomponentspbendspbend_circular_28b1a571",
+   "bend_circular_gdsfactorypcomponentspbendspbend_circular_8149723c",
+   "bend_circular_gdsfactorypcomponentspbendspbend_circular_87dcb37c",
+   "bend_circular_gdsfactorypcomponentspbendspbend_circular_bfad328e",
+   "bend_circular_gdsfactorypcomponentspbendspbend_circular_d0441df6",
+   "bend_circular_gdsfactorypcomponentspbendspbend_circular_db82c00c"
+  ]
+ },
+ {
+  "name": "ring_coupon",
+  "ok": true,
+  "error": null,
+  "flags": [],
+  "bbox": [
+   0.0,
+   -577.0,
+   10000.0,
+   4.878
+  ],
+  "size": [
+   10000.0,
+   581.878
+  ],
+  "ports": 3,
+  "port_list": [
+   {
+    "name": "input",
+    "center": [
+     0.0,
+     0.0
+    ],
+    "orientation": 180.0,
+    "width": 0.3,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "output",
+    "center": [
+     10000.0,
+     -576.5
+    ],
+    "orientation": 0.0,
+    "width": 0.2,
+    "layer": "(1, 0)"
+   },
+   {
+    "name": "RingC",
+    "center": [
+     853.231,
+     -118.622
+    ],
+    "orientation": 0.0,
+    "width": 1.0,
+    "layer": "(1, 0)"
+   }
+  ],
+  "layer_overlaps": {},
+  "min_radii": [
+   {
+    "r": 200.0,
+    "cell": "Unnamed_705"
+   },
+   {
+    "r": 200.0,
+    "cell": "Unnamed_706"
+   },
+   {
+    "r": 881074428163.359,
+    "cell": "bend_s_gdsfactorypcomponentspbendspbend_s_S8217p0379861_f64cb76d"
+   }
+  ],
+  "radii_below_50": [],
+  "bend_cells_without_info": [
+   "bend_s_gdsfactorypcomponentspbendspbend_s_S500_0_N99_CS_64f1108b"
+  ]
+ }
+]

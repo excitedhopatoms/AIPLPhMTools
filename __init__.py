@@ -1,13 +1,17 @@
 """AIPLPhMTools —— 基于 gdsfactory 的光子版图器件库。
 
-本包提供两类内容：
+目录结构（2026-11-03 重组）：
 
-1. ``GeneralTools``：主器件库（层号表 ``LAYER``、截面、直/弯波导、环/跑道环、
-   耦合器、MZI、DBR、加热器、电极、外腔以及测试结构）。
-   所有"画版图"的函数都返回 ``gdsfactory.Component``，并尽量使用 ``@gf.cell``
-   缓存；导入本包**不会**产生任何几何副作用。
-2. ``SOITools``：另一套 SOI 工艺（12 英寸、三层金属）的独立命名空间子库，
-   必须用 ``import AIPLPhMTools.SOITools as soi`` 访问，不能在主命名空间 star-import。
+* ``Core``         层号/截面/直弯锥/路由/几何工具（``BasicDefine``、``Routing``、``SnapMerge``、``LayerStack``）
+* ``Devices``      单器件：Ring / RaceTrack / CouplerMZI / DBR / FeedbackCavity ...
+* ``Assemblies``   多器件装配：MultiRing / MultiRaceTrack / ExtCav / Isolator ...
+* ``TestStructures`` 测试/表征结构：TCRing* / TCRaceTrack* / TCCoupledCavity* / Coupon ...
+* ``Electrical``   加热器与焊盘/过孔
+* ``Platforms.SOI`` SOI 12 英寸平台子库（原 ``SOITools``）
+
+兼容性：旧路径 ``AIPLPhMTools.GeneralTools.<module>`` 与
+``AIPLPhMTools.SOITools`` 保留为 thin shim，至少保留一个版本周期。
+新代码请使用新子包路径；顶层 ``import AIPLPhMTools as ap`` 用法不变。
 
 约定
 ----
@@ -29,61 +33,45 @@ from typing import Any, Callable
 #   * BasicDefine 必须最先导入（其余模块都依赖 LAYER / 基础函数）。
 # ---------------------------------------------------------------------------
 _MODULES: tuple[str, ...] = (
-    "BasicDefine",
-    "EulerConnection",
-    "Heater",
-    "SnapMerge",
-    "ELE",
-    "Boomerang",
-    "CouplerMZI",
-    "CoupledCavity",
-    "Coupon",
-    "DBR_inv",
-    "DBR",
-    "GongCavity",
-    "Isolator",
-    "MultiRaceTrack",
-    "MultiRing",
-    "RaceTrack",
-    "Ring",
-    "TCCoupledCavity",
-    "TCRaceTrack",
-    "TCRing",
-    "TestRow",
-    "WangCavity",
-    "ExtCav",
-    "memyshev",
+    "Core.BasicDefine",
+    "Core.EulerConnection",
+    "Core.SnapMerge",
+    "Core.LayerStack",
+    "Electrical.Heater",
+    "Electrical.ELE",
+    "Devices.CouplerMZI",
+    "Devices.Ring",
+    "Devices.RaceTrack",
+    "Devices.CoupledCavity",
+    "Devices.Boomerang",
+    "Devices.GongCavity",
+    "Devices.memyshev",
+    "Devices.DBR_inv",
+    "Devices.DBR",
+    "Devices.FeedbackCavity",
+    "Assemblies.MultiRing",
+    "Assemblies.MultiRaceTrack",
+    "Assemblies.Isolator",
+    "Assemblies.WangCavity",
+    "Assemblies.ExtCav",
+    "TestStructures.Coupon",
+    "TestStructures.TCCoupledCavity",
+    "TestStructures.TCRaceTrack",
+    "TestStructures.TCRing",
+    "TestStructures.TestRow",
 )
 
 _loaded: dict[str, Any] = {}
 for _mod_name in _MODULES:
-    _loaded[_mod_name] = importlib.import_module(f".GeneralTools.{_mod_name}", __name__)
+    _loaded[_mod_name] = importlib.import_module(f".{_mod_name}", __name__)
 
 # 兼容历史写法：`from AIPLPhMTools import RingPulley` / `import AIPLPhMTools as ap`
-from .GeneralTools.BasicDefine import *  # noqa: F401,F403
-from .GeneralTools.LayerStack import LayerDef, LayerStack  # noqa: F401
-from .GeneralTools.EulerConnection import connect_ports_euler  # noqa: F401
-from .GeneralTools.Heater import *  # noqa: F401,F403
-from .GeneralTools.ELE import *  # noqa: F401,F403
-from .GeneralTools.Boomerang import *  # noqa: F401,F403
-from .GeneralTools.CouplerMZI import *  # noqa: F401,F403
-from .GeneralTools.CoupledCavity import *  # noqa: F401,F403
-from .GeneralTools.Coupon import *  # noqa: F401,F403
-from .GeneralTools.DBR_inv import *  # noqa: F401,F403
-from .GeneralTools.DBR import *  # noqa: F401,F403
-from .GeneralTools.GongCavity import *  # noqa: F401,F403
-from .GeneralTools.Isolator import *  # noqa: F401,F403
-from .GeneralTools.MultiRaceTrack import *  # noqa: F401,F403
-from .GeneralTools.MultiRing import *  # noqa: F401,F403
-from .GeneralTools.RaceTrack import *  # noqa: F401,F403
-from .GeneralTools.Ring import *  # noqa: F401,F403
-from .GeneralTools.TCCoupledCavity import *  # noqa: F401,F403
-from .GeneralTools.TCRaceTrack import *  # noqa: F401,F403
-from .GeneralTools.TCRing import *  # noqa: F401,F403
-from .GeneralTools.TestRow import *  # noqa: F401,F403
-from .GeneralTools.WangCavity import *  # noqa: F401,F403
-from .GeneralTools.ExtCav import *  # noqa: F401,F403
-from .GeneralTools.memyshev import *  # noqa: F401,F403
+from .Core.BasicDefine import *  # noqa: F401,F403
+from .Core.LayerStack import LayerDef, LayerStack  # noqa: F401
+from .Core.EulerConnection import connect_ports_euler  # noqa: F401
+for _mod in _loaded.values():
+    for _name in getattr(_mod, "__all__", ()):
+        globals()[_name] = getattr(_mod, _name)
 
 # 非器件函数：出现在模块 __all__ 里但不是"返回 Component 的构造函数"
 _NON_COMPONENTS = {
@@ -105,6 +93,8 @@ _NON_COMPONENTS = {
     # 配置对象 / 通用框架，不是默认参数可构建的器件
     "RingCouponSpec",
     "Coupon",
+    "LayerDef",
+    "LayerStack",
 }
 
 # BasicDefine 没有定义 __all__（其它模块靠 star-import 取它的内部符号），
@@ -130,7 +120,7 @@ for _mod_name in _MODULES:
             COMPONENTS.setdefault(_name, _obj)
 
 for _name in _BASIC_COMPONENTS:
-    _obj = getattr(_loaded["BasicDefine"], _name, None)
+    _obj = getattr(_loaded["Core.BasicDefine"], _name, None)
     if callable(_obj):
         COMPONENTS.setdefault(_name, _obj)
 

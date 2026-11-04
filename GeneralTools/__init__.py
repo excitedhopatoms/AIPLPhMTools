@@ -1,13 +1,15 @@
-"""GeneralTools —— 通用器件库（gdsfactory 版图组件）。
+"""GeneralTools —— 旧路径兼容命名空间（thin shim）。
 
-推荐直接从顶层导入，保持与旧写法一致::
+2026-11-03 起，实际实现已按职责移动到 ``Core`` / ``Devices`` / ``Assemblies`` /
+``TestStructures`` / ``Electrical`` / ``Platforms.SOI``。本包只保留一个版本的
+兼容入口，避免旧脚本的 ``AIPLPhMTools.GeneralTools.X`` 立即失效。
 
-    import AIPLPhMTools as ap
-    c = ap.RingPulleyT1()
+新代码请使用新路径，例如::
 
-如果确实需要子包命名空间，``import AIPLPhMTools.GeneralTools as gt`` 也可以：
-本文件通过 ``__getattr__`` 把顶层公共符号（``LAYER``、``RingPulleyT1`` 等）
-转发过来，不重复实现、也不会在导入时创建几何。
+    from AIPLPhMTools.Devices.Ring import RingPulleyT1
+    from AIPLPhMTools.Core.BasicDefine import LAYER
+
+顶层 ``import AIPLPhMTools as ap`` 的用法不变。
 """
 from __future__ import annotations
 

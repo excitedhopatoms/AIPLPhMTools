@@ -7,9 +7,11 @@
 [![Python](https://img.shields.io/badge/python-3.10%2B-blue)](https://www.python.org/)
 [![gdsfactory](https://img.shields.io/badge/gdsfactory-9.14%2B-orange)](https://gdsfactory.github.io/gdsfactory/)
 
-> **当前状态（2026-10-31）**
+> **当前状态（2026-11-03）**
 > 本 README 中的 `layout_engine`、`WangCavity_v2` 属于早期规划，当前仓库
-> 尚未提供；实际可用的是 `GeneralTools/`（通用器件库）与 `SOITools/`（SOI 子库）。
+> 尚未提供。实际结构已按职责分为 `Core/`、`Devices/`、`Assemblies/`、
+> `TestStructures/`、`Electrical/`、`Platforms/SOI/`；旧 `GeneralTools/` 与
+> `SOITools/` 保留一个版本的兼容 shim。
 > 器件清单请以 `ap.list_components()` 为准。导入包不会再创建任何几何。
 > **版图手册**：每个器件的真实版图、端口、参数含义与参数对比见
 > [`docs/index.html`](docs/index.html)（生成方式与发布步骤见 [`docs/README.md`](docs/README.md)）。
@@ -107,57 +109,47 @@ print(config.waveguide.width_ring)  # 1.0
 
 ---
 
-## 包结构
+## 包结构（2026-11-03 重组）
 
 ```
 AIPLPhMTools/
-├── __init__.py              # 包入口：导入 GeneralTools 并显式导出
-├── GeneralTools/            # 通用器件库（核心版图组件）
+├── Core/                    # 与具体器件无关
 │   ├── BasicDefine.py       # 图层、截面、直/弯波导、锥、斜端面、Euler 路径
-│   ├── LayerStack.py        # 从设计手册/映射生成统一 LayerStack
-│   ├── Ring.py              # 环形谐振器（Pulley 耦合、finger 环等）
-│   ├── RaceTrack.py         # 跑道型谐振器（Pulley / 直耦合）
-│   ├── CouplerMZI.py        # 2×2 耦合器、DMZI、PMZI、Sagnac 环
-│   ├── Coupon.py            # 通用两端 coupon 框架（core 可替换）
-│   ├── CoupledCavity.py     # 二阶耦合环滤波器 / CROW / SCISSOR
-│   ├── DBR.py / DBR_inv.py  # 常规 DBR、E-DBR、反相 E-DBR
-│   ├── Heater.py            # 加热器、过孔阵列
-│   ├── ELE.py               # GSG 电极、开放焊盘
-│   ├── Boomerang.py         # 回旋镖腔及单/双/三环耦合
-│   ├── MultiRing.py         # 双/三环 Pulley 腔
-│   ├── MultiRaceTrack.py    # 双跑道环腔
-│   ├── Isolator.py          # 环形隔离器原型
-│   ├── memyshev.py          # Memyshev 双环外腔
-│   ├── ExtCav.py            # 外腔激光器核心
-│   ├── GongCavity.py        # 工字形微腔
-│   ├── WangCavity.py        # 王字形微腔
-│   ├── TCRing.py            # 单个环测试结构
-│   ├── TestRow.py           # ring coupon 行/色散环阵列统一框架
-│   ├── TCRaceTrack.py       # 跑道测试结构
-│   ├── TCCoupledCavity.py   # 耦合腔测试结构
+│   ├── Routing.py           # route_off_grid / 双圆弧 S / 端点断言
 │   ├── SnapMerge.py         # 顶点吸附 / 同层合并
+│   ├── LayerStack.py        # 设计手册 -> 统一 LayerStack
 │   └── EulerConnection.py   # 任意角度端口 Euler 连线
-├── SOITools/                # SOI（12 英寸、三层金属）独立命名空间子库
-│   ├── FabBasic.py          # SOI 层号与工艺常数
-│   ├── Geometry.py          # Route、条带、环带、pulley 弧
-│   ├── Routing.py           # Si/SiN 走线 + 开窗 + SINOP
-│   ├── Electrical.py        # 过孔、引线、bond pad、TiN 落点
-│   ├── Ring.py              # RingPulley / RaceTrackPulley
-│   ├── Spiral.py            # 双螺旋腔中心线
-│   ├── Facet.py             # 斜端面
-│   ├── Audit.py             # GDS 审计
-│   ├── Assembly.py          # 端口包装 / connect / PDK 加载
-│   └── README.md
+├── Devices/                 # 单器件
+│   ├── Ring.py              # RingPulley 家族（T1/T2/1DC/1HS/… 为 thin wrapper）
+│   ├── RaceTrack.py         # 跑道型谐振器
+│   ├── CouplerMZI.py        # 2×2 耦合器、DMZI、PMZI、Sagnac
+│   ├── DBR.py / DBR_inv.py  # 常规/采样/反相光栅
+│   ├── CoupledCavity.py     # 二阶耦合环 / CROW / SCISSOR
+│   ├── Boomerang.py         # 回旋镖腔
+│   ├── GongCavity.py / memyshev.py
+│   └── FeedbackCavity.py    # Add-Drop 微腔 + Sagnac loop mirror
+├── Assemblies/              # 多器件装配
+│   ├── MultiRing.py / MultiRaceTrack.py
+│   ├── ExtCav.py / WangCavity.py
+│   └── Isolator.py
+├── TestStructures/          # 测试/表征结构（TC*）
+│   ├── Coupon.py
+│   ├── TCRing.py / TestRow.py
+│   ├── TCRaceTrack.py
+│   └── TCCoupledCavity.py
+├── Electrical/              # Heater.py / ELE.py
+├── Platforms/SOI/           # SOI（12 英寸、三层金属）平台子库
+│   ├── FabBasic.py / Geometry.py / Routing.py
+│   ├── Electrical.py / Ring.py / Spiral.py / Facet.py
+│   └── Audit.py / Assembly.py
+├── GeneralTools/            # 旧路径兼容 shim（一个版本周期）
+├── SOITools/                # 旧路径兼容 shim
 ├── selftest/                # 自检（不从主包自动导入）
-│   ├── general_tools.py     # 全组件构建/端口/几何检查
-│   ├── soitools.py          # SOITools 几何与层号检查
-│   └── run_all.py           # 依次运行两组自检
-├── examples/                # 设计手册示例（LayerStack）
-│   └── layer_stack_manual.md
-└── docs/                    # 版图手册网站（GitHub Pages）
+└── docs/                    # 版图手册网站
 ```
 
----
+> 旧路径 `AIPLPhMTools.GeneralTools.<module>` 与 `AIPLPhMTools.SOITools`
+> 仍可用（thin shim）；新代码请使用上表的新子包路径。
 
 ## 自检
 

@@ -16,11 +16,13 @@ python AIPLPhMTools/docs/build_site.py
 
 ```text
 docs/
-├── index.html                 # 概览
-├── guide.html                 # 安装、参数约定、图层、自检
-├── soitools.html              # SOITools 子库
+├── index.html                 # 概览（按功能分类 + 按模块浏览）
+├── guide.html                 # 安装、目录结构、参数约定、图层、自检
+├── modules.html               # 模块层级：Core / Devices / Assemblies / TestStructures / Electrical / Platforms/SOI
+├── platforms_soi.html         # Platforms/SOI 平台子库（原 soitools.html）
+├── soitools.html              # 旧地址跳转到 platforms_soi.html
 ├── heaters3d.html             # 加热器 3D 层叠图（可拖动旋转）
-├── components/<器件>.html     # 每个器件一页
+├── components/<器件>.html     # 每个器件一页（顶部「模块」链回 modules.html）
 ├── categories/<分类>.html     # 分类索引
 └── assets/
     ├── site.css / site.js
@@ -32,7 +34,7 @@ docs/
     ├── heaters3d-data.js      # 加热器对比页 3D 数据
     ├── heaters3d.js           # 3D 查看器（canvas，无外部依赖）
     ├── csv/                   # CSV DBR 的演示数据
-    └── SOITools/              # SOITools 子库演示图
+    └── platforms_soi/         # Platforms/SOI 子库演示图
 ```
 
 ## 本地预览

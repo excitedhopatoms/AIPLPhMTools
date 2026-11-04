@@ -145,6 +145,67 @@ def main() -> int:
     chk("TaperRsoa 两个端口", len(rsoa.ports) == 2)
     chk("TaperRsoa o1 宽度 = WidthRsoa", abs(rsoa.ports["o1"].width - 8) < 1e-6)
 
+    # Sagnac 反射器：MMI / pulley DC 两种分束器共用同一套泪滴 loop
+    for name in ("OptMMISagnacLoop", "OptPDCSagnacLoop"):
+        mir = ap.get_component(name)()
+        chk(f"{name} 有 In/Out", {"In", "Out"} <= {p.name for p in mir.ports})
+        chk(f"{name} In 朝 180°",
+            abs((float(mir.ports["In"].orientation) - 180.0) % 360.0) < 1e-6)
+    pdc = ap.OptPDCSagnacLoop()
+    chk("OptPDCSagnacLoop 使用 pulley 分束器",
+        pdc.info.get("splitter") == "pulley")
+    chk("OptPDCSagnacLoop loop 半径 = 52",
+        abs(float(pdc.info["loop_radius"]) - 52.0) < 1e-9)
+    chk("OptPDCSagnacLoop 默认 RadiusMin = 50",
+        abs(float(pdc.info["radius_min"]) - 50.0) < 1e-9)
+    chk("OptPDCSagnacLoop 臂最小半径 ≥ RadiusMin",
+        float(pdc.info["arm_min_radius"]) >= float(pdc.info["radius_min"]) - 1e-6,
+        f"{float(pdc.info['arm_min_radius']):.1f} um")
+    chk("OptPDCSagnacLoop 默认半圆 loop", pdc.info.get("loop_shape") == "circle")
+    pdc_euler = ap.OptPDCSagnacLoop(LoopShape="euler")
+    chk("OptPDCSagnacLoop 半圆比 Euler 更紧凑",
+        pdc.dbbox().width() < pdc_euler.dbbox().width(),
+        f"{pdc.dbbox().width():.1f} < {pdc_euler.dbbox().width():.1f} um")
+    mmi_c = ap.OptMMISagnacLoop()
+    mmi_e = ap.OptMMISagnacLoop(LoopShape="euler")
+    chk("OptMMISagnacLoop 默认半圆 loop", mmi_c.info.get("loop_shape") == "circle")
+    chk("OptMMISagnacLoop 半圆比 Euler 更紧凑",
+        mmi_c.dbbox().width() < mmi_e.dbbox().width(),
+        f"{mmi_c.dbbox().width():.1f} < {mmi_e.dbbox().width():.1f} um")
+    chk("OptPDCSagnacLoop 可用更小的 RadiusMin",
+        ap.OptPDCSagnacLoop(Radius=30, RadiusMin=30) is not None)
+    try:
+        ap.OptPDCSagnacLoop(Radius=30, RadiusMin=50)
+        chk("OptPDCSagnacLoop 会拒绝 Radius < RadiusMin", False)
+    except ValueError:
+        chk("OptPDCSagnacLoop 会拒绝 Radius < RadiusMin", True)
+    try:
+        ap.OptMMISagnacLoop(Radius=30, RadiusMin=50)
+        chk("OptMMISagnacLoop 会拒绝 Radius < RadiusMin", False)
+    except ValueError:
+        chk("OptMMISagnacLoop 会拒绝 Radius < RadiusMin", True)
+    feed_pdc = ap.OptFeedbackRing(MirrorType="pdc")
+    chk("OptFeedbackRing[MirrorType=pdc] 四个光端口",
+        {"Input", "Through", "Add", "Drop"} <= {p.name for p in feed_pdc.ports})
+
+    # ExtCav 双环：PMZI 两个输出必须分别接两个环的 Input，连接 S 弯 ≥52
+    for name in ("ExtCavDouRing", "ExtCavDouRing3"):
+        comp = ap.get_component(name)()
+        radii = []
+        for inst in list(comp.insts) + list(getattr(comp, "vinsts", [])):
+            cell = getattr(inst, "cell", None)
+            info = getattr(cell, "info", {}) if cell is not None else {}
+            m = info.get("min_bend_radius")
+            if m is not None:
+                radii.append(float(m))
+        chk(f"{name} 连接弯最小半径 ≥52 um",
+            bool(radii) and min(radii) >= 52.0 - 1e-6,
+            f"{min(radii):.1f} um" if radii else "no bend info")
+    dr3 = ap.ExtCavDouRing3()
+    chk("ExtCavDouRing3 端口齐全",
+        {"Input", "Output", "Ro1", "Ro2", "Ro3", "Ro4"}
+        <= {p.name for p in dr3.ports})
+
     print("\nSELFTEST " + ("OK" if ok else "FAILED"))
     return 0 if ok else 1
 
