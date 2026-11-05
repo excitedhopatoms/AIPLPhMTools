@@ -7,7 +7,8 @@
 
 产物在 ``AIPLPhMTools/docs/``：
 
-* ``index.html`` / ``guide.html`` / ``modules.html`` / ``platforms_soi.html``
+* ``index.html`` / ``guide.html`` / ``modules.html`` / ``gdsmerge.html`` /
+  ``platforms_soi.html``
 * ``components/<器件>.html``
 * ``categories/<分类>.html``
 * ``assets/img/``          每个器件的默认参数版图 PNG
@@ -87,6 +88,7 @@ MODULE_TREE = [
         ("Core/EulerConnection.py", "任意角度端口的 Euler 连线"),
         ("Core/SnapMerge.py", "顶点吸附 / 同层合并（DRC 预处理）"),
         ("Core/LayerStack.py", "LayerDef / LayerStack（设计手册与 3D 视图）"),
+        ("Core/GdsMerge.py", "GDS 原位合并：同名 PDK cell 指纹比对 / 复用 / 冲突报告"),
     ]),
     ("Devices", "单器件：返回带端口的 Component", [
         ("Devices/Ring.py", "Pulley 环及 T1/T2/1DC 等变体"),
@@ -131,6 +133,11 @@ MODULE_TREE = [
         ("Platforms/SOI/Audit.py", "GDS → shapely 审计"),
     ]),
 ]
+
+MODULE_EXTRA_PAGE = {
+    "Core/GdsMerge.py": "gdsmerge.html",
+}
+
 
 def module_anchor(path: str) -> str:
     return "module-" + re.sub(r"[^A-Za-z0-9]+", "-", path).strip("-")
@@ -1429,6 +1436,7 @@ def sidebar_html(rel, active_name=None, active_cat=None, comps=None) -> str:
     <a class="nav-top" href="{rel}index.html">概览</a>
     <a class="nav-top" href="{rel}guide.html">快速开始与约定</a>
     <a class="nav-top" href="{rel}modules.html">模块层级</a>
+    <a class="nav-top" href="{rel}gdsmerge.html">GDS 合并</a>
     <a class="nav-top" href="{rel}platforms_soi.html">SOI 平台子库</a>
     <a class="nav-top" href="{rel}heaters3d.html">加热器 3D</a>
     {''.join(groups)}
@@ -1697,6 +1705,9 @@ c2.write_gds("ring_2port.gds")</code></pre>""")
     body.append('<div class="note"><strong>交互式 3D：</strong>'
                 '加热器的波导 / M1 / M2 / 开窗层叠关系可以拖动旋转查看：'
                 '<a href="heaters3d.html">打开加热器 3D 层叠图</a>。</div>')
+    body.append('<div class="note"><strong>GDS 原位合并：</strong>'
+                '两颗 die 叠在同一坐标系时复用同名 PDK cell、避免 <code>$1</code> 副本：'
+                '<a href="gdsmerge.html">merge_gds / merge_into_kcl 用法 →</a></div>')
     body.append('<div class="note green"><strong>怎么用这本手册：</strong>'
                 '左侧「模块层级」按代码目录（Core / Devices / Assemblies / TestStructures / '
                 'Electrical / Platforms/SOI）浏览，下面的分类按功能浏览；器件页先看默认版图，'
@@ -1781,7 +1792,8 @@ def modules_page(comps) -> str:
             name = path[len(group) + 1:]
             m = len(by_path.get(path, []))
             tail_file = (f"{m} 个器件" if m
-                         else ("见专页" if group == "Platforms/SOI" else "—"))
+                         else ("见专页" if group == "Platforms/SOI" or path in MODULE_EXTRA_PAGE
+                               else "—"))
             lines.append(f"{prefix}{'└──' if f_last else '├──'} {name:<26}{tail_file}")
     body.append(f'<pre><code>{esc(chr(10).join(lines))}</code></pre>')
 
@@ -1799,6 +1811,8 @@ def modules_page(comps) -> str:
                     for c in sorted(items, key=lambda x: x["name"].lower()))
             elif group == "Platforms/SOI":
                 refs = f'<a href="platforms_soi.html">用法与图层 →</a>'
+            elif path in MODULE_EXTRA_PAGE:
+                refs = f'<a href="{MODULE_EXTRA_PAGE[path]}">用法 →</a>'
             else:
                 refs = '<span class="type">—</span>'
             rows.append(
@@ -1852,7 +1866,8 @@ pip install -e .
 │   ├── BasicDefine.py   # 层号接口、截面、直/弯/锥、斜端面、Euler 路径、route_off_grid
 │   ├── EulerConnection.py  # 任意角度端口的 Euler 连线
 │   ├── SnapMerge.py     # 顶点吸附 / 同层合并（DRC 预处理）
-│   └── LayerStack.py    # LayerDef / LayerStack（手册与 3D 视图）
+│   ├── LayerStack.py    # LayerDef / LayerStack（手册与 3D 视图）
+│   └── GdsMerge.py      # GDS 原位合并：同名 PDK cell 指纹比对 / 复用
 ├── Devices/             # 单器件：返回带端口的 Component
 │   ├── Ring.py / RaceTrack.py
 │   ├── CouplerMZI.py / CoupledCavity.py / FeedbackCavity.py
@@ -1878,7 +1893,9 @@ pip install -e .
 │   └── run_all.py       # 依次运行两组自检
 └── docs/                # 本手册（由 build_site.py 生成）</code></pre>""")
     body.append('<div class="note">网页左侧的 <a href="modules.html"><b>模块层级</b></a> '
-                '按这份目录逐文件列出器件；器件页顶部的「模块」徽标也会链回对应文件。</div>')
+                '按这份目录逐文件列出器件；器件页顶部的「模块」徽标也会链回对应文件。'
+                '整颗 die 的 GDS 原位合并（复用同名 PDK cell）见 '
+                '<a href="gdsmerge.html">GDS 合并</a>。</div>')
 
     body.append("<h2>参数阅读方式</h2>")
     body.append('<div class="grid two">'
@@ -1934,6 +1951,108 @@ python -m AIPLPhMTools.selftest.soitools</code></pre>""")
                 '<li>同一进程内可安全地用不同参数反复构建；cell 缓存按参数自动区分。</li>'
                 '</ul>')
     return layout("快速开始与约定", "\n".join(body), rel, comps=comps)
+
+
+def gdsmerge_page(comps) -> str:
+    """GDS 原位合并工具页（Core/GdsMerge.py）。"""
+    rel = ""
+    from AIPLPhMTools.Core import GdsMerge as gm
+
+    api = [
+        (gm.merge_gds, "纯 GDS → GDS：把 B 原位合并进 A，返回 MergeReport。"),
+        (gm.merge_into_kcl, "把外部 GDS 读进已有 KCLayout / kdb.Layout，返回顶层 cell。"),
+        (gm.find_conflicts, "只体检不合并：列出同名 cell 中内容一致 / 不一致的清单。"),
+        (gm.cell_signature, "计算单个 cell 的内容指纹（bbox + 各层图形 + 实例变换）。"),
+    ]
+    rows, sig_lines = [], []
+    for fn, desc in api:
+        try:
+            sig = str(inspect.signature(fn)).replace("'", "")
+        except (TypeError, ValueError):
+            sig = "(...)"
+        sig_lines.append(textwrap.fill(f"{fn.__name__}{sig}", width=100,
+                                       subsequent_indent="    ",
+                                       break_long_words=False,
+                                       break_on_hyphens=False))
+        rows.append(f"<tr><td><code>{esc(fn.__name__)}</code></td>"
+                    f"<td>{esc(desc)}</td></tr>")
+
+    body = [f'<div class="topline">{breadcrumb(rel)}'
+            '<div class="gh"><a href="index.html">◀ 返回概览</a></div></div>']
+    body.append("<h1>GDS 原位合并</h1>")
+    body.append('<p class="lead">把两颗 die 叠在同一坐标系里时，复用同名 PDK cell，'
+                '而不是产生 <code>$1</code> / <code>_1</code> 副本。'
+                '源码在 <code>AIPLPhMTools/Core/GdsMerge.py</code>，'
+                '顶层可直接 <code>from AIPLPhMTools import merge_gds</code>。'
+                '模块归属见 <a href="modules.html#module-Core-GdsMerge-py">模块层级 → Core/GdsMerge.py</a>。</p>')
+
+    body.append('<div class="note"><strong>为什么需要：</strong>GDS 里的 cell 只有名字没有 ID。'
+                '两颗 die 都带 <code>GC_Focus_C</code> / <code>WG_TRACE_13</code> 这类 PDK 宏时，'
+                '默认读入策略会把后读的改名成 <code>GC_Focus_C$1</code>，层级和后续 LVS/DRC 都会变乱。'
+                '本模块先比对同名 cell 的内容，再决定复用、报错还是改名。</div>')
+
+    body.append("<h2>两种入口</h2>")
+    body.append('<div class="table-wrap"><table><thead><tr><th>入口</th><th>适用场景</th>'
+                '<th>返回</th></tr></thead><tbody>'
+                '<tr><td><code>merge_gds(A, B, out, ...)</code></td>'
+                '<td>两个 GDS 文件直接合并；可 <code>dry_run</code> 只体检</td>'
+                '<td><code>MergeReport</code>（或 <code>(layout, report)</code>）</td></tr>'
+                '<tr><td><code>merge_into_kcl(kcl, path, ...)</code></td>'
+                '<td>在 gdsfactory / kfactory 构建流程里读外部宏</td>'
+                '<td>读入文件的顶层 cell</td></tr>'
+                '</tbody></table></div>')
+
+    body.append("<h2>先体检，再合并</h2>")
+    body.append("""<pre><code>from AIPLPhMTools import find_conflicts, merge_gds
+
+rep = find_conflicts("left.gds", "right.gds")
+print(rep.shared, rep.clashing)      # 同名且一致 / 同名但内容不同
+
+if not rep.clashing:
+    rep = merge_gds("left.gds", "right.gds", "merged.gds",
+                    union_top="TOP")     # 新建顶层，把两边顶层放在 (0,0)
+    print(rep)                       # cell 数、顶层、bbox、被改名的 cell</code></pre>""")
+
+    body.append("<h2>在 gdsfactory 里读 PDK 宏</h2>")
+    body.append("""<pre><code>import gdsfactory as gf
+from AIPLPhMTools import merge_into_kcl
+
+c = gf.Component("merged")
+top = merge_into_kcl(c.kcl, "pdk_macro.gds")
+c &lt;&lt; top                         # 直接引用；同名 PDK cell 不会被改名
+c.write_gds("merged.gds")</code></pre>""")
+    body.append('<div class="note warn"><strong>不要用 <code>gf.import_gds</code> 做这件事：</strong>'
+                '它会先读进临时 kcl，再把顶层 cell 拷进目标 kcl；拷贝那一步不受 '
+                '<code>skip_new_cells</code> 控制，同名 PDK 宏照样会被改名。</div>')
+
+    body.append("<h2>冲突策略</h2>")
+    body.append('<div class="table-wrap"><table><thead><tr><th>情况</th><th>默认行为</th>'
+                '<th>可选处理</th></tr></thead><tbody>'
+                '<tr><td>同名且内容一致</td><td><code>SkipNewCell</code>：复用已有 cell，不产生 <code>$1</code></td>'
+                '<td>—</td></tr>'
+                '<tr><td>同名但内容不同</td><td><code>on_conflict="error"</code>：直接抛错</td>'
+                '<td><code>on_conflict="rename"</code> 交给 KLayout 改名；<br>'
+                '<code>prefix="HJH_"</code> 给 B 的所有 cell 加前缀</td></tr>'
+                '<tr><td>需要一个新的总顶层</td><td>不创建</td>'
+                '<td><code>union_top="TOP"</code>：把 A/B 顶层都放在 (0,0)</td></tr>'
+                '</tbody></table></div>')
+
+    body.append("<h2>内容指纹</h2>")
+    body.append('<p class="lead">复用前会比较 <code>cell_signature</code>：bbox + 每层 '
+                '（合并后图形个数、面积）+ 实例（cell 名、位移、角度）。'
+                '只比较<b>版图内容</b>，不比较 PDK 版本；如果两边是不同版本的同名宏，'
+                '请用 <code>prefix</code> 明确隔离。</p>')
+
+    body.append("<h2>API</h2>")
+    body.append(f'<pre><code>{esc(chr(10).join(sig_lines))}</code></pre>')
+    body.append(f'<div class="table-wrap"><table><thead><tr><th>函数</th><th>作用</th>'
+                f'</tr></thead><tbody>{"".join(rows)}</tbody></table></div>')
+    body.append('<div class="note green"><code>MergeReport</code> 的 <code>ok</code> 属性'
+                '只有在“没有内容冲突、也没有 cell 被改名”时才为 <code>True</code>；'
+                '适合在构建脚本里做交付前门禁。</div>')
+
+    return layout("GDS 原位合并", "\n".join(body), rel, comps=comps,
+                  desc="AIPLPhMTools GDS 原位合并：PDK cell 指纹比对、复用与冲突报告")
 
 
 def platforms_soi_page(comps) -> str:
@@ -2094,6 +2213,7 @@ def main() -> int:
     (HERE / "index.html").write_text(overview_page(comps), encoding="utf-8")
     (HERE / "guide.html").write_text(guide_page(comps), encoding="utf-8")
     (HERE / "modules.html").write_text(modules_page(comps), encoding="utf-8")
+    (HERE / "gdsmerge.html").write_text(gdsmerge_page(comps), encoding="utf-8")
     (HERE / "heaters3d.html").write_text(heaters3d_page(heater3d, comps), encoding="utf-8")
     (HERE / ".nojekyll").write_text("", encoding="utf-8")
 
@@ -2115,7 +2235,7 @@ def main() -> int:
 </body></html>""", encoding="utf-8")
 
     print(f"written: {len(comps)} component pages, {len(CATEGORIES)} category pages, "
-          f"modules + platforms_soi")
+          f"modules + gdsmerge + platforms_soi")
     print("open: AIPLPhMTools/docs/index.html")
     return 0
 

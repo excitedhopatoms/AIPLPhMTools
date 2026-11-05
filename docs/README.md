@@ -19,6 +19,7 @@ docs/
 ├── index.html                 # 概览（按功能分类 + 按模块浏览）
 ├── guide.html                 # 安装、目录结构、参数约定、图层、自检
 ├── modules.html               # 模块层级：Core / Devices / Assemblies / TestStructures / Electrical / Platforms/SOI
+├── gdsmerge.html              # GDS 原位合并：PDK cell 指纹比对 / 复用 / 冲突报告
 ├── platforms_soi.html         # Platforms/SOI 平台子库（原 soitools.html）
 ├── soitools.html              # 旧地址跳转到 platforms_soi.html
 ├── heaters3d.html             # 加热器 3D 层叠图（可拖动旋转）

@@ -2,7 +2,8 @@
 
 目录结构（2026-11-03 重组）：
 
-* ``Core``         层号/截面/直弯锥/路由/几何工具（``BasicDefine``、``Routing``、``SnapMerge``、``LayerStack``）
+* ``Core``         层号/截面/直弯锥/路由/几何工具（``BasicDefine``、``EulerConnection``、
+                   ``SnapMerge``、``LayerStack``、``GdsMerge``）
 * ``Devices``      单器件：Ring / RaceTrack / CouplerMZI / DBR / FeedbackCavity ...
 * ``Assemblies``   多器件装配：MultiRing / MultiRaceTrack / ExtCav / Isolator ...
 * ``TestStructures`` 测试/表征结构：TCRing* / TCRaceTrack* / TCCoupledCavity* / Coupon ...
@@ -37,6 +38,7 @@ _MODULES: tuple[str, ...] = (
     "Core.EulerConnection",
     "Core.SnapMerge",
     "Core.LayerStack",
+    "Core.GdsMerge",
     "Electrical.Heater",
     "Electrical.ELE",
     "Devices.CouplerMZI",
@@ -95,6 +97,12 @@ _NON_COMPONENTS = {
     "Coupon",
     "LayerDef",
     "LayerStack",
+    # GDS 合并工具：是函数/报告类，不是"返回 Component 的构造函数"
+    "MergeReport",
+    "cell_signature",
+    "merge_gds",
+    "merge_into_kcl",
+    "find_conflicts",
 }
 
 # BasicDefine 没有定义 __all__（其它模块靠 star-import 取它的内部符号），
@@ -150,5 +158,10 @@ __all__ = [
     "LayerStack",
     "get_component",
     "list_components",
+    "MergeReport",
+    "cell_signature",
+    "merge_gds",
+    "merge_into_kcl",
+    "find_conflicts",
     *sorted(COMPONENTS),
 ]

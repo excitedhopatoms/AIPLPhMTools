@@ -42,6 +42,7 @@
   - [王字形微腔 (WangCavity)](#王字形微腔-wangcavity)
   - [测试结构 (TC 系列)](#测试结构-tc-系列)
   - [DRC 预处理 (SnapMerge)](#drc-预处理-snapmerge)
+  - [GDS 原位合并 (GdsMerge)](#gds-原位合并-gdsmerge)
   - [通用版图绘制引擎 (layout_engine)](#通用版图绘制引擎-layout_engine)
 - [批量生成 GDS](#批量生成-gds)
 - [注意事项](#注意事项)
@@ -114,11 +115,11 @@ print(config.waveguide.width_ring)  # 1.0
 ```
 AIPLPhMTools/
 ├── Core/                    # 与具体器件无关
-│   ├── BasicDefine.py       # 图层、截面、直/弯波导、锥、斜端面、Euler 路径
-│   ├── Routing.py           # route_off_grid / 双圆弧 S / 端点断言
+│   ├── BasicDefine.py       # 图层、截面、直/弯波导、锥、斜端面、Euler 路径、route_off_grid
+│   ├── EulerConnection.py   # 任意角度端口 Euler 连线
 │   ├── SnapMerge.py         # 顶点吸附 / 同层合并
 │   ├── LayerStack.py        # 设计手册 -> 统一 LayerStack
-│   └── EulerConnection.py   # 任意角度端口 Euler 连线
+│   └── GdsMerge.py          # GDS 原位合并：同名 PDK cell 指纹比对 / 复用
 ├── Devices/                 # 单器件
 │   ├── Ring.py              # RingPulley 家族（T1/T2/1DC/1HS/… 为 thin wrapper）
 │   ├── RaceTrack.py         # 跑道型谐振器
@@ -1115,6 +1116,49 @@ snap_all_polygons_iteratively(my_component, grid_size=0.001)
 #### `merge_polygons_in_layer(component, layer)`
 
 合并指定图层的多边形。
+
+---
+
+### GDS 原位合并 (GdsMerge)
+
+定义在 `Core/GdsMerge.py`。把两个 GDS 叠在同一坐标系时，**先比对同名 cell 的内容**，
+一致则复用（`SkipNewCell`，不产生 `$1`），不一致则默认报错。适合把测试片、PDK 宏
+或两颗 die 原位合并。
+
+#### `merge_gds(path_a, path_b, out=None, *, prefix=None, union_top=None, on_conflict="error", dry_run=False, return_layout=False)`
+
+纯 GDS → GDS，返回 `MergeReport`。`dry_run=True` 只体检；`union_top` 新建一个总顶层；
+`prefix` 给 B 的所有 cell 加前缀；`on_conflict="rename"` 交给 KLayout 改名。
+
+```python
+from AIPLPhMTools import merge_gds
+
+rep = merge_gds("left.gds", "right.gds", "merged.gds", union_top="TOP")
+print(rep.ok, rep.shared, rep.clashing, rep.tops)
+```
+
+#### `merge_into_kcl(kcl, path, *, on_conflict="error", prefix=None)`
+
+把外部 GDS 读进已有的 kfactory `KCLayout` / `klayout.db.Layout`，返回读入文件的顶层
+cell。不要用 `gf.import_gds` 替代：它先读临时 kcl 再拷顶层，同名 PDK 宏仍会被改名。
+
+```python
+import gdsfactory as gf
+from AIPLPhMTools import merge_into_kcl
+
+c = gf.Component("merged")
+top = merge_into_kcl(c.kcl, "pdk_macro.gds")
+c << top
+```
+
+#### `find_conflicts(path_a, path_b)`
+
+只体检不合并，返回同名 cell 的 `shared` / `clashing` 清单与 bbox。
+
+#### `MergeReport`
+
+`shared`、`clashing`、`cells_before`、`cells_after`、`tops`、`bbox_um`、`renamed`；
+`ok` 只有在没有内容冲突、也没有 cell 被改名时才为 `True`。
 
 ---
 
